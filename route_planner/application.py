@@ -31,6 +31,7 @@ from .event import (
 @dataclass(frozen=True)
 class Output:
     metrics: Metrics
+    bones: int
     event: Event
 
 
@@ -46,10 +47,13 @@ class Route:
     def add(self, event_group: Iterable[Event]):
         for event in event_group:
             event(self.state)
-            self.state.metrics = replace(  # creates a copy
-                self.state.metrics, bones=self.state.items["Homeward Bone"]
+            self.output.append(
+                Output(
+                    metrics=replace(self.state.metrics),
+                    bones=self.state.items["Homeward Bone"],
+                    event=event,
+                )
             )
-            self.output.append(Output(metrics=self.state.metrics, event=event))
 
     def extend(self, event_groups: Iterable[Iterable[Event]]):
         for event_group in event_groups:

@@ -10,13 +10,11 @@ from typing import Optional
 class Metrics:
     souls: int = 0
     item_souls: int = 0
-    bones: int = 0
 
     def __add__(self, other: Metrics) -> Metrics:
         return Metrics(
             souls=self.souls + other.souls,
             item_souls=self.item_souls + other.item_souls,
-            bones=self.bones + other.bones,
         )
 
 
