@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Iterable
 
-from .event import (
+from .action import (
     Activate,
     BonfireAuto,
     BonfireSit,
@@ -10,7 +10,7 @@ from .event import (
     Darksign,
     Equip,
     EquipAuto,
-    Event,
+    Action,
     HomewardBone,
     Jump,
     Kill,
@@ -27,14 +27,14 @@ from .event import (
 from .route import Entry, Route
 
 
-def start_of_game() -> Iterable[Event]:
+def start_of_game() -> Iterable[Action]:
     return [
         Region("Northern Undead Asylum"),
         BonfireAuto("Undead Asylum Dungeon Cell"),
     ]
 
 
-def pyromancer_initial_state() -> Iterable[Event]:
+def pyromancer_initial_state() -> Iterable[Action]:
     notes = "Pyromancer starting equipment"
     return [
         Equip("Straight Sword Hilt", "Right Hand", notes=notes),
@@ -45,7 +45,7 @@ def pyromancer_initial_state() -> Iterable[Event]:
     ]
 
 
-def asylum_cell_to_firelink() -> Iterable[Event]:
+def asylum_cell_to_firelink() -> Iterable[Action]:
     return [
         Region("Northern Undead Asylum"),
         Loot("Dungeon Cell Key"),
@@ -69,41 +69,41 @@ def asylum_cell_to_firelink() -> Iterable[Event]:
 
 def firelink_loot(
     *, elevator_soul: bool, graveyard_souls: int
-) -> Iterable[Event]:
-    events: list[Event] = [Region("Firelink Shrine")]
+) -> Iterable[Action]:
+    actions: list[Action] = [Region("Firelink Shrine")]
     if elevator_soul:
-        events.extend(
+        actions.extend(
             [
                 LootSoul("Soul of a Lost Undead", location="upper elevator"),
                 Jump("off ledge to hidden chests"),
             ]
         )
     else:
-        events.extend([Run("under upper elevator")])
+        actions.extend([Run("under upper elevator")])
 
-    events.extend(
+    actions.extend(
         [
             Loot("Homeward Bone", count=6, location="hidden chest"),
             Equip("Homeward Bone", "Item 5", location="immediately"),
         ]
     )
 
-    all_graveyard_soul_events = [
+    all_graveyard_soul_actions = [
         LootSoul("Large Soul of a Lost Undead", location="middle graveyard"),
         LootSoul("Large Soul of a Lost Undead", location="start of graveyard"),
     ]
     if 0 <= graveyard_souls <= 2:
-        events.extend(all_graveyard_soul_events[0:graveyard_souls])
+        actions.extend(all_graveyard_soul_actions[0:graveyard_souls])
     else:
         raise ValueError(
             f"graveyard_souls must be in range [0,2] but is {graveyard_souls}"
         )
 
-    events.append(HomewardBone())
-    return events
+    actions.append(HomewardBone())
+    return actions
 
 
-def fetch_reinforced_club() -> Iterable[Event]:
+def fetch_reinforced_club() -> Iterable[Action]:
     return [
         Region("Undead Burg"),
         Buy("Reinforced Club", location="Undead Merchant", souls=350),

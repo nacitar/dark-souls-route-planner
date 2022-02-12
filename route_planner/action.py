@@ -9,7 +9,7 @@ from typing import Optional
 @dataclass(kw_only=True)
 class State:
     souls: int = 0
-    item_souls: int = 0
+    bank: int = 0
     bonfire: str = ""
     region: str = ""
     bonfire_to_region: dict[str, str] = field(default_factory=dict, repr=False)
@@ -18,31 +18,31 @@ class State:
 
 
 @dataclass(kw_only=True, init=False)
-class __Event:
+class __Action:
     location: str = ""
     notes: str = ""
 
 
 # workaround a mypy bug: https://github.com/python/mypy/issues/5374
-class Event(ABC, __Event):
+class Action(ABC, __Action):
     @abstractmethod
-    def __call__(self, state: State):
+    def __call__(self, state: State) -> None:
         ...
 
 
 @dataclass
-class Region(Event):
+class Region(Action):
     location: str  # override
 
-    def __call__(self, state: State):
+    def __call__(self, state: State) -> None:
         state.region = self.location
 
 
 @dataclass
-class BonfireSit(Event):
+class BonfireSit(Action):
     location: str  # override
 
-    def __call__(self, state: State):
+    def __call__(self, state: State) -> None:
         known_region = state.bonfire_to_region.get(self.location)
         if known_region is not None and known_region != state.region:
             raise RuntimeError(
@@ -56,14 +56,14 @@ class BonfireSit(Event):
 
 @dataclass
 class BonfireAuto(BonfireSit):
-    ...  # class only exists to rename the event in __str__
+    ...  # class only exists to rename the action in __str__
 
 
 @dataclass(kw_only=True, init=False)
-class __WarpCommon(Event):
+class __WarpCommon(Action):
     destination: str = ""
 
-    def __call__(self, state: State):
+    def __call__(self, state: State) -> None:
         state.region = state.bonfire_to_region[self.destination]
 
 
@@ -74,7 +74,7 @@ class Warp(__WarpCommon):
 
 @dataclass(init=False)
 class HomewardBone(__WarpCommon):
-    def __call__(self, state: State):
+    def __call__(self, state: State) -> None:
         self.destination = state.bonfire
         super().__call__(state)
         state.items["Homeward Bone"] -= 1
@@ -82,19 +82,19 @@ class HomewardBone(__WarpCommon):
 
 @dataclass
 class Darksign(__WarpCommon):
-    def __call__(self, state: State):
+    def __call__(self, state: State) -> None:
         self.destination = state.bonfire
         super().__call__(state)
         state.souls = 0
 
 
 @dataclass(kw_only=True)
-class __EquipCommon(Event):
+class __EquipCommon(Action):
     slot: str
     replaces: str = ""
     expected_to_replace: Optional[str] = None
 
-    def __call__(self, state: State):
+    def __call__(self, state: State) -> None:
         self.replaces = state.equipment.get(self.slot, "")
         if (
             self.expected_to_replace is not None
@@ -111,7 +111,7 @@ class Equip(__EquipCommon):
     item: str
     slot: str  # override
 
-    def __call__(self, state: State):
+    def __call__(self, state: State) -> None:
         super().__call__(state)
         state.equipment[self.slot] = self.item
 
@@ -120,31 +120,31 @@ class Equip(__EquipCommon):
 class UnEquip(__EquipCommon):
     slot: str  # override
 
-    def __call__(self, state: State):
+    def __call__(self, state: State) -> None:
         super().__call__(state)
         state.equipment[self.slot] = ""
 
 
 @dataclass
 class EquipAuto(Equip):
-    ...  # class only exists to rename the event in __str__
+    ...  # class only exists to rename the action in __str__
 
 
 @dataclass
-class Loot(Event):
+class Loot(Action):
     item: str
     _ = KW_ONLY
-    item_souls: int = 0
+    bank: int = 0
     count: int = 1
 
-    def __call__(self, state: State):
+    def __call__(self, state: State) -> None:
         state.items[self.item] += self.count
-        state.item_souls += self.item_souls * self.count
+        state.bank += self.bank * self.count
 
 
 @dataclass
 class Receive(Loot):
-    ...  # class only exists to rename the event in __str__
+    ...  # class only exists to rename the action in __str__
 
 
 _SOUL_ITEM_VALUES: dict[str, int] = {
@@ -155,60 +155,60 @@ _SOUL_ITEM_VALUES: dict[str, int] = {
 
 @dataclass(kw_only=True)
 class LootSoul(Loot):
-    item_souls: int = field(default=0, init=False)  # override
+    bank: int = field(default=0, init=False)  # override
 
-    def __call__(self, state: State):
-        self.item_souls = _SOUL_ITEM_VALUES[self.item]
+    def __call__(self, state: State) -> None:
+        self.bank = _SOUL_ITEM_VALUES[self.item]
         super().__call__(state)
 
 
 @dataclass
-class Buy(Event):
+class Buy(Action):
     item: str
     _ = KW_ONLY
     souls: int = 0
     count: int = 1
 
-    def __call__(self, state: State):
+    def __call__(self, state: State) -> None:
         state.items[self.item] += self.count
         state.souls -= self.souls * self.count
 
 
 @dataclass
-class Run(Event):
+class Run(Action):
     location: str  # override
 
-    def __call__(self, state: State):
+    def __call__(self, state: State) -> None:
         ...
 
 
 @dataclass
 class Jump(Run):
-    ...  # class only exists to rename the event in __str__
+    ...  # class only exists to rename the action in __str__
 
 
 @dataclass
-class Activate(Event):
+class Activate(Action):
     target: str
 
-    def __call__(self, state: State):
+    def __call__(self, state: State) -> None:
         ...
 
 
 @dataclass
 class Talk(Activate):
-    ...  # class only exists to rename the event in __str__
+    ...  # class only exists to rename the action in __str__
 
 
 @dataclass
-class Kill(Event):
+class Kill(Action):
     target: str
     souls: int
 
-    def __call__(self, state: State):
+    def __call__(self, state: State) -> None:
         state.souls += self.souls
 
 
 @dataclass
 class KillAuto(Kill):
-    ...  # class only exists to rename the event in __str__
+    ...  # class only exists to rename the action in __str__
