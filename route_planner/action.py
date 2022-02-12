@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from collections import Counter
-from dataclasses import KW_ONLY, dataclass, field
+from dataclasses import dataclass, field
 from typing import Optional
 
 
@@ -17,10 +17,14 @@ class State:
     items: Counter[str] = field(default_factory=Counter, repr=False)
 
 
-@dataclass(kw_only=True, init=False)
+@dataclass
 class __Action:
-    location: str = ""
-    notes: str = ""
+    target: str
+    detail: str = field(default="", kw_only=True)
+
+    @property
+    def name(self):
+        return type(self).__name__.lower()
 
 
 # workaround a mypy bug: https://github.com/python/mypy/issues/5374
@@ -32,26 +36,22 @@ class Action(ABC, __Action):
 
 @dataclass
 class Region(Action):
-    location: str  # override
-
     def __call__(self, state: State) -> None:
-        state.region = self.location
+        state.region = self.target
 
 
 @dataclass
 class BonfireSit(Action):
-    location: str  # override
-
     def __call__(self, state: State) -> None:
-        known_region = state.bonfire_to_region.get(self.location)
+        known_region = state.bonfire_to_region.get(self.target)
         if known_region is not None and known_region != state.region:
             raise RuntimeError(
-                f'bonfire "{self.location}" was previously listed as being in'
+                f'bonfire "{self.target}" was previously listed as being in'
                 f' region "{known_region}" but is currently indicated to be in'
                 f' region "{state.region}"'
             )
-        state.bonfire_to_region[self.location] = state.region
-        state.bonfire = self.location
+        state.bonfire_to_region[self.target] = state.region
+        state.bonfire = self.target
 
 
 @dataclass
@@ -59,36 +59,38 @@ class BonfireAuto(BonfireSit):
     ...  # class only exists to rename the action in __str__
 
 
-@dataclass(kw_only=True, init=False)
+@dataclass
 class __WarpCommon(Action):
-    destination: str = ""
-
     def __call__(self, state: State) -> None:
-        state.region = state.bonfire_to_region[self.destination]
+        state.region = state.bonfire_to_region[self.target]
 
 
 @dataclass
 class Warp(__WarpCommon):
-    destination: str  # override
+    ...
 
 
-@dataclass(init=False)
+@dataclass
 class HomewardBone(__WarpCommon):
+    target: str = field(init=False)
+
     def __call__(self, state: State) -> None:
-        self.destination = state.bonfire
+        self.target = state.bonfire
         super().__call__(state)
         state.items["Homeward Bone"] -= 1
 
 
 @dataclass
 class Darksign(__WarpCommon):
+    target: str = ""  # override
+
     def __call__(self, state: State) -> None:
-        self.destination = state.bonfire
+        self.target = state.bonfire
         super().__call__(state)
         state.souls = 0
 
 
-@dataclass(kw_only=True)
+@dataclass
 class __EquipCommon(Action):
     slot: str
     replaces: str = ""
@@ -108,17 +110,14 @@ class __EquipCommon(Action):
 
 @dataclass
 class Equip(__EquipCommon):
-    item: str
-    slot: str  # override
-
     def __call__(self, state: State) -> None:
         super().__call__(state)
-        state.equipment[self.slot] = self.item
+        state.equipment[self.slot] = self.target
 
 
 @dataclass
 class UnEquip(__EquipCommon):
-    slot: str  # override
+    target: str = field(default="", init=False)
 
     def __call__(self, state: State) -> None:
         super().__call__(state)
@@ -132,13 +131,11 @@ class EquipAuto(Equip):
 
 @dataclass
 class Loot(Action):
-    item: str
-    _ = KW_ONLY
     bank: int = 0
-    count: int = 1
+    count: int = field(default=1, kw_only=True)
 
     def __call__(self, state: State) -> None:
-        state.items[self.item] += self.count
+        state.items[self.target] += self.count
         state.bank += self.bank * self.count
 
 
@@ -153,31 +150,27 @@ _SOUL_ITEM_VALUES: dict[str, int] = {
 }
 
 
-@dataclass(kw_only=True)
+@dataclass
 class LootSoul(Loot):
-    bank: int = field(default=0, init=False)  # override
+    bank: int = field(init=False)  # override
 
     def __call__(self, state: State) -> None:
-        self.bank = _SOUL_ITEM_VALUES[self.item]
+        self.bank = _SOUL_ITEM_VALUES[self.target]
         super().__call__(state)
 
 
 @dataclass
 class Buy(Action):
-    item: str
-    _ = KW_ONLY
     souls: int = 0
     count: int = 1
 
     def __call__(self, state: State) -> None:
-        state.items[self.item] += self.count
+        state.items[self.target] += self.count
         state.souls -= self.souls * self.count
 
 
 @dataclass
 class Run(Action):
-    location: str  # override
-
     def __call__(self, state: State) -> None:
         ...
 
@@ -189,8 +182,6 @@ class Jump(Run):
 
 @dataclass
 class Activate(Action):
-    target: str
-
     def __call__(self, state: State) -> None:
         ...
 
@@ -202,7 +193,6 @@ class Talk(Activate):
 
 @dataclass
 class Kill(Action):
-    target: str
     souls: int
 
     def __call__(self, state: State) -> None:

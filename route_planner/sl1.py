@@ -35,13 +35,13 @@ def start_of_game() -> Iterable[Action]:
 
 
 def pyromancer_initial_state() -> Iterable[Action]:
-    notes = "Pyromancer starting equipment"
+    detail = "Pyromancer starting equipment"
     return [
-        Equip("Straight Sword Hilt", "Right Hand", notes=notes),
-        Equip("Tattered Cloth Hood", "Head", notes=notes),
-        Equip("Tattered Cloth Robe", "Torso", notes=notes),
-        Equip("Tattered Cloth Manchette", "Arms", notes=notes),
-        Equip("Heavy Boots", "Legs", notes=notes),
+        Equip("Straight Sword Hilt", "Right Hand", detail=detail),
+        Equip("Tattered Cloth Hood", "Head", detail=detail),
+        Equip("Tattered Cloth Robe", "Torso", detail=detail),
+        Equip("Tattered Cloth Manchette", "Arms", detail=detail),
+        Equip("Heavy Boots", "Legs", detail=detail),
     ]
 
 
@@ -49,18 +49,18 @@ def asylum_cell_to_firelink() -> Iterable[Action]:
     return [
         Region("Northern Undead Asylum"),
         Loot("Dungeon Cell Key"),
-        UnEquip("Torso", location="First ladder or big door."),
-        UnEquip("Arms", location="First ladder or big door."),
+        UnEquip("Torso", detail="First ladder or big door."),
+        UnEquip("Arms", detail="First ladder or big door."),
         Loot("Hand Axe"),
-        Equip("Hand Axe", "Right Hand", location="Fog gate before Oscar"),
-        Talk("Oscar of Astora", location="Behind wall boulder breaks"),
-        Receive("Estus Flask", location="Oscar of Astora"),
+        Equip("Hand Axe", "Right Hand", detail="Fog gate before Oscar"),
+        Talk("Oscar of Astora", detail="Behind wall boulder breaks"),
+        Receive("Estus Flask", detail="Oscar of Astora"),
         EquipAuto("Estus Flask", "Item 0"),
-        Receive("Undead Asylum F2 East Key", location="Oscar of Astora"),
+        Receive("Undead Asylum F2 East Key", detail="Oscar of Astora"),
         KillAuto("Oscar of Astora", souls=100),
         Kill("Asylum Demon", souls=2000),
-        Receive("Big Pilgrim's Key", location="Asylum Demon"),
-        Activate("Big Pilgrim's Key Door", location="Asylum Demon"),
+        Receive("Big Pilgrim's Key", detail="Asylum Demon"),
+        Activate("Big Pilgrim's Key Door", detail="Asylum Demon"),
         Activate("Ledge warp trigger to Firelink Shrine"),
         Region("Firelink Shrine"),
         BonfireAuto("Firelink Shrine"),
@@ -74,7 +74,7 @@ def firelink_loot(
     if elevator_soul:
         actions.extend(
             [
-                LootSoul("Soul of a Lost Undead", location="upper elevator"),
+                LootSoul("Soul of a Lost Undead", detail="upper elevator"),
                 Jump("off ledge to hidden chests"),
             ]
         )
@@ -83,14 +83,14 @@ def firelink_loot(
 
     actions.extend(
         [
-            Loot("Homeward Bone", count=6, location="hidden chest"),
-            Equip("Homeward Bone", "Item 5", location="immediately"),
+            Loot("Homeward Bone", count=6, detail="hidden chest"),
+            Equip("Homeward Bone", "Item 5", detail="immediately"),
         ]
     )
 
     all_graveyard_soul_actions = [
-        LootSoul("Large Soul of a Lost Undead", location="middle graveyard"),
-        LootSoul("Large Soul of a Lost Undead", location="start of graveyard"),
+        LootSoul("Large Soul of a Lost Undead", detail="middle graveyard"),
+        LootSoul("Large Soul of a Lost Undead", detail="start of graveyard"),
     ]
     if 0 <= graveyard_souls <= 2:
         actions.extend(all_graveyard_soul_actions[0:graveyard_souls])
@@ -106,7 +106,7 @@ def firelink_loot(
 def fetch_reinforced_club() -> Iterable[Action]:
     return [
         Region("Undead Burg"),
-        Buy("Reinforced Club", location="Undead Merchant", souls=350),
+        Buy("Reinforced Club", detail="Undead Merchant", souls=350),
         HomewardBone(),
     ]
 

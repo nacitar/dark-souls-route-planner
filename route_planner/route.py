@@ -24,14 +24,17 @@ class Entry:
 
     def _repr_html_(self) -> str:
         return (
-                "<tr>",
-                '<td class="souls">{souls}</td>',
-                '<td class="bank">{bank}</td>',
-                '<td class="bones">{bones}</td>',
-                '<td class="action">{action}</td>',
-                '</tr>'
-                )
-        #return f'<span style="font-family:Courier; color:Blue; font-size: 20px;">{self.souls}</span>'
+            "<tr>"
+            f'<td class="souls">{self.souls}</td>'
+            f'<td class="bank">{self.bank}</td>'
+            f'<td class="bones">{self.bones}</td>'
+            f'<td class="action">'
+            f'<span class="name">{self.action.name}</span>'
+            f' <span class="target">{self.action.target}</span><br/>'
+            f'<span class="detail">{self.action.detail}</span>'
+            "</td>"
+            "</tr>"
+        )
 
 
 class Route:
