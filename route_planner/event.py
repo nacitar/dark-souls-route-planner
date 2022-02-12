@@ -7,20 +7,9 @@ from typing import Optional
 
 
 @dataclass(kw_only=True)
-class Metrics:
+class State:
     souls: int = 0
     item_souls: int = 0
-
-    def __add__(self, other: Metrics) -> Metrics:
-        return Metrics(
-            souls=self.souls + other.souls,
-            item_souls=self.item_souls + other.item_souls,
-        )
-
-
-@dataclass(kw_only=True)
-class State:
-    metrics: Metrics = Metrics()
     bonfire: str = ""
     region: str = ""
     bonfire_to_region: dict[str, str] = field(default_factory=dict, repr=False)
@@ -57,7 +46,7 @@ class BonfireSit(Event):
         known_region = state.bonfire_to_region.get(self.location)
         if known_region is not None and known_region != state.region:
             raise RuntimeError(
-                f'Bonfire "{self.location}" was previously listed as being in'
+                f'bonfire "{self.location}" was previously listed as being in'
                 f' region "{known_region}" but is currently indicated to be in'
                 f' region "{state.region}"'
             )
@@ -96,7 +85,7 @@ class Darksign(__WarpCommon):
     def __call__(self, state: State):
         self.destination = state.bonfire
         super().__call__(state)
-        state.metrics.souls = 0
+        state.souls = 0
 
 
 @dataclass(kw_only=True)
@@ -112,7 +101,7 @@ class __EquipCommon(Event):
             and self.expected_to_replace != self.replaces
         ):
             raise RuntimeError(
-                f'Expected to replace "{self.expected_to_replace}" in slot'
+                f'expected to replace "{self.expected_to_replace}" in slot'
                 f' "{self.slot}" but found different item "{self.replaces}"'
             )
 
@@ -150,7 +139,7 @@ class Loot(Event):
 
     def __call__(self, state: State):
         state.items[self.item] += self.count
-        state.metrics.item_souls += self.item_souls * self.count
+        state.item_souls += self.item_souls * self.count
 
 
 @dataclass
@@ -169,7 +158,7 @@ class LootSoul(Loot):
     item_souls: int = field(default=0, init=False)  # override
 
     def __call__(self, state: State):
-        self.item_souls = _SOUL_ITEM_VALUES[self.item] * self.count
+        self.item_souls = _SOUL_ITEM_VALUES[self.item]
         super().__call__(state)
 
 
@@ -182,7 +171,20 @@ class Buy(Event):
 
     def __call__(self, state: State):
         state.items[self.item] += self.count
-        state.metrics.souls -= self.souls * self.count
+        state.souls -= self.souls * self.count
+
+
+@dataclass
+class Run(Event):
+    location: str  # override
+
+    def __call__(self, state: State):
+        ...
+
+
+@dataclass
+class Jump(Run):
+    ...  # class only exists to rename the event in __str__
 
 
 @dataclass
@@ -204,7 +206,7 @@ class Kill(Event):
     souls: int
 
     def __call__(self, state: State):
-        state.metrics.souls += self.souls
+        state.souls += self.souls
 
 
 @dataclass
