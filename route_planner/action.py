@@ -40,6 +40,7 @@ class Action(ABC, __Action):
 
 @dataclass
 class Region(Action):
+    detail: str = field(init=False)
     def __call__(self, state: State) -> None:
         state.region = self.target
 
