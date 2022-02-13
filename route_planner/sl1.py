@@ -3,18 +3,18 @@ from __future__ import annotations
 from typing import Iterable
 
 from .action import (
+    Action,
     Activate,
-    BonfireAuto,
+    AutoBonfire,
+    AutoEquip,
+    AutoKill,
+    Bone,
     BonfireSit,
     Buy,
     Darksign,
     Equip,
-    EquipAuto,
-    Action,
-    HomewardBone,
     Jump,
     Kill,
-    KillAuto,
     Loot,
     LootSoul,
     Receive,
@@ -30,7 +30,7 @@ from .route import Entry, Route
 def start_of_game() -> Iterable[Action]:
     return [
         Region("Northern Undead Asylum"),
-        BonfireAuto("Undead Asylum Dungeon Cell"),
+        AutoBonfire("Undead Asylum Dungeon Cell"),
     ]
 
 
@@ -55,15 +55,15 @@ def asylum_cell_to_firelink() -> Iterable[Action]:
         Equip("Hand Axe", "Right Hand", detail="Fog gate before Oscar"),
         Talk("Oscar of Astora", detail="Behind wall boulder breaks"),
         Receive("Estus Flask", detail="Oscar of Astora"),
-        EquipAuto("Estus Flask", "Item 0"),
+        AutoEquip("Estus Flask", "Item 0"),
         Receive("Undead Asylum F2 East Key", detail="Oscar of Astora"),
-        KillAuto("Oscar of Astora", souls=100),
+        AutoKill("Oscar of Astora", souls=100),
         Kill("Asylum Demon", souls=2000),
         Receive("Big Pilgrim's Key", detail="Asylum Demon"),
         Activate("Big Pilgrim's Key Door", detail="Asylum Demon"),
         Activate("Ledge warp trigger to Firelink Shrine"),
         Region("Firelink Shrine"),
-        BonfireAuto("Firelink Shrine"),
+        AutoBonfire("Firelink Shrine"),
     ]
 
 
@@ -99,7 +99,7 @@ def firelink_loot(
             f"graveyard_souls must be in range [0,2] but is {graveyard_souls}"
         )
 
-    actions.append(HomewardBone())
+    actions.append(Bone())
     return actions
 
 
@@ -107,7 +107,7 @@ def fetch_reinforced_club() -> Iterable[Action]:
     return [
         Region("Undead Burg"),
         Buy("Reinforced Club", detail="Undead Merchant", souls=350),
-        HomewardBone(),
+        Bone(),
     ]
 
 

@@ -23,8 +23,12 @@ class __Action:
     detail: str = field(default="", kw_only=True)
 
     @property
+    def display(self):
+        return self.target
+
+    @property
     def name(self):
-        return type(self).__name__.lower()
+        return type(self).__name__
 
 
 # workaround a mypy bug: https://github.com/python/mypy/issues/5374
@@ -55,7 +59,7 @@ class BonfireSit(Action):
 
 
 @dataclass
-class BonfireAuto(BonfireSit):
+class AutoBonfire(BonfireSit):
     ...  # class only exists to rename the action in __str__
 
 
@@ -71,7 +75,7 @@ class Warp(__WarpCommon):
 
 
 @dataclass
-class HomewardBone(__WarpCommon):
+class Bone(__WarpCommon):
     target: str = field(init=False)
 
     def __call__(self, state: State) -> None:
@@ -110,6 +114,13 @@ class __EquipCommon(Action):
 
 @dataclass
 class Equip(__EquipCommon):
+    @property
+    def display(self) -> str:
+        output = self.target
+        if self.replaces:
+            output += f" replaceing {self.replaces}"
+        return output
+
     def __call__(self, state: State) -> None:
         super().__call__(state)
         state.equipment[self.slot] = self.target
@@ -120,12 +131,13 @@ class UnEquip(__EquipCommon):
     target: str = field(default="", init=False)
 
     def __call__(self, state: State) -> None:
+        self.target = state.equipment.get(self.slot, "")
         super().__call__(state)
         state.equipment[self.slot] = ""
 
 
 @dataclass
-class EquipAuto(Equip):
+class AutoEquip(Equip):
     ...  # class only exists to rename the action in __str__
 
 
@@ -200,5 +212,5 @@ class Kill(Action):
 
 
 @dataclass
-class KillAuto(Kill):
+class AutoKill(Kill):
     ...  # class only exists to rename the action in __str__

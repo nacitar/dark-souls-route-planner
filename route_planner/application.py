@@ -5,7 +5,5 @@ from .sl1 import SL1MeleeOnlyGlitchless
 
 def main() -> int:
     route = SL1MeleeOnlyGlitchless()
-    for entry in route.output:
-        entry.validate()
-        print(entry)
+    print(route._repr_html_())
     return 0
