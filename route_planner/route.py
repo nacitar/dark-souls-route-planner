@@ -76,7 +76,7 @@ class Route:
             "table.route th {"
             "   border: 1px solid Black;"
             "   text-align: center;"
-            "   background-color: LightBlue;"
+            "   background-color: LightSkyBlue;"
             "}"
             "table.route td,"
             "table.route th {"
@@ -131,7 +131,7 @@ class Route:
 
         html_parts.append(
             '<table class="route">'
-            "<thead><tr><th>Souls</th><th>Bank</th><th>Bones</th>"
+            "<thead><tr><th>Souls</th><th>Bank</th><th>HB</th>"
             "<th>Action</th></tr></thead>"
         )
         last_entry = Entry(Region(""))

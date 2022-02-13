@@ -147,6 +147,13 @@ class Loot(Action):
     bank: int = 0
     count: int = field(default=1, kw_only=True)
 
+    @property
+    def display(self) -> str:
+        output = self.target
+        if self.count > 1:
+            output += f" (x{self.count})"
+        return output
+
     def __call__(self, state: State) -> None:
         state.items[self.target] += self.count
         state.bank += self.bank * self.count

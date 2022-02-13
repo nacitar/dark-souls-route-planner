@@ -116,8 +116,8 @@ class SL1MeleeOnlyGlitchless(Route):
         super().__init__()
         self.extend(
             [
-                start_of_game(),
                 pyromancer_initial_state(),
+                start_of_game(),
                 asylum_cell_to_firelink(),
                 firelink_loot(elevator_soul=True, graveyard_souls=2),
                 fetch_reinforced_club(),
