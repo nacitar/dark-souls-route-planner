@@ -119,7 +119,7 @@ class Equip(__EquipCommon):
     def display(self) -> str:
         output = self.target
         if self.replaces:
-            output += f" replaceing {self.replaces}"
+            output += f" replacing {self.replaces}"
         return output
 
     def __call__(self, state: State) -> None:
