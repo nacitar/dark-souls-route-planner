@@ -164,6 +164,7 @@ class Receive(Loot):
     ...  # class only exists to rename the action in __str__
 
 
+# TODO: add use event, incorporate this
 _SOUL_ITEM_VALUES: dict[str, int] = {
     "Soul of a Lost Undead": 200,
     "Large Soul of a Lost Undead": 400,

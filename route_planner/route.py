@@ -167,7 +167,7 @@ class Route:
                     f'<td class="bank">{bank_cell}</td>'
                     f'<td class="bones">{bones_cell}</td>'
                     f'<td class="action">'
-                    f'<span class="name">{entry.action.name}</span>'
+                    f'<span class="name" style="color: red">{entry.action.name}</span>'
                     f' <span class="target">{entry.action.display}</span><br/>'
                     f'<span class="detail">{entry.action.detail}</span>'
                     "</td>"
