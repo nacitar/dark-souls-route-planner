@@ -1,0 +1,312 @@
+
+<!-- https://css-tricks.com/making-tables-with-sticky-header-and-footers-got-a-bit-easier/ -->
+<style>
+table {
+  border-collapse: collapse;
+  /*border: 1px solid #000000;*/
+  /* center it */
+  margin-left: auto;
+  margin-right: auto;
+  /*text-align: center;*/
+}
+th,
+td {
+  /*padding: 1rem;*/
+}
+thead,
+tfoot {
+  background: #eee;
+}
+thead {
+  position: sticky;
+  top: 0;
+  border-bottom: 2px solid #ccc;
+}
+tfoot {
+  position: sticky;
+  bottom: 0;
+  border-top: 2px solid #ccc;
+}
+
+body {
+  font: 110%/1.4 system-ui;
+  margin: 0;
+  backgroun
+  /*padding: 10rem 2rem 50rem;*/
+}
+/* alternating background */
+tr:nth-child(even) {
+    background-color: Gainsboro;
+}
+.event {
+    color: DarkGreen;
+    font-weight: bold;
+}
+.item {
+    color: blue;
+}
+.location {
+    color: black;
+    font-size: small;
+    /*margin-left: 1em;*/
+    font-style: italic;
+}
+</style>
+
+<p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Exercitationem doloribus quibusdam nostrum quo tempore veritatis magnam similique nisi quis enim soluta, cupiditate officiis. Voluptate eligendi dolor earum ipsam obcaecati? Placeat.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Souls</th>
+      <th>Bank</th>
+      <th>Bones</th>
+      <th>Action</th>
+      <th>Notes</th>
+    </tr>
+  </thead>
+  <!--
+  <tfoot>
+    <tr>
+      <th>Souls</th>
+      <th>Stored</th>
+      <th>Bones</th>
+      <th>Action</th>
+      <th>Notes</th>
+    </tr>
+  </tfoot>
+  -->
+  <tbody>
+    <tr>
+      <th colspan="4">Firelink Shrine</th>
+      <td>notes?</td>
+    </tr>
+    <tr>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>loot Hand Axe</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td>equip Hand Axe</td>
+      <td>fog gate before Oscar</td>
+    </tr>
+    <tr>
+      <td></td>
+        <td>
+            <span style="color: green;font-size: small;">+200</span><br/>
+            200
+        </td>
+      <td></td>
+      <td>
+          <span class="event">loot</span> <span class="item">Soul of a Lost Undead</span><br/>
+          <span class="location">by elevator to Undead Parish</span>
+      </td>
+      <td></td>
+    </tr>
+    <tr>
+        <td>
+            <span style="color: green;font-size: small;">+20000</span><br/>
+            20000
+        </td>
+      <td></td>
+      <td></td>
+      <td>talk Oscar of Astora</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td></td>
+        <td>
+            <span style="color: green;font-size: small;">+20000</span><br/>
+            20000
+        </td>
+      <td></td>
+      <td>loot Soul of a Lost Undead</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td>Cell Data</td>
+      <td>Cell Data</td>
+    </tr>
+    <tr>
+        <td>
+            <span style="color: green;font-size: small;">+100</span><br/>
+            100
+        </td>
+      <td></td>
+      <td></td>
+      <td>talk Oscar of Astora</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td>Cell Data</td>
+      <td>Cell Data</td>
+    </tr>
+    <tr>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td>Cell Data</td>
+      <td>Cell Data</td>
+    </tr>
+    <tr>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td>Cell Data</td>
+      <td>Cell Data</td>
+    </tr>
+    <tr>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td>Cell Data</td>
+      <td>Cell Data</td>
+    </tr>
+    <tr>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td>Cell Data</td>
+      <td>Cell Data</td>
+    </tr>
+    <tr>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td>Cell Data</td>
+      <td>Cell Data</td>
+    </tr>
+    <tr>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td>Cell Data</td>
+      <td>Cell Data</td>
+    </tr>
+    <tr>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td>Cell Data</td>
+      <td>Cell Data</td>
+    </tr>
+    <tr>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td>Cell Data</td>
+      <td>Cell Data</td>
+    </tr>
+    <tr>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td>Cell Data</td>
+      <td>Cell Data</td>
+    </tr>
+    <tr>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td>Cell Data</td>
+      <td>Cell Data</td>
+    </tr>
+    <tr>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td>Cell Data</td>
+      <td>Cell Data</td>
+    </tr>
+    <tr>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td>Cell Data</td>
+      <td>Cell Data</td>
+    </tr>
+    <tr>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td>Cell Data</td>
+      <td>Cell Data</td>
+    </tr>
+    <tr>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td>Cell Data</td>
+      <td>Cell Data</td>
+    </tr>
+    <tr>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td>Cell Data</td>
+      <td>Cell Data</td>
+    </tr>
+    <tr>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td>Cell Data</td>
+      <td>Cell Data</td>
+    </tr>
+    <tr>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td>Cell Data</td>
+      <td>Cell Data</td>
+    </tr>
+    <tr>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td>Cell Data</td>
+      <td>Cell Data</td>
+    </tr>
+    <tr>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td>Cell Data</td>
+      <td>Cell Data</td>
+    </tr>
+    <tr>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td>Cell Data</td>
+      <td>Cell Data</td>
+    </tr>
+    <tr>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td>Cell Data</td>
+      <td>Cell Data</td>
+    </tr>
+    <tr>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td>Cell Data</td>
+      <td>Cell Data</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Exercitationem doloribus quibusdam nostrum quo tempore veritatis magnam similique nisi quis enim soluta, cupiditate officiis. Voluptate eligendi dolor earum ipsam obcaecati? Placeat.</p>
