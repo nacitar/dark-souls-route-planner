@@ -16,7 +16,6 @@ from .action import (
     Jump,
     Kill,
     Loot,
-    LootSoul,
     Receive,
     Region,
     Run,
@@ -74,7 +73,9 @@ def firelink_loot(
     if elevator_soul:
         actions.extend(
             [
-                LootSoul("Soul of a Lost Undead", detail="upper elevator"),
+                Loot(
+                    "Soul of a Lost Undead", bank=200, detail="upper elevator"
+                ),
                 Jump("off ledge to hidden chests"),
             ]
         )
@@ -89,14 +90,20 @@ def firelink_loot(
     )
 
     all_graveyard_soul_actions = [
-        LootSoul("Large Soul of a Lost Undead", detail="middle graveyard"),
-        LootSoul("Large Soul of a Lost Undead", detail="start of graveyard"),
+        Loot(
+            "Large Soul of a Lost Undead", bank=400, detail="middle graveyard"
+        ),
+        Loot(
+            "Large Soul of a Lost Undead",
+            bank=400,
+            detail="start of graveyard",
+        ),
     ]
-    if 0 <= graveyard_souls <= 2:
+    if 0 <= graveyard_souls <= len(all_graveyard_soul_actions):
         actions.extend(all_graveyard_soul_actions[0:graveyard_souls])
     else:
         raise ValueError(
-            f"graveyard_souls must be in range [0,2] but is {graveyard_souls}"
+            f"graveyard_souls not within valid range: {graveyard_souls}"
         )
 
     actions.append(Bone())
@@ -112,8 +119,7 @@ def fetch_reinforced_club() -> Iterable[Action]:
 
 
 class SL1MeleeOnlyGlitchless(Route):
-    def __init__(self):
-        super().__init__()
+    def __post_init__(self) -> None:
         self.extend(
             [
                 pyromancer_initial_state(),

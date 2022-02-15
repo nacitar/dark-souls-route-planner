@@ -22,6 +22,9 @@ class __Action:
     target: str
     detail: str = field(default="", kw_only=True)
 
+    def __post_init__(self) -> None:
+        ...  # so code doesn't need changed if this is added later
+
     @property
     def display(self):
         return self.target
@@ -41,6 +44,7 @@ class Action(ABC, __Action):
 @dataclass
 class Region(Action):
     detail: str = field(init=False)
+
     def __call__(self, state: State) -> None:
         state.region = self.target
 
@@ -67,7 +71,10 @@ class AutoBonfire(BonfireSit):
 @dataclass
 class __WarpCommon(Action):
     def __call__(self, state: State) -> None:
-        state.region = state.bonfire_to_region[self.target]
+        try:
+            state.region = state.bonfire_to_region[self.target]
+        except KeyError:
+            raise RuntimeError("Attempting to warp but bonfire is unknown.")
 
 
 @dataclass
@@ -142,10 +149,10 @@ class AutoEquip(Equip):
     ...  # class only exists to rename the action in __str__
 
 
-@dataclass
+@dataclass(kw_only=True)
 class Loot(Action):
     bank: int = 0
-    count: int = field(default=1, kw_only=True)
+    count: int = 1
 
     @property
     def display(self) -> str:
@@ -159,35 +166,40 @@ class Loot(Action):
         state.bank += self.bank * self.count
 
 
+class Use(Loot):
+    def __post_init__(self) -> None:
+        super().__post_init__()
+        self.bank *= -1
+
+
 @dataclass
 class Receive(Loot):
     ...  # class only exists to rename the action in __str__
 
 
-# TODO: add use event, incorporate this
-_SOUL_ITEM_VALUES: dict[str, int] = {
-    "Soul of a Lost Undead": 200,
-    "Large Soul of a Lost Undead": 400,
-}
-
-
-@dataclass
-class LootSoul(Loot):
-    bank: int = field(init=False)  # override
-
-    def __call__(self, state: State) -> None:
-        self.bank = _SOUL_ITEM_VALUES[self.target]
-        super().__call__(state)
-
-
-@dataclass
-class Buy(Action):
-    souls: int = 0
+@dataclass(kw_only=True)
+class Kill(Action):
+    souls: int
     count: int = 1
 
     def __call__(self, state: State) -> None:
+        state.souls += self.souls * self.count
+
+
+@dataclass
+class AutoKill(Kill):
+    ...  # class only exists to rename the action in __str__
+
+
+@dataclass(kw_only=True)
+class Buy(Kill):
+    def __post_init__(self) -> None:
+        super().__post_init__()
+        self.souls *= -1
+
+    def __call__(self, state: State) -> None:
+        super().__call__(state)
         state.items[self.target] += self.count
-        state.souls -= self.souls * self.count
 
 
 @dataclass
@@ -209,17 +221,4 @@ class Activate(Action):
 
 @dataclass
 class Talk(Activate):
-    ...  # class only exists to rename the action in __str__
-
-
-@dataclass
-class Kill(Action):
-    souls: int
-
-    def __call__(self, state: State) -> None:
-        state.souls += self.souls
-
-
-@dataclass
-class AutoKill(Kill):
     ...  # class only exists to rename the action in __str__

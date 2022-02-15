@@ -1,312 +1,126 @@
-
-<!-- https://css-tricks.com/making-tables-with-sticky-header-and-footers-got-a-bit-easier/ -->
+<html><head>
 <style>
-table {
-  border-collapse: collapse;
-  /*border: 1px solid #000000;*/
-  /* center it */
-  margin-left: auto;
-  margin-right: auto;
-  /*text-align: center;*/
+table.route {
+    border-collapse: separate;
+    border-spacing: 0; 
+    border: 0px solid Black;
+    font-family: 'Helvetica', 'Arial', sans-serif;
 }
-th,
-td {
-  /*padding: 1rem;*/
+table.route thead {
+    position: sticky;
+    top: 0;
 }
-thead,
-tfoot {
-  background: #eee;
+table.route th {
+    border-top: 2px solid;
+    border-bottom: 2px solid;
+    text-align: center;
+    background-color: LightSkyBlue;
 }
-thead {
-  position: sticky;
-  top: 0;
-  border-bottom: 2px solid #ccc;
+table.route td {
+    border-bottom: 1px solid;
 }
-tfoot {
-  position: sticky;
-  bottom: 0;
-  border-top: 2px solid #ccc;
+table.route td,
+table.route th {
+    border-right: 1px solid;
+    font-size: medium;
+    padding: .1em .5em;
 }
-
-body {
-  font: 110%/1.4 system-ui;
-  margin: 0;
-  backgroun
-  /*padding: 10rem 2rem 50rem;*/
+table.route td:first-child,
+table.route th:first-child {
+    border-left: 2px solid;
 }
-/* alternating background */
-tr:nth-child(even) {
+table.route td:last-child,
+table.route th:last-child {
+    border-right: 2px solid;
+}
+table.route tbody:not(:last-child) tr:last-child td:not(.region) {
+    border-bottom: 0px solid;  /* just before the next region */
+}
+table.route tbody:last-child tr:last-child td:not(.region) {
+    border-bottom: 2px solid;  /* last row of route */
+}
+table.route tbody tr:nth-child(even) {
     background-color: Gainsboro;
 }
-.event {
+table.route .region {
+    background-color: LightSkyBlue;
+    border-top: 2px solid;
+    border-bottom: 2px solid;
+    text-align: left;
+    font-size: large;
+    font-weight: bold;
+}
+table.route .action {
+    text-align: left;
+}
+table.route .action .name {
+    font-weight: bold;
+}
+table.route .souls,
+table.route .bank,
+table.route .bones {
+    text-align: center;
+}
+table.route .add,
+table.route .subtract,
+table.route .detail {
+    font-size: small;
+}
+table.route .add {
     color: DarkGreen;
     font-weight: bold;
 }
-.item {
-    color: blue;
+table.route .subtract {
+    color: Red;
+    font-weight: bold;
 }
-.location {
-    color: black;
-    font-size: small;
-    /*margin-left: 1em;*/
-    font-style: italic;
+table.route .detail {
+    color: DarkBlue;
 }
-</style>
 
-<p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Exercitationem doloribus quibusdam nostrum quo tempore veritatis magnam similique nisi quis enim soluta, cupiditate officiis. Voluptate eligendi dolor earum ipsam obcaecati? Placeat.</p>
-
-<table>
-  <thead>
-    <tr>
-      <th>Souls</th>
-      <th>Bank</th>
-      <th>Bones</th>
-      <th>Action</th>
-      <th>Notes</th>
-    </tr>
-  </thead>
-  <!--
-  <tfoot>
-    <tr>
-      <th>Souls</th>
-      <th>Stored</th>
-      <th>Bones</th>
-      <th>Action</th>
-      <th>Notes</th>
-    </tr>
-  </tfoot>
-  -->
-  <tbody>
-    <tr>
-      <th colspan="4">Firelink Shrine</th>
-      <td>notes?</td>
-    </tr>
-    <tr>
-      <td>0</td>
-      <td>0</td>
-      <td>0</td>
-      <td>loot Hand Axe</td>
-      <td></td>
-    </tr>
-    <tr>
-      <td></td>
-      <td></td>
-      <td></td>
-      <td>equip Hand Axe</td>
-      <td>fog gate before Oscar</td>
-    </tr>
-    <tr>
-      <td></td>
-        <td>
-            <span style="color: green;font-size: small;">+200</span><br/>
-            200
-        </td>
-      <td></td>
-      <td>
-          <span class="event">loot</span> <span class="item">Soul of a Lost Undead</span><br/>
-          <span class="location">by elevator to Undead Parish</span>
-      </td>
-      <td></td>
-    </tr>
-    <tr>
-        <td>
-            <span style="color: green;font-size: small;">+20000</span><br/>
-            20000
-        </td>
-      <td></td>
-      <td></td>
-      <td>talk Oscar of Astora</td>
-      <td></td>
-    </tr>
-    <tr>
-      <td></td>
-        <td>
-            <span style="color: green;font-size: small;">+20000</span><br/>
-            20000
-        </td>
-      <td></td>
-      <td>loot Soul of a Lost Undead</td>
-      <td></td>
-    </tr>
-    <tr>
-      <td></td>
-      <td></td>
-      <td></td>
-      <td>Cell Data</td>
-      <td>Cell Data</td>
-    </tr>
-    <tr>
-        <td>
-            <span style="color: green;font-size: small;">+100</span><br/>
-            100
-        </td>
-      <td></td>
-      <td></td>
-      <td>talk Oscar of Astora</td>
-      <td></td>
-    </tr>
-    <tr>
-      <td></td>
-      <td></td>
-      <td></td>
-      <td>Cell Data</td>
-      <td>Cell Data</td>
-    </tr>
-    <tr>
-      <td></td>
-      <td></td>
-      <td></td>
-      <td>Cell Data</td>
-      <td>Cell Data</td>
-    </tr>
-    <tr>
-      <td></td>
-      <td></td>
-      <td></td>
-      <td>Cell Data</td>
-      <td>Cell Data</td>
-    </tr>
-    <tr>
-      <td></td>
-      <td></td>
-      <td></td>
-      <td>Cell Data</td>
-      <td>Cell Data</td>
-    </tr>
-    <tr>
-      <td></td>
-      <td></td>
-      <td></td>
-      <td>Cell Data</td>
-      <td>Cell Data</td>
-    </tr>
-    <tr>
-      <td></td>
-      <td></td>
-      <td></td>
-      <td>Cell Data</td>
-      <td>Cell Data</td>
-    </tr>
-    <tr>
-      <td></td>
-      <td></td>
-      <td></td>
-      <td>Cell Data</td>
-      <td>Cell Data</td>
-    </tr>
-    <tr>
-      <td></td>
-      <td></td>
-      <td></td>
-      <td>Cell Data</td>
-      <td>Cell Data</td>
-    </tr>
-    <tr>
-      <td></td>
-      <td></td>
-      <td></td>
-      <td>Cell Data</td>
-      <td>Cell Data</td>
-    </tr>
-    <tr>
-      <td></td>
-      <td></td>
-      <td></td>
-      <td>Cell Data</td>
-      <td>Cell Data</td>
-    </tr>
-    <tr>
-      <td></td>
-      <td></td>
-      <td></td>
-      <td>Cell Data</td>
-      <td>Cell Data</td>
-    </tr>
-    <tr>
-      <td></td>
-      <td></td>
-      <td></td>
-      <td>Cell Data</td>
-      <td>Cell Data</td>
-    </tr>
-    <tr>
-      <td></td>
-      <td></td>
-      <td></td>
-      <td>Cell Data</td>
-      <td>Cell Data</td>
-    </tr>
-    <tr>
-      <td></td>
-      <td></td>
-      <td></td>
-      <td>Cell Data</td>
-      <td>Cell Data</td>
-    </tr>
-    <tr>
-      <td></td>
-      <td></td>
-      <td></td>
-      <td>Cell Data</td>
-      <td>Cell Data</td>
-    </tr>
-    <tr>
-      <td></td>
-      <td></td>
-      <td></td>
-      <td>Cell Data</td>
-      <td>Cell Data</td>
-    </tr>
-    <tr>
-      <td></td>
-      <td></td>
-      <td></td>
-      <td>Cell Data</td>
-      <td>Cell Data</td>
-    </tr>
-    <tr>
-      <td></td>
-      <td></td>
-      <td></td>
-      <td>Cell Data</td>
-      <td>Cell Data</td>
-    </tr>
-    <tr>
-      <td></td>
-      <td></td>
-      <td></td>
-      <td>Cell Data</td>
-      <td>Cell Data</td>
-    </tr>
-    <tr>
-      <td></td>
-      <td></td>
-      <td></td>
-      <td>Cell Data</td>
-      <td>Cell Data</td>
-    </tr>
-    <tr>
-      <td></td>
-      <td></td>
-      <td></td>
-      <td>Cell Data</td>
-      <td>Cell Data</td>
-    </tr>
-    <tr>
-      <td></td>
-      <td></td>
-      <td></td>
-      <td>Cell Data</td>
-      <td>Cell Data</td>
-    </tr>
-    <tr>
-      <td></td>
-      <td></td>
-      <td></td>
-      <td>Cell Data</td>
-      <td>Cell Data</td>
-    </tr>
-  </tbody>
-</table>
-
-<p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Exercitationem doloribus quibusdam nostrum quo tempore veritatis magnam similique nisi quis enim soluta, cupiditate officiis. Voluptate eligendi dolor earum ipsam obcaecati? Placeat.</p>
+</style></head><body>
+<h2>SL1MeleeOnlyGlitchless</h2>
+<table class="route">
+<thead><tr><th>Souls</th><th>Bank</th><th>HB</th><th>Action</th></tr></thead>
+<tbody>
+<tr><td class="souls"></td><td class="bank"></td><td class="bones"></td><td class="action"><span class="name">Equip</span> <span class="target">Straight Sword Hilt</span><br/><span class="detail">Pyromancer starting equipment</span></td></tr>
+<tr><td class="souls"></td><td class="bank"></td><td class="bones"></td><td class="action"><span class="name">Equip</span> <span class="target">Tattered Cloth Hood</span><br/><span class="detail">Pyromancer starting equipment</span></td></tr>
+<tr><td class="souls"></td><td class="bank"></td><td class="bones"></td><td class="action"><span class="name">Equip</span> <span class="target">Tattered Cloth Robe</span><br/><span class="detail">Pyromancer starting equipment</span></td></tr>
+<tr><td class="souls"></td><td class="bank"></td><td class="bones"></td><td class="action"><span class="name">Equip</span> <span class="target">Tattered Cloth Manchette</span><br/><span class="detail">Pyromancer starting equipment</span></td></tr>
+<tr><td class="souls"></td><td class="bank"></td><td class="bones"></td><td class="action"><span class="name">Equip</span> <span class="target">Heavy Boots</span><br/><span class="detail">Pyromancer starting equipment</span></td></tr>
+</tbody>
+<tbody>
+<tr><td colspan="4" class="region">Northern Undead Asylum</td></tr></tbody>
+<tbody><tr><td class="souls"></td><td class="bank"></td><td class="bones"></td><td class="action"><span class="name">AutoBonfire</span> <span class="target">Undead Asylum Dungeon Cell</span><br/><span class="detail"></span></td></tr>
+<tr><td class="souls"></td><td class="bank"></td><td class="bones"></td><td class="action"><span class="name">Loot</span> <span class="target">Dungeon Cell Key</span><br/><span class="detail"></span></td></tr>
+<tr><td class="souls"></td><td class="bank"></td><td class="bones"></td><td class="action"><span class="name">UnEquip</span> <span class="target">Tattered Cloth Robe</span><br/><span class="detail">First ladder or big door.</span></td></tr>
+<tr><td class="souls"></td><td class="bank"></td><td class="bones"></td><td class="action"><span class="name">UnEquip</span> <span class="target">Tattered Cloth Manchette</span><br/><span class="detail">First ladder or big door.</span></td></tr>
+<tr><td class="souls"></td><td class="bank"></td><td class="bones"></td><td class="action"><span class="name">Loot</span> <span class="target">Hand Axe</span><br/><span class="detail"></span></td></tr>
+<tr><td class="souls"></td><td class="bank"></td><td class="bones"></td><td class="action"><span class="name">Equip</span> <span class="target">Hand Axe replacing Straight Sword Hilt</span><br/><span class="detail">Fog gate before Oscar</span></td></tr>
+<tr><td class="souls"></td><td class="bank"></td><td class="bones"></td><td class="action"><span class="name">Talk</span> <span class="target">Oscar of Astora</span><br/><span class="detail">Behind wall boulder breaks</span></td></tr>
+<tr><td class="souls"></td><td class="bank"></td><td class="bones"></td><td class="action"><span class="name">Receive</span> <span class="target">Estus Flask</span><br/><span class="detail">Oscar of Astora</span></td></tr>
+<tr><td class="souls"></td><td class="bank"></td><td class="bones"></td><td class="action"><span class="name">AutoEquip</span> <span class="target">Estus Flask</span><br/><span class="detail"></span></td></tr>
+<tr><td class="souls"></td><td class="bank"></td><td class="bones"></td><td class="action"><span class="name">Receive</span> <span class="target">Undead Asylum F2 East Key</span><br/><span class="detail">Oscar of Astora</span></td></tr>
+<tr><td class="souls"><span class="add">+100</span><br/>100</td><td class="bank"></td><td class="bones"></td><td class="action"><span class="name">AutoKill</span> <span class="target">Oscar of Astora</span><br/><span class="detail"></span></td></tr>
+<tr><td class="souls"><span class="add">+2000</span><br/>2100</td><td class="bank"></td><td class="bones"></td><td class="action"><span class="name">Kill</span> <span class="target">Asylum Demon</span><br/><span class="detail"></span></td></tr>
+<tr><td class="souls"></td><td class="bank"></td><td class="bones"></td><td class="action"><span class="name">Receive</span> <span class="target">Big Pilgrim's Key</span><br/><span class="detail">Asylum Demon</span></td></tr>
+<tr><td class="souls"></td><td class="bank"></td><td class="bones"></td><td class="action"><span class="name">Activate</span> <span class="target">Big Pilgrim's Key Door</span><br/><span class="detail">Asylum Demon</span></td></tr>
+<tr><td class="souls"></td><td class="bank"></td><td class="bones"></td><td class="action"><span class="name">Activate</span> <span class="target">Ledge warp trigger to Firelink Shrine</span><br/><span class="detail"></span></td></tr>
+</tbody>
+<tbody>
+<tr><td colspan="4" class="region">Firelink Shrine</td></tr></tbody>
+<tbody><tr><td class="souls"></td><td class="bank"></td><td class="bones"></td><td class="action"><span class="name">AutoBonfire</span> <span class="target">Firelink Shrine</span><br/><span class="detail"></span></td></tr>
+<tr><td class="souls"></td><td class="bank"><span class="add">+200</span><br/>200</td><td class="bones"></td><td class="action"><span class="name">Loot</span> <span class="target">Soul of a Lost Undead</span><br/><span class="detail">upper elevator</span></td></tr>
+<tr><td class="souls"></td><td class="bank"></td><td class="bones"></td><td class="action"><span class="name">Jump</span> <span class="target">off ledge to hidden chests</span><br/><span class="detail"></span></td></tr>
+<tr><td class="souls"></td><td class="bank"></td><td class="bones"><span class="add">+6</span><br/>6</td><td class="action"><span class="name">Loot</span> <span class="target">Homeward Bone (x6)</span><br/><span class="detail">hidden chest</span></td></tr>
+<tr><td class="souls"></td><td class="bank"></td><td class="bones"></td><td class="action"><span class="name">Equip</span> <span class="target">Homeward Bone</span><br/><span class="detail">immediately</span></td></tr>
+<tr><td class="souls"></td><td class="bank"><span class="add">+400</span><br/>600</td><td class="bones"></td><td class="action"><span class="name">Loot</span> <span class="target">Large Soul of a Lost Undead</span><br/><span class="detail">middle graveyard</span></td></tr>
+<tr><td class="souls"></td><td class="bank"><span class="add">+400</span><br/>1000</td><td class="bones"></td><td class="action"><span class="name">Loot</span> <span class="target">Large Soul of a Lost Undead</span><br/><span class="detail">start of graveyard</span></td></tr>
+<tr><td class="souls"></td><td class="bank"></td><td class="bones"><span class="subtract">-1</span><br/>5</td><td class="action"><span class="name">Bone</span> <span class="target">Firelink Shrine</span><br/><span class="detail"></span></td></tr>
+</tbody>
+<tbody>
+<tr><td colspan="4" class="region">Undead Burg</td></tr></tbody>
+<tbody><tr><td class="souls"><span class="subtract">-350</span><br/>1750</td><td class="bank"></td><td class="bones"></td><td class="action"><span class="name">Buy</span> <span class="target">Reinforced Club</span><br/><span class="detail">Undead Merchant</span></td></tr>
+<tr><td class="souls"></td><td class="bank"></td><td class="bones"><span class="subtract">-1</span><br/>4</td><td class="action"><span class="name">Bone</span> <span class="target">Firelink Shrine</span><br/><span class="detail"></span></td></tr>
+</tbody></table>
+</body></html>
