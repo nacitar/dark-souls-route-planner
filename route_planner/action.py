@@ -50,6 +50,11 @@ class Region(Action):
 
 
 @dataclass
+class Warp(Region):
+    ...
+
+
+@dataclass
 class BonfireSit(Action):
     def __call__(self, state: State) -> None:
         known_region = state.bonfire_to_region.get(self.target)
@@ -65,11 +70,11 @@ class BonfireSit(Action):
 
 @dataclass
 class AutoBonfire(BonfireSit):
-    ...  # class only exists to rename the action in __str__
+    ...
 
 
 @dataclass
-class __WarpCommon(Action):
+class __BonfireWarp(Action):
     def __call__(self, state: State) -> None:
         try:
             state.region = state.bonfire_to_region[self.target]
@@ -78,12 +83,7 @@ class __WarpCommon(Action):
 
 
 @dataclass
-class Warp(__WarpCommon):
-    ...
-
-
-@dataclass
-class Bone(__WarpCommon):
+class Bone(__BonfireWarp):
     target: str = field(init=False)
 
     def __call__(self, state: State) -> None:
@@ -93,7 +93,7 @@ class Bone(__WarpCommon):
 
 
 @dataclass
-class Darksign(__WarpCommon):
+class Darksign(__BonfireWarp):
     target: str = ""  # override
 
     def __call__(self, state: State) -> None:
@@ -146,7 +146,7 @@ class UnEquip(__EquipCommon):
 
 @dataclass
 class AutoEquip(Equip):
-    ...  # class only exists to rename the action in __str__
+    ...
 
 
 @dataclass(kw_only=True)
@@ -174,7 +174,7 @@ class Use(Loot):
 
 @dataclass
 class Receive(Loot):
-    ...  # class only exists to rename the action in __str__
+    ...
 
 
 @dataclass(kw_only=True)
@@ -188,7 +188,7 @@ class Kill(Action):
 
 @dataclass
 class AutoKill(Kill):
-    ...  # class only exists to rename the action in __str__
+    ...
 
 
 @dataclass(kw_only=True)
@@ -210,7 +210,7 @@ class Run(Action):
 
 @dataclass
 class Jump(Run):
-    ...  # class only exists to rename the action in __str__
+    ...
 
 
 @dataclass
@@ -221,4 +221,4 @@ class Activate(Action):
 
 @dataclass
 class Talk(Activate):
-    ...  # class only exists to rename the action in __str__
+    ...

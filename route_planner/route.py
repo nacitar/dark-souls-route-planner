@@ -1,12 +1,10 @@
 from dataclasses import dataclass
+from importlib.resources import open_text as open_text_resource
+from os import linesep
 from typing import Generator, Iterable, Optional
 
-from .action import Action, Region, State
-
-from importlib.resources import open_text as open_text_resource
-
 from . import styles
-from os import linesep
+from .action import Action, Region, State
 
 
 @dataclass(frozen=True)
