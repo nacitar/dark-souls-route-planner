@@ -1,46 +1,50 @@
-table.route {
+.segment_name {
+    font-size: 1.5em;
+    font-weight: bold;
+}
+table.segment {
     border-collapse: separate;
     border-spacing: 0; 
     border: 0px solid Black;
     font-family: 'Helvetica', 'Arial', sans-serif;
 }
-table.route thead {
+table.segment thead {
     position: sticky;
     top: 0;
 }
-table.route th {
+table.segment th {
     border-top: 2px solid;
     border-bottom: 2px solid;
     text-align: center;
     background-color: LightSkyBlue;
 }
-table.route td {
+table.segment td {
     border-bottom: 1px solid;
 }
-table.route td,
-table.route th {
+table.segment td,
+table.segment th {
     border-right: 1px solid;
     font-size: medium;
     padding: .1em .5em;
 }
-table.route td:first-child,
-table.route th:first-child {
+table.segment td:first-child,
+table.segment th:first-child {
     border-left: 2px solid;
 }
-table.route td:last-child,
-table.route th:last-child {
+table.segment td:last-child,
+table.segment th:last-child {
     border-right: 2px solid;
 }
-table.route tbody:not(:last-child) tr:last-child td:not(.region) {
+table.segment tbody:not(:last-child) tr:last-child td:not(.region) {
     border-bottom: 0px solid;  /* just before the next region */
 }
-table.route tbody:last-child tr:last-child td:not(.region) {
-    border-bottom: 2px solid;  /* last row of route */
+table.segment tbody:last-child tr:last-child td:not(.region) {
+    border-bottom: 2px solid;  /* last row of segment */
 }
-table.route tbody tr:nth-child(even) {
+table.segment tbody tr:nth-child(even) {
     background-color: Gainsboro;
 }
-table.route .region {
+table.segment .region {
     background-color: LightSkyBlue;
     border-top: 2px solid;
     border-bottom: 2px solid;
@@ -48,30 +52,30 @@ table.route .region {
     font-size: large;
     font-weight: bold;
 }
-table.route .action {
+table.segment .action {
     text-align: left;
 }
-table.route .action .name {
+table.segment .action .name {
     font-weight: bold;
 }
-table.route .souls,
-table.route .bank,
-table.route .bones {
+table.segment .souls,
+table.segment .bank,
+table.segment .bones {
     text-align: center;
 }
-table.route .add,
-table.route .subtract,
-table.route .detail {
+table.segment .add,
+table.segment .subtract,
+table.segment .detail {
     font-size: small;
 }
-table.route .add {
+table.segment .add {
     color: DarkGreen;
     font-weight: bold;
 }
-table.route .subtract {
+table.segment .subtract {
     color: Red;
     font-weight: bold;
 }
-table.route .detail {
+table.segment .detail {
     color: DarkBlue;
 }
