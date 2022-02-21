@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Iterable
+from typing import Generator
 
 from .action import (
     Action,
@@ -26,16 +26,16 @@ from .action import (
 from .route import Entry, Route
 
 
-def start_of_game() -> Iterable[Action]:
-    return [
+def start_of_game() -> Generator[Action, None, None]:
+    yield from [
         Region("Northern Undead Asylum"),
         AutoBonfire("Undead Asylum Dungeon Cell"),
     ]
 
 
-def pyromancer_initial_state() -> Iterable[Action]:
+def pyromancer_initial_state() -> Generator[Action, None, None]:
     detail = "Pyromancer starting equipment"
-    return [
+    yield from [
         Equip("Straight Sword Hilt", "Right Hand", detail=detail),
         Equip("Tattered Cloth Hood", "Head", detail=detail),
         Equip("Tattered Cloth Robe", "Torso", detail=detail),
@@ -44,8 +44,8 @@ def pyromancer_initial_state() -> Iterable[Action]:
     ]
 
 
-def asylum_cell_to_firelink() -> Iterable[Action]:
-    return [
+def asylum_cell_to_firelink() -> Generator[Action, None, None]:
+    yield from [
         Region("Northern Undead Asylum"),
         Loot("Dungeon Cell Key"),
         UnEquip("Torso", detail="First ladder or big door."),
@@ -68,50 +68,41 @@ def asylum_cell_to_firelink() -> Iterable[Action]:
 
 def firelink_loot(
     *, elevator_soul: bool, graveyard_souls: int
-) -> Iterable[Action]:
-    actions: list[Action] = [Region("Firelink Shrine")]
+) -> Generator[Action, None, None]:
+    yield Region("Firelink Shrine")
     if elevator_soul:
-        actions.extend(
-            [
-                Loot(
-                    "Soul of a Lost Undead", bank=200, detail="upper elevator"
-                ),
-                Jump("off ledge to hidden chests"),
-            ]
-        )
-    else:
-        actions.extend([Run("under upper elevator")])
-
-    actions.extend(
-        [
-            Loot("Homeward Bone", count=6, detail="hidden chest"),
-            Equip("Homeward Bone", "Item 5", detail="immediately"),
+        yield from [
+            Loot("Soul of a Lost Undead", bank=200, detail="upper elevator"),
+            Jump("off ledge to hidden chests"),
         ]
-    )
-
-    all_graveyard_soul_actions = [
-        Loot(
-            "Large Soul of a Lost Undead", bank=400, detail="middle graveyard"
-        ),
-        Loot(
-            "Large Soul of a Lost Undead",
-            bank=400,
-            detail="start of graveyard",
-        ),
-    ]
-    if 0 <= graveyard_souls <= len(all_graveyard_soul_actions):
-        actions.extend(all_graveyard_soul_actions[0:graveyard_souls])
     else:
+        yield Run("under upper elevator")
+
+    yield from [
+        Loot("Homeward Bone", count=6, detail="hidden chest"),
+        Equip("Homeward Bone", "Item 5", detail="immediately"),
+    ]
+
+    if not (0 <= graveyard_souls <= 2):
         raise ValueError(
             f"graveyard_souls not within valid range: {graveyard_souls}"
         )
+    if graveyard_souls:
+        graveyard_souls -= 1
+        yield Loot(
+            "Large Soul of a Lost Undead", bank=400, detail="middle graveyard"
+        )
+    if graveyard_souls:
+        graveyard_souls -= 1
+        yield Loot(
+            "Large Soul of a Lost Undead",
+            bank=400,
+            detail="start of graveyard",
+        )
 
-    actions.append(Bone())
-    return actions
 
-
-def fetch_reinforced_club() -> Iterable[Action]:
-    return [
+def fetch_reinforced_club() -> Generator[Action, None, None]:
+    yield from [
         Region("Undead Burg"),
         Buy("Reinforced Club", detail="Undead Merchant", souls=350),
         Bone(),

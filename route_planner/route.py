@@ -28,6 +28,17 @@ class Entry:
             )
 
 
+def _numeric_cell(css_class: str, old_value: int, new_value: int) -> str:
+    html = f'<td class="{css_class}" title="{new_value}">'
+    if new_value != old_value:
+        change = new_value - old_value
+        change_class = "subtract" if change < 0 else "add"
+        html += f'<span class="{change_class}">{change:+}</span>'
+        html += f"<br/>{new_value}"
+    html += "</td>"
+    return html
+
+
 class Route:
     def __post_init__(self) -> None:
         ...  # keep subclasses from having to redefine __init__'s arguments
@@ -71,59 +82,44 @@ class Route:
             )
 
     def _repr_html_(self) -> str:
-        html_parts = [f"<html><head>{linesep}"]
+        html = f"<html><head>{linesep}"
         if self.style:
             with open_text_resource(styles, f"{self.style}.css") as css:
-                html_parts.append(
-                    f"<style>{linesep}{css.read()}{linesep}</style>"
-                )
-        html_parts.append(f"</head><body>{linesep}<h2>{self}</h2>{linesep}")
-        html_parts.append(
-            f'<table class="route">{linesep}'
-            "<thead><tr><th>Souls</th><th>Bank</th><th>HB</th>"
-            f"<th>Action</th></tr></thead>{linesep}"
-            f"<tbody>{linesep}"
+                html += f"<style>{linesep}{css.read()}{linesep}</style>"
+        html += (
+            f"</head><body>{linesep}<h2>{self}</h2>{linesep}"
+            + f'<table class="route">{linesep}'
+            + "<thead><tr><th>Souls</th><th>Bank</th><th>HB</th>"
+            + f"<th>Action</th></tr></thead>{linesep}"
+            + f"<tbody>{linesep}"
         )
         last_entry = Entry(Region(""))
         region = ""
         for entry in self.process():
             if isinstance(entry.action, Region):
                 if entry.action.target != region:
-                    html_parts.append(
+                    html += (
                         f"</tbody>{linesep}<tbody>{linesep}"
-                        '<tr><td colspan="4" class="region">'
-                        f"{entry.action.target}</td></tr></tbody>{linesep}"
-                        "<tbody>"
+                        + '<tr><td colspan="4" class="region">'
+                        + f"{entry.action.target}</td></tr></tbody>{linesep}"
+                        + "<tbody>"
                     )
                     region = entry.action.target
             else:
 
-                def numeric_cell(old_value: int, new_value: int) -> str:
-                    if new_value != old_value:
-                        diff = new_value - old_value
-                        css_class = "subtract" if diff < 0 else "add"
-                        extra = (
-                            f'<span class="{css_class}">{diff:+}</span><br/>'
-                        )
-                        return f"{extra}{new_value}"
-                    else:
-                        return ""
-
-                souls_cell = numeric_cell(last_entry.souls, entry.souls)
-                bank_cell = numeric_cell(last_entry.bank, entry.bank)
-                bones_cell = numeric_cell(last_entry.bones, entry.bones)
-                html_parts.append(
+                html += (
                     "<tr>"
-                    f'<td class="souls">{souls_cell}</td>'
-                    f'<td class="bank">{bank_cell}</td>'
-                    f'<td class="bones">{bones_cell}</td>'
-                    f'<td class="action">'
-                    f'<span class="name">{entry.action.name}</span>'
-                    f' <span class="target">{entry.action.display}</span><br/>'
-                    f'<span class="detail">{entry.action.detail}</span>'
-                    "</td>"
-                    f"</tr>{linesep}"
+                    + _numeric_cell("souls", last_entry.souls, entry.souls)
+                    + _numeric_cell("bank", last_entry.bank, entry.bank)
+                    + _numeric_cell("bones", last_entry.bones, entry.bones)
+                    + '<td class="action">'
+                    + f'<span class="name">{entry.action.name}</span>'
+                    + f' <span class="display">{entry.action.display}</span>'
+                    + "<br/>"
+                    + f'<span class="detail">{entry.action.detail}</span>'
+                    + "</td>"
+                    + f"</tr>{linesep}"
                 )
             last_entry = entry
-        html_parts.append(f"</tbody></table>{linesep}</body></html>")
-        return "".join(html_parts)
+        html += f"</tbody></table>{linesep}</body></html>"
+        return html
