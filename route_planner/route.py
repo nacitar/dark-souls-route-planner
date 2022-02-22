@@ -1,6 +1,7 @@
-from importlib.resources import open_text as open_text_resource
-from typing import Protocol
 from copy import deepcopy
+from importlib.resources import open_text as open_text_resource
+from itertools import chain
+from typing import Iterable, Protocol
 
 from . import styles
 from .action import Action, Region, State
@@ -36,60 +37,44 @@ def _value_cell(css_class: str, old_value: int, new_value: int) -> str:
     return html
 
 
-class Segment:
-    def __init__(self):
-        self.actions: list[Action] = []
-
-    @property
-    def name(self) -> str:
-        return type(self).__name__
-
-    def add_actions(self, *args: Action):
-        self.actions.extend(args)
-
-
 class Route:
-    def __init__(self):
-        self.segments: list[Segment] = []
+    def __init__(self, *args: Iterable[Action]):
+        self.actions: list[Action] = []
+        self.add_actions(*args)
 
-    def add_segments(self, *args: Segment):
-        self.segments.extend(args)
+    def add_actions(self, *args: Iterable[Action]):
+        self.actions.extend(chain(*args))
 
     def _repr_html_(self):
         state = State()
         region = ""
-        html = ""
-        for segment in self.segments:
-            html += (
-                f'<span class="segment_name">{segment.name}</span>'
-                '<table class="segment"><thead>'
-                "<tr><th>Souls</th><th>Bank</th><th>HB</th><th>Action</th>"
-                "</tr></thead><tbody>"
-            )
-            for action in segment.actions:
-                last_state = deepcopy(state)
-                action(state)
-                state.verify()
-                if isinstance(action, Region):
-                    if action.target != region:
-                        html += (
-                            "</tbody><tbody>"
-                            '<tr><td colspan="4" class="region">'
-                            f"{action.target}</td></tr>"
-                            "</tbody><tbody>"
-                        )
-                        region = action.target
-                else:
+        html = (
+            '<table class="route"><thead>'
+            "<tr><th>Souls</th><th>Bank</th><th>HB</th><th>Action</th>"
+            "</tr></thead><tbody>"
+        )
+        for action in self.actions:
+            last_state = deepcopy(state)
+            action(state)
+            state.verify()
+            if isinstance(action, Region):
+                if action.target != region:
                     html += (
-                        "<tr>"
-                        + _value_cell("souls", last_state.souls, state.souls)
-                        + _value_cell("bank", last_state.bank, state.bank)
-                        + _value_cell("bones", last_state.bones, state.bones)
-                        + '<td class="action">'
-                        f'<span class="name">{action.name}</span>'
-                        f' <span class="display">{action.display}</span>'
-                        f'<br/><span class="detail">{action.detail}'
-                        "</span></td></tr>"
+                        '</tbody><tbody><tr><td colspan="4" class="region">'
+                        f"{action.target}</td></tr></tbody><tbody>"
                     )
-            html += "</tbody></table>"
+                    region = action.target
+            else:
+                html += (
+                    "<tr>"
+                    + _value_cell("souls", last_state.souls, state.souls)
+                    + _value_cell("bank", last_state.bank, state.bank)
+                    + _value_cell("bones", last_state.bones, state.bones)
+                    + '<td class="action">'
+                    f'<span class="name">{action.name}</span>'
+                    f' <span class="display">{action.display}</span>'
+                    f'<br/><span class="detail">{action.detail}'
+                    "</span></td></tr>"
+                )
+        html += "</tbody></table>"
         return html

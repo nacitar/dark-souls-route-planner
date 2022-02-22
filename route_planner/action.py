@@ -3,9 +3,8 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from collections import Counter
 from dataclasses import dataclass, field
+from itertools import chain
 from typing import Optional
-
-import itertools
 
 
 @dataclass(kw_only=True)
@@ -25,7 +24,7 @@ class State:
     def verify(self):
         overdrafts: list[str] = [
             f"{key}({value})"
-            for key, value in itertools.chain(
+            for key, value in chain(
                 self.items.items(),
                 [
                     ("souls", self.souls),
