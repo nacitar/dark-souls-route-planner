@@ -1,48 +1,50 @@
-<html><head>
-<style>
-table.route {
+<html><head><style>.segment_name {
+    font-size: 1.5em;
+    font-weight: bold;
+}
+table.segment {
     border-collapse: separate;
     border-spacing: 0; 
     border: 0px solid Black;
     font-family: 'Helvetica', 'Arial', sans-serif;
 }
-table.route thead {
+table.segment thead {
     position: sticky;
     top: 0;
 }
-table.route th {
+table.segment th {
     border-top: 2px solid;
     border-bottom: 2px solid;
     text-align: center;
     background-color: LightSkyBlue;
 }
-table.route td {
+table.segment td {
     border-bottom: 1px solid;
 }
-table.route td,
-table.route th {
+table.segment td,
+table.segment th {
     border-right: 1px solid;
     font-size: medium;
     padding: .1em .5em;
 }
-table.route td:first-child,
-table.route th:first-child {
+table.segment td:first-child,
+table.segment th:first-child {
     border-left: 2px solid;
 }
-table.route td:last-child,
-table.route th:last-child {
+table.segment td:last-child,
+table.segment th:last-child {
     border-right: 2px solid;
 }
-table.route tbody:not(:last-child) tr:last-child td:not(.region) {
+table.segment tbody:not(:last-child) tr:last-child td:not(.region) {
     border-bottom: 0px solid;  /* just before the next region */
 }
-table.route tbody:last-child tr:last-child td:not(.region) {
-    border-bottom: 2px solid;  /* last row of route */
+table.segment tbody:last-child tr:last-child td:not(.region) {
+    border-bottom: 2px solid;  /* last row of segment */
 }
-table.route tbody tr:nth-child(even) {
+table.segment tbody tr:nth-child(even) {
     background-color: Gainsboro;
 }
-table.route .region {
+table.segment .region {
     background-color: LightSkyBlue;
     border-top: 2px solid;
     border-bottom: 2px solid;
@@ -50,77 +52,31 @@ table.route .region {
     font-size: large;
     font-weight: bold;
 }
-table.route .action {
+table.segment .action {
     text-align: left;
 }
-table.route .action .name {
+table.segment .action .name {
     font-weight: bold;
 }
-table.route .souls,
-table.route .bank,
-table.route .bones {
+table.segment .souls,
+table.segment .bank,
+table.segment .bones {
     text-align: center;
 }
-table.route .add,
-table.route .subtract,
-table.route .detail {
+table.segment .add,
+table.segment .subtract,
+table.segment .detail {
     font-size: small;
 }
-table.route .add {
+table.segment .add {
     color: DarkGreen;
     font-weight: bold;
 }
-table.route .subtract {
+table.segment .subtract {
     color: Red;
     font-weight: bold;
 }
-table.route .detail {
+table.segment .detail {
     color: DarkBlue;
 }
-
-</style></head><body>
-<h2>SL1MeleeOnlyGlitchless</h2>
-<table class="route">
-<thead><tr><th>Souls</th><th>Bank</th><th>HB</th><th>Action</th></tr></thead>
-<tbody>
-<tr><td class="souls"></td><td class="bank"></td><td class="bones"></td><td class="action"><span class="name">Equip</span> <span class="target">Straight Sword Hilt</span><br/><span class="detail">Pyromancer starting equipment</span></td></tr>
-<tr><td class="souls"></td><td class="bank"></td><td class="bones"></td><td class="action"><span class="name">Equip</span> <span class="target">Tattered Cloth Hood</span><br/><span class="detail">Pyromancer starting equipment</span></td></tr>
-<tr><td class="souls"></td><td class="bank"></td><td class="bones"></td><td class="action"><span class="name">Equip</span> <span class="target">Tattered Cloth Robe</span><br/><span class="detail">Pyromancer starting equipment</span></td></tr>
-<tr><td class="souls"></td><td class="bank"></td><td class="bones"></td><td class="action"><span class="name">Equip</span> <span class="target">Tattered Cloth Manchette</span><br/><span class="detail">Pyromancer starting equipment</span></td></tr>
-<tr><td class="souls"></td><td class="bank"></td><td class="bones"></td><td class="action"><span class="name">Equip</span> <span class="target">Heavy Boots</span><br/><span class="detail">Pyromancer starting equipment</span></td></tr>
-</tbody>
-<tbody>
-<tr><td colspan="4" class="region">Northern Undead Asylum</td></tr></tbody>
-<tbody><tr><td class="souls"></td><td class="bank"></td><td class="bones"></td><td class="action"><span class="name">AutoBonfire</span> <span class="target">Undead Asylum Dungeon Cell</span><br/><span class="detail"></span></td></tr>
-<tr><td class="souls"></td><td class="bank"></td><td class="bones"></td><td class="action"><span class="name">Loot</span> <span class="target">Dungeon Cell Key</span><br/><span class="detail"></span></td></tr>
-<tr><td class="souls"></td><td class="bank"></td><td class="bones"></td><td class="action"><span class="name">UnEquip</span> <span class="target">Tattered Cloth Robe</span><br/><span class="detail">First ladder or big door.</span></td></tr>
-<tr><td class="souls"></td><td class="bank"></td><td class="bones"></td><td class="action"><span class="name">UnEquip</span> <span class="target">Tattered Cloth Manchette</span><br/><span class="detail">First ladder or big door.</span></td></tr>
-<tr><td class="souls"></td><td class="bank"></td><td class="bones"></td><td class="action"><span class="name">Loot</span> <span class="target">Hand Axe</span><br/><span class="detail"></span></td></tr>
-<tr><td class="souls"></td><td class="bank"></td><td class="bones"></td><td class="action"><span class="name">Equip</span> <span class="target">Hand Axe replacing Straight Sword Hilt</span><br/><span class="detail">Fog gate before Oscar</span></td></tr>
-<tr><td class="souls"></td><td class="bank"></td><td class="bones"></td><td class="action"><span class="name">Talk</span> <span class="target">Oscar of Astora</span><br/><span class="detail">Behind wall boulder breaks</span></td></tr>
-<tr><td class="souls"></td><td class="bank"></td><td class="bones"></td><td class="action"><span class="name">Receive</span> <span class="target">Estus Flask</span><br/><span class="detail">Oscar of Astora</span></td></tr>
-<tr><td class="souls"></td><td class="bank"></td><td class="bones"></td><td class="action"><span class="name">AutoEquip</span> <span class="target">Estus Flask</span><br/><span class="detail"></span></td></tr>
-<tr><td class="souls"></td><td class="bank"></td><td class="bones"></td><td class="action"><span class="name">Receive</span> <span class="target">Undead Asylum F2 East Key</span><br/><span class="detail">Oscar of Astora</span></td></tr>
-<tr><td class="souls"><span class="add">+100</span><br/>100</td><td class="bank"></td><td class="bones"></td><td class="action"><span class="name">AutoKill</span> <span class="target">Oscar of Astora</span><br/><span class="detail"></span></td></tr>
-<tr><td class="souls"><span class="add">+2000</span><br/>2100</td><td class="bank"></td><td class="bones"></td><td class="action"><span class="name">Kill</span> <span class="target">Asylum Demon</span><br/><span class="detail"></span></td></tr>
-<tr><td class="souls"></td><td class="bank"></td><td class="bones"></td><td class="action"><span class="name">Receive</span> <span class="target">Big Pilgrim's Key</span><br/><span class="detail">Asylum Demon</span></td></tr>
-<tr><td class="souls"></td><td class="bank"></td><td class="bones"></td><td class="action"><span class="name">Activate</span> <span class="target">Big Pilgrim's Key Door</span><br/><span class="detail">Asylum Demon</span></td></tr>
-<tr><td class="souls"></td><td class="bank"></td><td class="bones"></td><td class="action"><span class="name">Activate</span> <span class="target">Ledge warp trigger to Firelink Shrine</span><br/><span class="detail"></span></td></tr>
-</tbody>
-<tbody>
-<tr><td colspan="4" class="region">Firelink Shrine</td></tr></tbody>
-<tbody><tr><td class="souls"></td><td class="bank"></td><td class="bones"></td><td class="action"><span class="name">AutoBonfire</span> <span class="target">Firelink Shrine</span><br/><span class="detail"></span></td></tr>
-<tr><td class="souls"></td><td class="bank"><span class="add">+200</span><br/>200</td><td class="bones"></td><td class="action"><span class="name">Loot</span> <span class="target">Soul of a Lost Undead</span><br/><span class="detail">upper elevator</span></td></tr>
-<tr><td class="souls"></td><td class="bank"></td><td class="bones"></td><td class="action"><span class="name">Jump</span> <span class="target">off ledge to hidden chests</span><br/><span class="detail"></span></td></tr>
-<tr><td class="souls"></td><td class="bank"></td><td class="bones"><span class="add">+6</span><br/>6</td><td class="action"><span class="name">Loot</span> <span class="target">Homeward Bone (x6)</span><br/><span class="detail">hidden chest</span></td></tr>
-<tr><td class="souls"></td><td class="bank"></td><td class="bones"></td><td class="action"><span class="name">Equip</span> <span class="target">Homeward Bone</span><br/><span class="detail">immediately</span></td></tr>
-<tr><td class="souls"></td><td class="bank"><span class="add">+400</span><br/>600</td><td class="bones"></td><td class="action"><span class="name">Loot</span> <span class="target">Large Soul of a Lost Undead</span><br/><span class="detail">middle graveyard</span></td></tr>
-<tr><td class="souls"></td><td class="bank"><span class="add">+400</span><br/>1000</td><td class="bones"></td><td class="action"><span class="name">Loot</span> <span class="target">Large Soul of a Lost Undead</span><br/><span class="detail">start of graveyard</span></td></tr>
-<tr><td class="souls"></td><td class="bank"></td><td class="bones"><span class="subtract">-1</span><br/>5</td><td class="action"><span class="name">Bone</span> <span class="target">Firelink Shrine</span><br/><span class="detail"></span></td></tr>
-</tbody>
-<tbody>
-<tr><td colspan="4" class="region">Undead Burg</td></tr></tbody>
-<tbody><tr><td class="souls"><span class="subtract">-350</span><br/>1750</td><td class="bank"></td><td class="bones"></td><td class="action"><span class="name">Buy</span> <span class="target">Reinforced Club</span><br/><span class="detail">Undead Merchant</span></td></tr>
-<tr><td class="souls"></td><td class="bank"></td><td class="bones"><span class="subtract">-1</span><br/>4</td><td class="action"><span class="name">Bone</span> <span class="target">Firelink Shrine</span><br/><span class="detail"></span></td></tr>
-</tbody></table>
-</body></html>
+</style></head><body><span class="segment_name">PyromancerInitialState</span><table class="segment"><thead><tr><th>Souls</th><th>Bank</th><th>HB</th><th>Action</th></tr></thead><tbody><tr><td class="souls" title="0"></td><td class="bank" title="0"></td><td class="bones" title="0"></td><td class="action"><span class="name">Equip</span> <span class="display">Straight Sword Hilt</span><br/><span class="detail">Pyromancer starting equipment</span></td></tr><tr><td class="souls" title="0"></td><td class="bank" title="0"></td><td class="bones" title="0"></td><td class="action"><span class="name">Equip</span> <span class="display">Tattered Cloth Hood</span><br/><span class="detail">Pyromancer starting equipment</span></td></tr><tr><td class="souls" title="0"></td><td class="bank" title="0"></td><td class="bones" title="0"></td><td class="action"><span class="name">Equip</span> <span class="display">Tattered Cloth Robe</span><br/><span class="detail">Pyromancer starting equipment</span></td></tr><tr><td class="souls" title="0"></td><td class="bank" title="0"></td><td class="bones" title="0"></td><td class="action"><span class="name">Equip</span> <span class="display">Tattered Cloth Manchette</span><br/><span class="detail">Pyromancer starting equipment</span></td></tr><tr><td class="souls" title="0"></td><td class="bank" title="0"></td><td class="bones" title="0"></td><td class="action"><span class="name">Equip</span> <span class="display">Heavy Boots</span><br/><span class="detail">Pyromancer starting equipment</span></td></tr></tbody></table><span class="segment_name">StartOfGame</span><table class="segment"><thead><tr><th>Souls</th><th>Bank</th><th>HB</th><th>Action</th></tr></thead><tbody></tbody><tbody><tr><td colspan="4" class="region">Northern Undead Asylum</td></tr></tbody><tbody><tr><td class="souls" title="0"></td><td class="bank" title="0"></td><td class="bones" title="0"></td><td class="action"><span class="name">AutoBonfire</span> <span class="display">Undead Asylum Dungeon Cell</span><br/><span class="detail"></span></td></tr></tbody></table><span class="segment_name">AsylumCellToFirelink</span><table class="segment"><thead><tr><th>Souls</th><th>Bank</th><th>HB</th><th>Action</th></tr></thead><tbody><tr><td class="souls" title="0"></td><td class="bank" title="0"></td><td class="bones" title="0"></td><td class="action"><span class="name">Loot</span> <span class="display">Dungeon Cell Key</span><br/><span class="detail"></span></td></tr><tr><td class="souls" title="0"></td><td class="bank" title="0"></td><td class="bones" title="0"></td><td class="action"><span class="name">UnEquip</span> <span class="display">Tattered Cloth Robe</span><br/><span class="detail">First ladder or big door.</span></td></tr><tr><td class="souls" title="0"></td><td class="bank" title="0"></td><td class="bones" title="0"></td><td class="action"><span class="name">UnEquip</span> <span class="display">Tattered Cloth Manchette</span><br/><span class="detail">First ladder or big door.</span></td></tr><tr><td class="souls" title="0"></td><td class="bank" title="0"></td><td class="bones" title="0"></td><td class="action"><span class="name">Loot</span> <span class="display">Hand Axe</span><br/><span class="detail"></span></td></tr><tr><td class="souls" title="0"></td><td class="bank" title="0"></td><td class="bones" title="0"></td><td class="action"><span class="name">Equip</span> <span class="display">Hand Axe replacing Straight Sword Hilt</span><br/><span class="detail">Fog gate before Oscar</span></td></tr><tr><td class="souls" title="0"></td><td class="bank" title="0"></td><td class="bones" title="0"></td><td class="action"><span class="name">Talk</span> <span class="display">Oscar of Astora</span><br/><span class="detail">Behind wall boulder breaks</span></td></tr><tr><td class="souls" title="0"></td><td class="bank" title="0"></td><td class="bones" title="0"></td><td class="action"><span class="name">Receive</span> <span class="display">Estus Flask</span><br/><span class="detail">Oscar of Astora</span></td></tr><tr><td class="souls" title="0"></td><td class="bank" title="0"></td><td class="bones" title="0"></td><td class="action"><span class="name">AutoEquip</span> <span class="display">Estus Flask</span><br/><span class="detail"></span></td></tr><tr><td class="souls" title="0"></td><td class="bank" title="0"></td><td class="bones" title="0"></td><td class="action"><span class="name">Receive</span> <span class="display">Undead Asylum F2 East Key</span><br/><span class="detail">Oscar of Astora</span></td></tr><tr><td class="souls" title="100"><span class="add">+100</span><br/>100</td><td class="bank" title="0"></td><td class="bones" title="0"></td><td class="action"><span class="name">AutoKill</span> <span class="display">Oscar of Astora</span><br/><span class="detail"></span></td></tr><tr><td class="souls" title="2100"><span class="add">+2000</span><br/>2100</td><td class="bank" title="0"></td><td class="bones" title="0"></td><td class="action"><span class="name">Kill</span> <span class="display">Asylum Demon</span><br/><span class="detail"></span></td></tr><tr><td class="souls" title="2100"></td><td class="bank" title="0"></td><td class="bones" title="0"></td><td class="action"><span class="name">Receive</span> <span class="display">Big Pilgrim's Key</span><br/><span class="detail">Asylum Demon</span></td></tr><tr><td class="souls" title="2100"></td><td class="bank" title="0"></td><td class="bones" title="0"></td><td class="action"><span class="name">Activate</span> <span class="display">Big Pilgrim's Key Door</span><br/><span class="detail">Asylum Demon</span></td></tr><tr><td class="souls" title="2100"></td><td class="bank" title="0"></td><td class="bones" title="0"></td><td class="action"><span class="name">Activate</span> <span class="display">Ledge warp trigger to Firelink Shrine</span><br/><span class="detail"></span></td></tr></tbody><tbody><tr><td colspan="4" class="region">Firelink Shrine</td></tr></tbody><tbody><tr><td class="souls" title="2100"></td><td class="bank" title="0"></td><td class="bones" title="0"></td><td class="action"><span class="name">AutoBonfire</span> <span class="display">Firelink Shrine</span><br/><span class="detail"></span></td></tr></tbody></table><span class="segment_name">FirelinkLoot</span><table class="segment"><thead><tr><th>Souls</th><th>Bank</th><th>HB</th><th>Action</th></tr></thead><tbody><tr><td class="souls" title="2100"></td><td class="bank" title="200"><span class="add">+200</span><br/>200</td><td class="bones" title="0"></td><td class="action"><span class="name">Loot</span> <span class="display">Soul of a Lost Undead</span><br/><span class="detail">upper elevator</span></td></tr><tr><td class="souls" title="2100"></td><td class="bank" title="200"></td><td class="bones" title="0"></td><td class="action"><span class="name">Jump</span> <span class="display">off ledge to hidden chests</span><br/><span class="detail"></span></td></tr><tr><td class="souls" title="2100"></td><td class="bank" title="200"></td><td class="bones" title="6"><span class="add">+6</span><br/>6</td><td class="action"><span class="name">Loot</span> <span class="display">Homeward Bone (x6)</span><br/><span class="detail">hidden chest</span></td></tr><tr><td class="souls" title="2100"></td><td class="bank" title="200"></td><td class="bones" title="6"></td><td class="action"><span class="name">Equip</span> <span class="display">Homeward Bone</span><br/><span class="detail">immediately</span></td></tr><tr><td class="souls" title="2100"></td><td class="bank" title="600"><span class="add">+400</span><br/>600</td><td class="bones" title="6"></td><td class="action"><span class="name">Loot</span> <span class="display">Large Soul of a Lost Undead</span><br/><span class="detail">middle graveyard</span></td></tr><tr><td class="souls" title="2100"></td><td class="bank" title="1000"><span class="add">+400</span><br/>1000</td><td class="bones" title="6"></td><td class="action"><span class="name">Loot</span> <span class="display">Large Soul of a Lost Undead</span><br/><span class="detail">start of graveyard</span></td></tr></tbody></table><span class="segment_name">FetchReinforcedClub</span><table class="segment"><thead><tr><th>Souls</th><th>Bank</th><th>HB</th><th>Action</th></tr></thead><tbody></tbody><tbody><tr><td colspan="4" class="region">Undead Burg</td></tr></tbody><tbody><tr><td class="souls" title="1750"><span class="subtract">-350</span><br/>1750</td><td class="bank" title="1000"></td><td class="bones" title="6"></td><td class="action"><span class="name">Buy</span> <span class="display">Reinforced Club</span><br/><span class="detail">Undead Merchant</span></td></tr><tr><td class="souls" title="1750"></td><td class="bank" title="1000"></td><td class="bones" title="5"><span class="subtract">-1</span><br/>5</td><td class="action"><span class="name">Bone</span> <span class="display">Firelink Shrine</span><br/><span class="detail"></span></td></tr></tbody></table></body></html>

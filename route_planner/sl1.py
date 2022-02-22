@@ -1,9 +1,6 @@
 from __future__ import annotations
 
-from typing import Generator
-
 from .action import (
-    Action,
     Activate,
     AutoBonfire,
     AutoEquip,
@@ -24,21 +21,20 @@ from .action import (
     Warp,
 )
 from .route import Segment, Route
-from dataclasses import dataclass
 
 
-@dataclass
 class StartOfGame(Segment):
-    def __post_init__(self) -> None:
+    def __init__(self):
+        super().__init__()
         self.add_actions(
             Region("Northern Undead Asylum"),
             AutoBonfire("Undead Asylum Dungeon Cell"),
         )
 
 
-@dataclass
 class PyromancerInitialState(Segment):
-    def __post_init__(self) -> None:
+    def __init__(self):
+        super().__init__()
         detail = "Pyromancer starting equipment"
         self.add_actions(
             Equip("Straight Sword Hilt", "Right Hand", detail=detail),
@@ -49,9 +45,9 @@ class PyromancerInitialState(Segment):
         )
 
 
-@dataclass
 class AsylumCellToFirelink(Segment):
-    def __post_init__(self) -> None:
+    def __init__(self):
+        super().__init__()
         self.add_actions(
             Region("Northern Undead Asylum"),
             Loot("Dungeon Cell Key"),
@@ -73,7 +69,6 @@ class AsylumCellToFirelink(Segment):
         )
 
 
-@dataclass
 class FirelinkLoot(Segment):
     def __init__(self, *, elevator_soul: bool, graveyard_souls: int):
         super().__init__()
@@ -117,9 +112,9 @@ class FirelinkLoot(Segment):
             )
 
 
-@dataclass
 class FetchReinforcedClub(Segment):
-    def __post_init__(self) -> None:
+    def __init__(self):
+        super().__init__()
         self.add_actions(
             Region("Undead Burg"),
             Buy("Reinforced Club", detail="Undead Merchant", souls=350),
@@ -127,9 +122,9 @@ class FetchReinforcedClub(Segment):
         )
 
 
-@dataclass
 class SL1MeleeOnlyGlitchless(Route):
-    def __post_init__(self) -> None:
+    def __init__(self):
+        super().__init__()
         self.add_segments(
             PyromancerInitialState(),
             StartOfGame(),

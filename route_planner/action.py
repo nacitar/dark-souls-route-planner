@@ -5,6 +5,8 @@ from collections import Counter
 from dataclasses import dataclass, field
 from typing import Optional
 
+import itertools
+
 
 @dataclass(kw_only=True)
 class State:
@@ -15,6 +17,26 @@ class State:
     bonfire_to_region: dict[str, str] = field(default_factory=dict, repr=False)
     equipment: dict[str, str] = field(default_factory=dict, repr=False)
     items: Counter[str] = field(default_factory=Counter, repr=False)
+
+    @property
+    def bones(self):
+        return self.items["Homeward Bone"]
+
+    def verify(self):
+        overdrafts: list[str] = [
+            f"{key}({value})"
+            for key, value in itertools.chain(
+                self.items.items(),
+                [
+                    ("souls", self.souls),
+                    ("bank", self.bank),
+                    ("bones", self.bones),
+                ],
+            )
+            if value < 0
+        ]
+        if overdrafts:
+            raise RuntimeError("insufficent amount: " + " ".join(overdrafts))
 
 
 @dataclass
