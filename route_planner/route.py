@@ -1,7 +1,6 @@
 from copy import deepcopy
 from importlib.resources import open_text as open_text_resource
-from itertools import chain
-from typing import Iterable, Protocol
+from typing import Generator, Iterable, Optional, Protocol, Tuple
 
 from . import styles
 from .action import Action, Region, State
@@ -38,25 +37,34 @@ def _value_cell(css_class: str, old_value: int, new_value: int) -> str:
 
 
 class Route:
-    def __init__(self, *args: Iterable[Action]):
+    def __init__(self, *actions: Iterable[Action]):
         self.actions: list[Action] = []
-        self.add_actions(*args)
+        self.add_actions(*actions)
 
-    def add_actions(self, *args: Iterable[Action]):
-        self.actions.extend(chain(*args))
+    def add_actions(self, *action_sets: Iterable[Action]):
+        for actions in action_sets:
+            for action in actions:
+                self.actions.append(action)
+
+    def process(
+        self, state: Optional[State] = None
+    ) -> Generator[Tuple[State, Action], None, None]:
+        if state is None:
+            state = State()
+        for action in self.actions:
+            action(state)
+            state.verify()
+            yield (deepcopy(state), action)
 
     def _repr_html_(self):
-        state = State()
+        last_state = State()
         region = ""
         html = (
             '<table class="route"><thead>'
             "<tr><th>Souls</th><th>Bank</th><th>HB</th><th>Action</th>"
             "</tr></thead><tbody>"
         )
-        for action in self.actions:
-            last_state = deepcopy(state)
-            action(state)
-            state.verify()
+        for state, action in self.process(last_state):
             if isinstance(action, Region):
                 if action.target != region:
                     html += (
@@ -76,5 +84,6 @@ class Route:
                     f'<br/><span class="detail">{action.detail}'
                     "</span></td></tr>"
                 )
+            last_state = state
         html += "</tbody></table>"
         return html

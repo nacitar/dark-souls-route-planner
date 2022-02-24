@@ -1,10 +1,11 @@
 from __future__ import annotations
 
-from abc import ABC, abstractmethod
 from collections import Counter
 from dataclasses import dataclass, field
 from itertools import chain
 from typing import Optional
+
+_BONE_ITEM = "Homeward Bone"
 
 
 @dataclass(kw_only=True)
@@ -15,22 +16,23 @@ class State:
     region: str = ""
     bonfire_to_region: dict[str, str] = field(default_factory=dict, repr=False)
     equipment: dict[str, str] = field(default_factory=dict, repr=False)
-    items: Counter[str] = field(default_factory=Counter, repr=False)
+    inventory: Counter[str] = field(default_factory=Counter, repr=False)
+    bank_lookup: dict[str, int] = field(default_factory=dict, repr=False)
 
     @property
     def bones(self):
-        return self.items["Homeward Bone"]
+        return self.inventory[_BONE_ITEM]
+
+    @bones.setter
+    def bones(self, value: int):
+        self.inventory[_BONE_ITEM] = value
 
     def verify(self):
         overdrafts: list[str] = [
             f"{key}({value})"
             for key, value in chain(
-                self.items.items(),
-                [
-                    ("souls", self.souls),
-                    ("bank", self.bank),
-                    ("bones", self.bones),
-                ],
+                self.inventory.items(),
+                [("souls", self.souls), ("bank", self.bank)],
             )
             if value < 0
         ]
@@ -39,7 +41,7 @@ class State:
 
 
 @dataclass
-class __Action:
+class Action:
     target: str
     detail: str = field(default="", kw_only=True)
 
@@ -54,10 +56,6 @@ class __Action:
     def name(self):
         return type(self).__name__
 
-
-# workaround a mypy bug: https://github.com/python/mypy/issues/5374
-class Action(ABC, __Action):
-    @abstractmethod
     def __call__(self, state: State) -> None:
         ...
 
@@ -110,7 +108,7 @@ class Bone(__BonfireWarp):
     def __call__(self, state: State) -> None:
         self.target = state.bonfire
         super().__call__(state)
-        state.items["Homeward Bone"] -= 1
+        state.bones -= 1
 
 
 @dataclass
@@ -152,6 +150,10 @@ class Equip(__EquipCommon):
 
     def __call__(self, state: State) -> None:
         super().__call__(state)
+        if state.inventory[self.target] <= 0:
+            raise RuntimeError(
+                f"Cannot equip item not in inventory: {self.target}"
+            )
         state.equipment[self.slot] = self.target
 
 
@@ -171,8 +173,7 @@ class AutoEquip(Equip):
 
 
 @dataclass(kw_only=True)
-class Loot(Action):
-    bank: int = 0
+class __ItemCommon(Action):
     count: int = 1
 
     @property
@@ -182,20 +183,45 @@ class Loot(Action):
             output += f" (x{self.count})"
         return output
 
+
+@dataclass(kw_only=True)
+class Loot(__ItemCommon):
+    bank: int = 0
+
     def __call__(self, state: State) -> None:
-        state.items[self.target] += self.count
+        if not self.bank:
+            self.bank = state.bank_lookup.get(self.target, 0)
+        else:
+            stored_bank = state.bank_lookup.setdefault(self.target, self.bank)
+            if stored_bank != self.bank:
+                raise RuntimeError(
+                    f"Previously indicated {self.target} banked"
+                    f" {stored_bank} but now indicating it"
+                    f" banks {self.bank}"
+                )
+        state.inventory[self.target] += self.count
         state.bank += self.bank * self.count
-
-
-class Use(Loot):
-    def __post_init__(self) -> None:
-        super().__post_init__()
-        self.bank *= -1
 
 
 @dataclass
 class Receive(Loot):
     ...
+
+
+@dataclass
+class Use(__ItemCommon):
+    def __call__(self, state: State) -> None:
+        actual_count = state.inventory[self.target]
+        if actual_count < self.count:
+            raise RuntimeError(
+                f"Cannot use {self.count} of {self.target}, only have"
+                f" {actual_count}"
+            )
+        stored_bank = state.bank_lookup[self.target]
+        delta = stored_bank * self.count
+        state.souls += delta
+        state.bank -= delta
+        state.inventory[self.target] -= self.count
 
 
 @dataclass(kw_only=True)
@@ -220,7 +246,7 @@ class Buy(Kill):
 
     def __call__(self, state: State) -> None:
         super().__call__(state)
-        state.items[self.target] += self.count
+        state.inventory[self.target] += self.count
 
 
 @dataclass

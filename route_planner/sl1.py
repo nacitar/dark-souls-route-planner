@@ -21,6 +21,7 @@ from .action import (
     Run,
     Talk,
     UnEquip,
+    Use,
     Warp,
 )
 from .route import Route
@@ -36,6 +37,11 @@ def start_of_game() -> Iterable[Action]:
 def pyromancer_initial_state() -> Iterable[Action]:
     detail = "Pyromancer starting equipment"
     yield from [
+        Loot("Straight Sword Hilt"),
+        Loot("Tattered Cloth Hood"),
+        Loot("Tattered Cloth Robe"),
+        Loot("Tattered Cloth Manchette"),
+        Loot("Heavy Boots"),
         Equip("Straight Sword Hilt", "Right Hand", detail=detail),
         Equip("Tattered Cloth Hood", "Head", detail=detail),
         Equip("Tattered Cloth Robe", "Torso", detail=detail),
@@ -66,7 +72,9 @@ def asylum_cell_to_firelink() -> Iterable[Action]:
     ]
 
 
-def firelink_loot(*, elevator_soul: bool, graveyard_souls: int):
+def firelink_loot(
+    *, elevator_soul: bool, graveyard_souls: int
+) -> Iterable[Action]:
     yield Region("Firelink Shrine")
     if elevator_soul:
         yield from [
@@ -96,6 +104,7 @@ def firelink_loot(*, elevator_soul: bool, graveyard_souls: int):
             bank=400,
             detail="start of graveyard",
         )
+    yield Bone()
 
 
 def fetch_reinforced_club() -> Iterable[Action]:
@@ -103,6 +112,18 @@ def fetch_reinforced_club() -> Iterable[Action]:
         Region("Undead Burg"),
         Buy("Reinforced Club", detail="Undead Merchant", souls=350),
         Bone(),
+    ]
+
+
+def firelink_to_andre() -> Iterable[Action]:
+    yield from [
+        Region("Firelink Shrine"),
+        Use(
+            "Large Soul of a Lost Undead",
+            count=2,
+            detail="new londo ruins elevator",
+        ),
+        Use("Soul of a Lost Undead", detail="new londo ruins elevator"),
     ]
 
 
@@ -114,4 +135,5 @@ class SL1MeleeOnlyGlitchless(Route):
             asylum_cell_to_firelink(),
             firelink_loot(elevator_soul=True, graveyard_souls=2),
             fetch_reinforced_club(),
+            firelink_to_andre(),
         )
