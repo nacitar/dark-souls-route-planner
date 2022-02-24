@@ -238,6 +238,12 @@ class Use(UseMenu):
         if self.target not in state.equipment.values():
             raise RuntimeError(f"Cannot use unequipped item: {self.target}")
         super().__call__(state)
+        if not state.inventory[self.target]:
+            for slot, piece in state.equipment.items():
+                if piece == self.target:
+                    del state.equipment[slot]
+                    break
+
 
 
 @dataclass(kw_only=True)

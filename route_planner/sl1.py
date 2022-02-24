@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 from .action import (
+    BONE_ITEM,
+    DARKSIGN_ITEM,
     Action,
     Activate,
     AutoBonfire,
@@ -22,10 +24,9 @@ from .action import (
     Use,
     UseMenu,
     Warp,
-    BONE_ITEM,
-    DARKSIGN_ITEM
 )
 from .route import Segment
+
 
 class InitialState(Segment):
     def __init__(self):
@@ -35,6 +36,7 @@ class InitialState(Segment):
             Loot("Straight Sword Hilt", detail=detail),
             Equip("Straight Sword Hilt", "Right Hand", detail=detail),
         )
+
 
 class PyromancerInitialState(Segment):
     def __init__(self):
@@ -115,17 +117,25 @@ class FetchReinforcedClub(Segment):
 
 class FirelinkToAndre(Segment):
     def __init__(self):
+        elevator = "new londo ruins elevator"
         super().__init__(
             Region("Firelink Shrine"),
-            UseMenu(
-                "Large Soul of a Lost Undead",
-                count=2,
-                detail="new londo ruins elevator",
-            ),
-            UseMenu(
-                "Soul of a Lost Undead", detail="new londo ruins elevator"
-            ),
+            UseMenu("Large Soul of a Lost Undead", count=2, detail=elevator),
+            UseMenu("Soul of a Lost Undead", detail=elevator),
+            Equip("Reinforced Club", "Right Hand", detail=elevator),
+            Region("New Londo Ruins"),
+            Loot("Soul of a Nameless Soldier", bank=800, detail="by elevator"),
+            Region("Valley of Drakes"),
+            Loot("Large Soul of a Nameless Soldier", bank=1000, detail="behind master key door"),
+            Loot("Soul of a Proud Knight", bank=2000, detail="by dragon"),
+            Equip("Soul of a Nameless Soldier", "Item 2"),
+            Equip("Large Soul of a Nameless Soldier", "Item 3"),
+            Equip("Soul of a Proud Knight", "Item 4"),
+            Use("Soul of a Nameless Soldier"),
+            Use("Large Soul of a Nameless Soldier"),
+            Use("Soul of a Proud Knight"),
         )
+
 
 
 class SL1MeleeOnlyGlitchless(Segment):
