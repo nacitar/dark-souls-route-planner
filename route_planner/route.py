@@ -1,6 +1,8 @@
+from __future__ import annotations
+
 from copy import deepcopy
 from importlib.resources import open_text as open_text_resource
-from typing import Generator, Iterable, Optional, Protocol, Tuple
+from typing import Generator, Optional, Protocol, Tuple
 
 from . import styles
 from .action import Action, Region, State
@@ -36,15 +38,15 @@ def _value_cell(css_class: str, old_value: int, new_value: int) -> str:
     return html
 
 
-class Route:
-    def __init__(self, *actions: Iterable[Action]):
+class Segment:
+    def __init__(self, *actions: Action):
         self.actions: list[Action] = []
-        self.add_actions(*actions)
+        for action in actions:
+            self.actions.append(action)
 
-    def add_actions(self, *action_sets: Iterable[Action]):
-        for actions in action_sets:
-            for action in actions:
-                self.actions.append(action)
+    def __iadd__(self, other: Segment) -> Segment:
+        self.actions.extend(other.actions)
+        return self
 
     def process(
         self, state: Optional[State] = None
@@ -57,6 +59,7 @@ class Route:
             yield (deepcopy(state), action)
 
     def _repr_html_(self):
+        region_count = 0
         last_state = State()
         region = ""
         html = (
@@ -67,9 +70,11 @@ class Route:
         for state, action in self.process(last_state):
             if isinstance(action, Region):
                 if action.target != region:
+                    region_count += 1
                     html += (
                         '</tbody><tbody><tr><td colspan="4" class="region">'
-                        f"{action.target}</td></tr></tbody><tbody>"
+                        f"{region_count:02}. {action.target}</td></tr>"
+                        "</tbody><tbody>"
                     )
                     region = action.target
             else:

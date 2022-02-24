@@ -5,7 +5,8 @@ from dataclasses import dataclass, field
 from itertools import chain
 from typing import Optional
 
-_BONE_ITEM = "Homeward Bone"
+BONE_ITEM = "Homeward Bone"
+DARKSIGN_ITEM = "Darksign"
 
 
 @dataclass(kw_only=True)
@@ -21,11 +22,11 @@ class State:
 
     @property
     def bones(self):
-        return self.inventory[_BONE_ITEM]
+        return self.inventory[BONE_ITEM]
 
     @bones.setter
     def bones(self, value: int):
-        self.inventory[_BONE_ITEM] = value
+        self.inventory[BONE_ITEM] = value
 
     def verify(self):
         overdrafts: list[str] = [
@@ -209,7 +210,7 @@ class Receive(Loot):
 
 
 @dataclass
-class Use(__ItemCommon):
+class UseMenu(__ItemCommon):
     def __call__(self, state: State) -> None:
         actual_count = state.inventory[self.target]
         if actual_count < self.count:
@@ -217,11 +218,26 @@ class Use(__ItemCommon):
                 f"Cannot use {self.count} of {self.target}, only have"
                 f" {actual_count}"
             )
+        if self.target in (BONE_ITEM, DARKSIGN_ITEM):
+            try:
+                state.region = state.bonfire_to_region[state.bonfire]
+            except KeyError:
+                raise RuntimeError("Can't warp; bonfire region is unknown.")
+
         stored_bank = state.bank_lookup[self.target]
         delta = stored_bank * self.count
         state.souls += delta
         state.bank -= delta
-        state.inventory[self.target] -= self.count
+        if self.target != DARKSIGN_ITEM:
+            state.inventory[self.target] -= self.count
+
+
+@dataclass
+class Use(UseMenu):
+    def __call__(self, state: State) -> None:
+        if self.target not in state.equipment.values():
+            raise RuntimeError(f"Cannot use unequipped item: {self.target}")
+        super().__call__(state)
 
 
 @dataclass(kw_only=True)
