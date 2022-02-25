@@ -5,8 +5,10 @@ from dataclasses import dataclass, field
 from itertools import chain
 from typing import Optional
 
-BONE_ITEM = "Homeward Bone"
-DARKSIGN_ITEM = "Darksign"
+
+class Item:
+    BONE = "Homeward Bone"
+    DARKSIGN = "Darksign"
 
 
 @dataclass(kw_only=True)
@@ -22,11 +24,11 @@ class State:
 
     @property
     def bones(self):
-        return self.inventory[BONE_ITEM]
+        return self.inventory[Item.BONE]
 
     @bones.setter
     def bones(self, value: int):
-        self.inventory[BONE_ITEM] = value
+        self.inventory[Item.BONE] = value
 
     def verify(self):
         overdrafts: list[str] = [
@@ -45,6 +47,7 @@ class State:
 class Action:
     target: str
     detail: str = field(default="", kw_only=True)
+    optional: bool = field(default=False, kw_only=True)
 
     def __post_init__(self) -> None:
         ...  # so code doesn't need changed if this is added later
@@ -62,16 +65,16 @@ class Action:
 
 
 @dataclass
+class TakeDamage(Action):
+    ...
+
+
+@dataclass
 class Region(Action):
     detail: str = field(init=False)
 
     def __call__(self, state: State) -> None:
         state.region = self.target
-
-
-@dataclass
-class Warp(Region):
-    ...
 
 
 @dataclass
@@ -91,35 +94,6 @@ class BonfireSit(Action):
 @dataclass
 class AutoBonfire(BonfireSit):
     ...
-
-
-@dataclass
-class __BonfireWarp(Action):
-    def __call__(self, state: State) -> None:
-        try:
-            state.region = state.bonfire_to_region[self.target]
-        except KeyError:
-            raise RuntimeError("Attempting to warp but bonfire is unknown.")
-
-
-@dataclass
-class Bone(__BonfireWarp):
-    target: str = field(init=False)
-
-    def __call__(self, state: State) -> None:
-        self.target = state.bonfire
-        super().__call__(state)
-        state.bones -= 1
-
-
-@dataclass
-class Darksign(__BonfireWarp):
-    target: str = ""  # override
-
-    def __call__(self, state: State) -> None:
-        self.target = state.bonfire
-        super().__call__(state)
-        state.souls = 0
 
 
 @dataclass
@@ -218,17 +192,18 @@ class UseMenu(__ItemCommon):
                 f"Cannot use {self.count} of {self.target}, only have"
                 f" {actual_count}"
             )
-        if self.target in (BONE_ITEM, DARKSIGN_ITEM):
+        if self.target in (Item.BONE, Item.DARKSIGN):
             try:
                 state.region = state.bonfire_to_region[state.bonfire]
             except KeyError:
                 raise RuntimeError("Can't warp; bonfire region is unknown.")
 
-        stored_bank = state.bank_lookup[self.target]
-        delta = stored_bank * self.count
-        state.souls += delta
-        state.bank -= delta
-        if self.target != DARKSIGN_ITEM:
+        stored_bank = state.bank_lookup.get(self.target, 0)
+        if stored_bank:
+            delta = stored_bank * self.count
+            state.souls += delta
+            state.bank -= delta
+        if self.target != Item.DARKSIGN:
             state.inventory[self.target] -= self.count
 
 
@@ -245,11 +220,9 @@ class Use(UseMenu):
                     break
 
 
-
 @dataclass(kw_only=True)
-class Kill(Action):
+class Kill(__ItemCommon):
     souls: int
-    count: int = 1
 
     def __call__(self, state: State) -> None:
         state.souls += self.souls * self.count
@@ -272,22 +245,30 @@ class Buy(Kill):
 
 
 @dataclass
-class Run(Action):
-    def __call__(self, state: State) -> None:
-        ...
+class Heal(Action):
+    ...
 
 
 @dataclass
-class Jump(Run):
+class Run(Action):
+    ...
+
+
+@dataclass
+class Perform(Action):
+    ...
+
+
+@dataclass
+class Jump(Action):
     ...
 
 
 @dataclass
 class Activate(Action):
-    def __call__(self, state: State) -> None:
-        ...
+    ...
 
 
 @dataclass
-class Talk(Activate):
+class Talk(Action):
     ...

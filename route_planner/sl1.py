@@ -1,29 +1,27 @@
 from __future__ import annotations
 
 from .action import (
-    BONE_ITEM,
-    DARKSIGN_ITEM,
-    Action,
     Activate,
     AutoBonfire,
     AutoEquip,
     AutoKill,
-    Bone,
     BonfireSit,
     Buy,
-    Darksign,
     Equip,
+    Heal,
+    Item,
     Jump,
     Kill,
     Loot,
+    Perform,
     Receive,
     Region,
     Run,
+    TakeDamage,
     Talk,
     UnEquip,
     Use,
     UseMenu,
-    Warp,
 )
 from .route import Segment
 
@@ -32,7 +30,7 @@ class InitialState(Segment):
     def __init__(self):
         detail = "starting equipment"
         super().__init__(
-            Loot(DARKSIGN_ITEM, detail=detail),
+            Loot(Item.DARKSIGN, detail=detail),
             Loot("Straight Sword Hilt", detail=detail),
             Equip("Straight Sword Hilt", "Right Hand", detail=detail),
         )
@@ -90,19 +88,19 @@ class FirelinkLoot(Segment):
             Region("Firelink Shrine"),
             Loot("Soul of a Lost Undead", bank=200, detail="upper elevator"),
             Jump("off ledge to hidden chests"),
-            Loot(BONE_ITEM, count=6, detail="hidden chest"),
-            Equip(BONE_ITEM, "Item 5", detail="immediately"),
+            Loot(Item.BONE, count=6, detail="hidden chest"),
+            Equip(Item.BONE, "Item 5", detail="immediately"),
             Loot(
                 "Large Soul of a Lost Undead",
                 bank=400,
-                detail="middle graveyard",
+                detail="middle of graveyard",
             ),
             Loot(
                 "Large Soul of a Lost Undead",
                 bank=400,
                 detail="start of graveyard",
             ),
-            Bone(),
+            Use(Item.BONE),
         )
 
 
@@ -110,32 +108,127 @@ class FetchReinforcedClub(Segment):
     def __init__(self):
         super().__init__(
             Region("Undead Burg"),
-            Buy("Reinforced Club", detail="Undead Merchant", souls=350),
-            Bone(),
+            Buy("Reinforced Club", souls=350, detail="Undead Merchant"),
+            Buy(
+                "Firebomb",
+                souls=50,
+                count=3,
+                detail="Undead Merchant, if using Tohki Bombs on Bed of Chaos",
+                optional=True,
+            ),
+            Use(Item.BONE),
         )
 
 
 class FirelinkToAndre(Segment):
     def __init__(self):
-        elevator = "new londo ruins elevator"
+        new_londo_elevator = "on elevator to New Londo Ruins"
+        basin_elevator = "on elevator to Darkroot Basin"
+        ladder = "climbing ladder to RTSR"
         super().__init__(
             Region("Firelink Shrine"),
-            UseMenu("Large Soul of a Lost Undead", count=2, detail=elevator),
-            UseMenu("Soul of a Lost Undead", detail=elevator),
-            Equip("Reinforced Club", "Right Hand", detail=elevator),
+            UseMenu(
+                "Large Soul of a Lost Undead",
+                count=2,
+                detail=new_londo_elevator,
+            ),
+            UseMenu("Soul of a Lost Undead", detail=new_londo_elevator),
             Region("New Londo Ruins"),
-            Loot("Soul of a Nameless Soldier", bank=800, detail="by elevator"),
+            Loot(
+                "Soul of a Nameless Soldier",
+                bank=800,
+                detail="by new londo elevator",
+            ),
             Region("Valley of Drakes"),
-            Loot("Large Soul of a Nameless Soldier", bank=1000, detail="behind master key door"),
+            Loot(
+                "Large Soul of a Nameless Soldier",
+                bank=1000,
+                detail="behind master key door",
+            ),
+            TakeDamage(
+                "falling off ledge above Ancient Dragon",
+                detail="RTSR setup (1/3)",
+            ),
             Loot("Soul of a Proud Knight", bank=2000, detail="by dragon"),
-            Equip("Soul of a Nameless Soldier", "Item 2"),
-            Equip("Large Soul of a Nameless Soldier", "Item 3"),
-            Equip("Soul of a Proud Knight", "Item 4"),
-            Use("Soul of a Nameless Soldier"),
-            Use("Large Soul of a Nameless Soldier"),
-            Use("Soul of a Proud Knight"),
+            Equip("Reinforced Club", "Right Hand", detail=ladder),
+            Equip("Soul of a Nameless Soldier", "Item 2", detail=ladder),
+            Equip("Large Soul of a Nameless Soldier", "Item 3", detail=ladder),
+            Equip("Soul of a Proud Knight", "Item 4", detail=ladder),
+            Loot("Red Tearstone Ring"),
+            TakeDamage(
+                "falling off ledge by Red Tearstone Ring",
+                detail="RTSR setup (2/3)",
+            ),
+            Use("Soul of a Nameless Soldier", detail=basin_elevator),
+            Use("Large Soul of a Nameless Soldier", detail=basin_elevator),
+            Use("Soul of a Proud Knight", detail=basin_elevator),
+            Equip("Red Tearstone Ring", "Ring 2", detail=basin_elevator),
+            Region("Darkroot Basin"),
+            Loot("Grass Crest Shield"),
+            Equip("Grass Crest Shield", "Left Hand", detail="immediately"),
+            Kill("Black Knight", souls=1800, detail="by Grass Crest Shield"),
         )
 
+
+class NormalUpgradeWeaponPlus5(Segment):
+    def __init__(self):
+        super().__init__(
+            Region("Undead Parish"),
+            Buy("Titanite Shard", count=9, souls=800, detail="Andre"),
+            Buy("Normal Upgrade Weapon", count=5, souls=200, detail="Andre"),
+        )
+
+
+class AndreToGargoyles(Segment):
+    def __init__(self):
+        super().__init__(
+            Region("Undead Parish"),
+            TakeDamage(
+                "falling off right-side ledge above Basement key",
+                detail="RTSR setup (3/3)",
+            ),
+            Loot("Basement Key", detail="by gate lever"),
+            Activate(
+                "Elevator to Firelink Shrine", detail="just run, don't roll"
+            ),
+            Kill("Gargoyles", souls=10000),
+            Activate("First bell"),
+            Use(Item.BONE),
+        )
+
+
+class FirelinkToQuelaag(Segment):
+    def __init__(self):
+        super().__init__(
+            Region("Firelink Shrine"),
+            Kill(
+                "Lautrec",
+                souls=1000,
+                detail="kick off ledge, with bare hands for safety",
+            ),
+            Run("to back entrance to Blighttown"),
+            Region("Blighttown"),
+            Perform("Blighttown drop"),
+            Kill(
+                "Blowdart Sniper",
+                souls=600,
+                detail="run off ledge and plunging attack",
+            ),
+            Receive("Purple Moss", detail="Blowdart Snper"),
+            Heal("using Estus Flask", detail="on waterwheel"),
+            TakeDamage(
+                "falling off waterwheel onto scaffold and then off that too",
+                detail="RTSR setup, swamp poison finishes the job",
+            ),
+            UseMenu(
+                "Purple Moss", detail="once in RTSR range and out of swamp"
+            ),
+            Kill("Quelaag", souls=20000),
+            Receive("Soul of Quelaag", bank=8000, detail="Quelaag"),
+            Activate("Second bell"),
+            Receive(Item.BONE, detail="Second bell"),
+            Use(Item.BONE),
+        )
 
 
 class SL1MeleeOnlyGlitchless(Segment):
@@ -149,5 +242,8 @@ class SL1MeleeOnlyGlitchless(Segment):
             FirelinkLoot(),
             FetchReinforcedClub(),
             FirelinkToAndre(),
+            NormalUpgradeWeaponPlus5(),
+            AndreToGargoyles(),
+            FirelinkToQuelaag(),
         ]:
             self += segment

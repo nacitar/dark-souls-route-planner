@@ -79,7 +79,7 @@ class Segment:
                     region = action.target
             else:
                 html += (
-                    "<tr>"
+                    ('<tr class="optional">' if action.optional else "<tr>")
                     + _value_cell("souls", last_state.souls, state.souls)
                     + _value_cell("bank", last_state.bank, state.bank)
                     + _value_cell("bones", last_state.bones, state.bones)
