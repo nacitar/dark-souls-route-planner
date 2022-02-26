@@ -58,14 +58,14 @@ class Action:
 
     @property
     def name(self):
-        return type(self).__name__
+        return f"{'Optional' if self.optional else ''}{type(self).__name__}"
 
     def __call__(self, state: State) -> None:
         ...
 
 
 @dataclass
-class TakeDamage(Action):
+class FallDamage(Action):
     ...
 
 
@@ -250,7 +250,12 @@ class Heal(Action):
 
 
 @dataclass
-class Run(Action):
+class RunTo(Action):
+    ...
+
+
+@dataclass
+class WaitFor(Action):
     ...
 
 

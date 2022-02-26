@@ -16,14 +16,19 @@ from .action import (
     Perform,
     Receive,
     Region,
-    Run,
-    TakeDamage,
+    RunTo,
+    FallDamage,
     Talk,
     UnEquip,
     Use,
     UseMenu,
+    WaitFor,
 )
 from .route import Segment
+
+new_londo_elevator = "elevator to New Londo Ruins"
+basin_elevator = "elevator to Darkroot Basin"
+parish_elevator = "elevator to Undead Parish"
 
 
 class InitialState(Segment):
@@ -104,9 +109,11 @@ class FirelinkLoot(Segment):
         )
 
 
-class FetchReinforcedClub(Segment):
+class FirelinkToReinforcedClub(Segment):
     def __init__(self):
         super().__init__(
+            Region("Firelink Shrine"),
+            RunTo("Undead Burg"),
             Region("Undead Burg"),
             Buy("Reinforced Club", souls=350, detail="Undead Merchant"),
             Buy(
@@ -122,11 +129,10 @@ class FetchReinforcedClub(Segment):
 
 class FirelinkToAndre(Segment):
     def __init__(self):
-        new_londo_elevator = "on elevator to New Londo Ruins"
-        basin_elevator = "on elevator to Darkroot Basin"
         ladder = "climbing ladder to RTSR"
         super().__init__(
             Region("Firelink Shrine"),
+            RunTo(new_londo_elevator),
             UseMenu(
                 "Large Soul of a Lost Undead",
                 count=2,
@@ -137,7 +143,7 @@ class FirelinkToAndre(Segment):
             Loot(
                 "Soul of a Nameless Soldier",
                 bank=800,
-                detail="by new londo elevator",
+                detail=f"by bottom of {new_londo_elevator}",
             ),
             Region("Valley of Drakes"),
             Loot(
@@ -145,20 +151,21 @@ class FirelinkToAndre(Segment):
                 bank=1000,
                 detail="behind master key door",
             ),
-            TakeDamage(
-                "falling off ledge above Ancient Dragon",
-                detail="RTSR setup (1/3)",
+            FallDamage("ledge above Undead Dragon", detail="RTSR setup (1/3)"),
+            Loot(
+                "Soul of a Proud Knight",
+                bank=2000,
+                detail="last item by Undead Dragon",
             ),
-            Loot("Soul of a Proud Knight", bank=2000, detail="by dragon"),
             Equip("Reinforced Club", "Right Hand", detail=ladder),
             Equip("Soul of a Nameless Soldier", "Item 2", detail=ladder),
             Equip("Large Soul of a Nameless Soldier", "Item 3", detail=ladder),
             Equip("Soul of a Proud Knight", "Item 4", detail=ladder),
             Loot("Red Tearstone Ring"),
-            TakeDamage(
-                "falling off ledge by Red Tearstone Ring",
-                detail="RTSR setup (2/3)",
+            FallDamage(
+                "ledge by Red Tearstone Ring", detail="RTSR setup (2/3)"
             ),
+            RunTo(basin_elevator),
             Use("Soul of a Nameless Soldier", detail=basin_elevator),
             Use("Large Soul of a Nameless Soldier", detail=basin_elevator),
             Use("Soul of a Proud Knight", detail=basin_elevator),
@@ -167,6 +174,7 @@ class FirelinkToAndre(Segment):
             Loot("Grass Crest Shield"),
             Equip("Grass Crest Shield", "Left Hand", detail="immediately"),
             Kill("Black Knight", souls=1800, detail="by Grass Crest Shield"),
+            RunTo("Undead Parish"),
         )
 
 
@@ -183,8 +191,9 @@ class AndreToGargoyles(Segment):
     def __init__(self):
         super().__init__(
             Region("Undead Parish"),
-            TakeDamage(
-                "falling off right-side ledge above Basement key",
+            RunTo("gate area by Basement Key"),
+            FallDamage(
+                "right-side ledge above Basement key",
                 detail="RTSR setup (3/3)",
             ),
             Loot("Basement Key", detail="by gate lever"),
@@ -206,7 +215,7 @@ class FirelinkToQuelaag(Segment):
                 souls=1000,
                 detail="kick off ledge, with bare hands for safety",
             ),
-            Run("to back entrance to Blighttown"),
+            RunTo(f"{new_londo_elevator} then back entrance of Blighttown"),
             Region("Blighttown"),
             Perform("Blighttown drop"),
             Kill(
@@ -214,10 +223,10 @@ class FirelinkToQuelaag(Segment):
                 souls=600,
                 detail="run off ledge and plunging attack",
             ),
-            Receive("Purple Moss", detail="Blowdart Snper"),
+            Receive("Purple Moss", detail="Blowdart Sniper"),
             Heal("using Estus Flask", detail="on waterwheel"),
-            TakeDamage(
-                "falling off waterwheel onto scaffold and then off that too",
+            FallDamage(
+                "waterwheel onto scaffold then scaffold to ground",
                 detail="RTSR setup, swamp poison finishes the job",
             ),
             UseMenu(
@@ -231,6 +240,77 @@ class FirelinkToQuelaag(Segment):
         )
 
 
+class FirelinkToSensFortress(Segment):
+    def __init__(self):
+        super().__init__(
+            Region("Firelink Shrine"),
+            RunTo(parish_elevator),
+            UseMenu("Soul of Quelaag", detail=parish_elevator),
+            Region("Undead Parish"),
+            BonfireSit("Undead Parish"),
+            Region("Sen's Fortress"),
+            RunTo("room before 2nd boulder"),
+            WaitFor("boulder to pass", detail="hitting enemy in room 5 times"),
+            RunTo("top of ramp", detail="must go IMMEDIATELY after boulder"),
+            BonfireSit("Sen's Fortress"),
+        )
+
+
+class SensFortressToDarkmoonTomb(Segment):
+    def __init__(self):
+        super().__init__(
+            Region("Sen's Fortress"),
+            RunTo(
+                "hole at dead end below bonfire and to the right",
+                detail="fall down it",
+            ),
+            Loot("Slumbering Dragoncrest Ring"),
+            Use(Item.BONE),
+            FallDamage("off right side of bridge, twice", detail="RTSR setup"),
+            Kill(
+                "Undead Knight Archer",
+                souls=600,
+                detail="just because he blocks the doorway",
+            ),
+            Kill(
+                "Iron Golem",
+                souls=40000,
+                detail="try to stagger and knock him off",
+            ),
+            Receive("Core of an Iron Golem", bank=12000, detail="Iron Golem"),
+            Region("Anor Londo"),
+            BonfireSit(
+                "Anor Londo", detail="safety for rafters", optional=True
+            ),
+            RunTo("elevator"),
+            UseMenu("Core of an Iron Golem", detail="elevator"),
+            Activate("Bridge lever (2x)"),
+            Equip(
+                "Slumbering Dragoncrest Ring",
+                slot="Ring 1",
+                detail="while pushing bridge lever",
+            ),
+            BonfireSit("Darkmoon Tomb"),
+            Activate("Bridge lever"),
+        )
+
+
+class DarkmoonTombToGiantBlacksmith(Segment):
+    def __init__(self):
+        super().__init__(
+            Region("Anor Londo"),
+            Activate("Bridge lever"),
+            RunTo("sniper ledge"),
+            Kill(
+                "Silver Knight",
+                souls=1300,
+                detail="bait melee then run to make him fall",
+            ),
+            BonfireSit("Post-Sniper Bonfire"),
+            RunTo("Giant Blacksmith"),
+        )
+
+
 class SL1MeleeOnlyGlitchless(Segment):
     def __init__(self):
         super().__init__()
@@ -240,10 +320,13 @@ class SL1MeleeOnlyGlitchless(Segment):
             StartOfGame(),
             AsylumCellToFirelink(),
             FirelinkLoot(),
-            FetchReinforcedClub(),
+            FirelinkToReinforcedClub(),
             FirelinkToAndre(),
             NormalUpgradeWeaponPlus5(),
             AndreToGargoyles(),
             FirelinkToQuelaag(),
+            FirelinkToSensFortress(),
+            SensFortressToDarkmoonTomb(),
+            DarkmoonTombToGiantBlacksmith(),
         ]:
             self += segment
