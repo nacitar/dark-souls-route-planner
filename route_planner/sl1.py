@@ -91,18 +91,19 @@ class FirelinkLoot(Segment):
     def __init__(self):
         super().__init__(
             Region("Firelink Shrine"),
-            Loot("Soul of a Lost Undead", bank=200, detail="upper elevator"),
+            Loot(Item.HUMANITY, count=3, humanities=1, detail="side of well"),
+            Loot("Soul of a Lost Undead", souls=200, detail="upper elevator"),
             Jump("off ledge to hidden chests"),
             Loot(Item.BONE, count=6, detail="hidden chest"),
             Equip(Item.BONE, "Item 5", detail="immediately"),
             Loot(
                 "Large Soul of a Lost Undead",
-                bank=400,
+                souls=400,
                 detail="middle of graveyard",
             ),
             Loot(
                 "Large Soul of a Lost Undead",
-                bank=400,
+                souls=400,
                 detail="start of graveyard",
             ),
             Use(Item.BONE),
@@ -142,19 +143,19 @@ class FirelinkToAndre(Segment):
             Region("New Londo Ruins"),
             Loot(
                 "Soul of a Nameless Soldier",
-                bank=800,
+                souls=800,
                 detail=f"by bottom of {new_londo_elevator}",
             ),
             Region("Valley of Drakes"),
             Loot(
                 "Large Soul of a Nameless Soldier",
-                bank=1000,
+                souls=1000,
                 detail="behind master key door",
             ),
             FallDamage("ledge above Undead Dragon", detail="RTSR setup (1/3)"),
             Loot(
                 "Soul of a Proud Knight",
-                bank=2000,
+                souls=2000,
                 detail="last item by Undead Dragon",
             ),
             Equip("Reinforced Club", "Right Hand", detail=ladder),
@@ -233,7 +234,7 @@ class FirelinkToQuelaag(Segment):
                 "Purple Moss", detail="once in RTSR range and out of swamp"
             ),
             Kill("Quelaag", souls=20000),
-            Receive("Soul of Quelaag", bank=8000, detail="Quelaag"),
+            Receive("Soul of Quelaag", souls=8000, detail="Quelaag"),
             Activate("Second bell"),
             Receive(Item.BONE, detail="Second bell"),
             Use(Item.BONE),
@@ -277,7 +278,7 @@ class SensFortressToDarkmoonTomb(Segment):
                 souls=40000,
                 detail="try to stagger and knock him off",
             ),
-            Receive("Core of an Iron Golem", bank=12000, detail="Iron Golem"),
+            Receive("Core of an Iron Golem", souls=12000, detail="Iron Golem"),
             Region("Anor Londo"),
             BonfireSit(
                 "Anor Londo", detail="safety for rafters", optional=True

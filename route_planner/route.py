@@ -62,17 +62,29 @@ class Segment:
         region_count = 0
         last_state = State()
         region = ""
+        columns = [
+            ("Souls", "Souls"),
+            ("Item Souls", "☄️"),
+            ("Homeward Bones", "🦴"),
+            ("Humanity", "👨"),
+            ("Item Humanities", "👤"),
+            ("Action", "Action"),
+        ]
         html = (
-            '<table class="route"><thead>'
-            "<tr><th>Souls</th><th>Bank</th><th>HB</th><th>Action</th>"
-            "</tr></thead><tbody>"
+            '<table class="route"><thead><tr>'
+            + "".join(
+                f'<th title="{column[0]}">{column[1]}</th>'
+                for column in columns
+            )
+            + "</tr></thead><tbody>"
         )
         for state, action in self.process(last_state):
             if isinstance(action, Region):
                 if action.target != region:
                     region_count += 1
                     html += (
-                        '</tbody><tbody><tr><td colspan="4" class="region">'
+                        "</tbody><tbody><tr>"
+                        f'<td colspan="{len(columns)}" class="region">'
                         f"{region_count:02}. {action.target}</td></tr>"
                         "</tbody><tbody>"
                     )
@@ -81,8 +93,14 @@ class Segment:
                 html += (
                     ('<tr class="optional">' if action.optional else "<tr>")
                     + _value_cell("souls", last_state.souls, state.souls)
-                    + _value_cell("bank", last_state.bank, state.bank)
+                    + _value_cell("item_souls", last_state.item_souls, state.item_souls)
                     + _value_cell("bones", last_state.bones, state.bones)
+                    + _value_cell(
+                        "humanity", last_state.humanity, state.humanity
+                    )
+                    + _value_cell(
+                        "item_humanities", last_state.item_humanities, state.item_humanities
+                    )
                     + '<td class="action">'
                     f'<span class="name">{action.name}</span>'
                     f' <span class="display">{action.display}</span>'

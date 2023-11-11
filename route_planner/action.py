@@ -8,22 +8,27 @@ from typing import Optional
 
 class Item:
     BONE = "Homeward Bone"
+    HUMANITY = "Humanity"
+    TWIN_HUMANITIES = "Twin Humanities"
     DARKSIGN = "Darksign"
 
 
 @dataclass(kw_only=True)
 class State:
     souls: int = 0
-    bank: int = 0
+    item_souls: int = 0
+    humanity: int = 0
+    item_humanities: int = 0
     bonfire: str = ""
     region: str = ""
     bonfire_to_region: dict[str, str] = field(default_factory=dict, repr=False)
     equipment: dict[str, str] = field(default_factory=dict, repr=False)
     inventory: Counter[str] = field(default_factory=Counter, repr=False)
-    bank_lookup: dict[str, int] = field(default_factory=dict, repr=False)
+    souls_lookup: dict[str, int] = field(default_factory=dict, repr=False)
+    humanities_lookup: dict[str, int] = field(default_factory=dict, repr=False)
 
     @property
-    def bones(self):
+    def bones(self) -> int:
         return self.inventory[Item.BONE]
 
     @bones.setter
@@ -35,7 +40,7 @@ class State:
             f"{key}({value})"
             for key, value in chain(
                 self.inventory.items(),
-                [("souls", self.souls), ("bank", self.bank)],
+                [("souls", self.souls), ("item_souls", self.item_souls)],
             )
             if value < 0
         ]
@@ -161,21 +166,33 @@ class __ItemCommon(Action):
 
 @dataclass(kw_only=True)
 class Loot(__ItemCommon):
-    bank: int = 0
+    souls: int = 0
+    humanities: int = 0
 
     def __call__(self, state: State) -> None:
-        if not self.bank:
-            self.bank = state.bank_lookup.get(self.target, 0)
+        if not self.souls:
+            self.souls = state.souls_lookup.get(self.target, 0)
         else:
-            stored_bank = state.bank_lookup.setdefault(self.target, self.bank)
-            if stored_bank != self.bank:
+            stored_souls = state.souls_lookup.setdefault(self.target, self.souls)
+            if stored_souls != self.souls:
                 raise RuntimeError(
-                    f"Previously indicated {self.target} banked"
-                    f" {stored_bank} but now indicating it"
-                    f" banks {self.bank}"
+                    f"Previously indicated {self.target} gives"
+                    f" {stored_souls} souls but now indicating it"
+                    f" gives {self.souls} souls."
+                )
+        if not self.humanities:
+            self.humanities = state.humanities_lookup.get(self.target, 0)
+        else:
+            stored_humanities = state.humanities_lookup.setdefault(self.target, self.humanities)
+            if stored_humanities != self.humanities:
+                raise RuntimeError(
+                    f"Previously indicated {self.target} gives"
+                    f" {stored_humanities} humanities but now indicating it"
+                    f" gives {self.humanities} humanities."
                 )
         state.inventory[self.target] += self.count
-        state.bank += self.bank * self.count
+        state.item_souls += self.souls * self.count
+        state.item_humanities += self.humanities * self.count
 
 
 @dataclass
@@ -198,11 +215,16 @@ class UseMenu(__ItemCommon):
             except KeyError:
                 raise RuntimeError("Can't warp; bonfire region is unknown.")
 
-        stored_bank = state.bank_lookup.get(self.target, 0)
-        if stored_bank:
-            delta = stored_bank * self.count
+        stored_souls = state.souls_lookup.get(self.target, 0)
+        if stored_souls:
+            delta = stored_souls * self.count
             state.souls += delta
-            state.bank -= delta
+            state.item_souls -= delta
+        stored_humanities = state.humanities_lookup.get(self.target, 0)
+        if stored_humanities:
+            delta = stored_humanities * self.count
+            state.humanity += delta
+            state.item_humanities -= delta
         if self.target != Item.DARKSIGN:
             state.inventory[self.target] -= self.count
 
