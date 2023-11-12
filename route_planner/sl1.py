@@ -35,9 +35,9 @@ class InitialState(Segment):
     def __init__(self):
         detail = "starting equipment"
         super().__init__(
-            Loot(Item.DARKSIGN, detail=detail),
-            Loot("Straight Sword Hilt", detail=detail),
-            Equip("Straight Sword Hilt", "Right Hand", detail=detail),
+            Receive(Item.DARKSIGN, detail=detail),
+            Receive("Straight Sword Hilt", detail=detail),
+            AutoEquip("Straight Sword Hilt", "Right Hand", detail=detail),
         )
 
 
@@ -45,14 +45,14 @@ class PyromancerInitialState(Segment):
     def __init__(self):
         detail = "Pyromancer starting equipment"
         super().__init__(
-            Loot("Tattered Cloth Hood", detail=detail),
-            Loot("Tattered Cloth Robe", detail=detail),
-            Loot("Tattered Cloth Manchette", detail=detail),
-            Loot("Heavy Boots", detail=detail),
-            Equip("Tattered Cloth Hood", "Head", detail=detail),
-            Equip("Tattered Cloth Robe", "Torso", detail=detail),
-            Equip("Tattered Cloth Manchette", "Arms", detail=detail),
-            Equip("Heavy Boots", "Legs", detail=detail),
+            Receive("Tattered Cloth Hood", detail=detail),
+            Receive("Tattered Cloth Robe", detail=detail),
+            Receive("Tattered Cloth Manchette", detail=detail),
+            Receive("Heavy Boots", detail=detail),
+            AutoEquip("Tattered Cloth Hood", "Head", detail=detail),
+            AutoEquip("Tattered Cloth Robe", "Torso", detail=detail),
+            AutoEquip("Tattered Cloth Manchette", "Arms", detail=detail),
+            AutoEquip("Heavy Boots", "Legs", detail=detail),
         )
 
 
