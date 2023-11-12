@@ -198,11 +198,30 @@ class AndreToGargoyles(Segment):
                 detail="RTSR setup (3/3)",
             ),
             Loot("Basement Key", detail="by gate lever"),
+            Loot(
+                "Fire Keeper Soul",
+                humanities=5,
+                detail="on altar behind Berenike Knight",
+            ),
             Activate(
                 "Elevator to Firelink Shrine", detail="just run, don't roll"
             ),
-            Kill("Gargoyles", souls=10000),
+            Kill("Bell Gargoyles", souls=10000),
+            Receive(
+                Item.TWIN_HUMANITIES, humanities=2, detail="Bell Gargoyles"
+            ),
             Activate("First bell"),
+            RunTo(
+                "Oswald of Carim",
+                detail="RTSR setup: heal, fall down both ladders",
+            ),
+            Kill("Oswald of Carim", souls=2000, detail="can buy bones here"),
+            Loot(
+                Item.TWIN_HUMANITIES,
+                count=2,
+                humanities=2,
+                detail="Oswald of Carim",
+            ),
             Use(Item.BONE),
         )
 
@@ -215,6 +234,12 @@ class FirelinkToQuelaag(Segment):
                 "Lautrec",
                 souls=1000,
                 detail="kick off ledge, with bare hands for safety",
+            ),
+            Loot(
+                Item.HUMANITY,
+                count=5,
+                humanities=1,
+                detail="Lautrec... TODO S&Q now or get later?",
             ),
             RunTo(f"{new_londo_elevator} then back entrance of Blighttown"),
             Region("Blighttown"),
@@ -235,6 +260,7 @@ class FirelinkToQuelaag(Segment):
             ),
             Kill("Quelaag", souls=20000),
             Receive("Soul of Quelaag", souls=8000, detail="Quelaag"),
+            Receive(Item.TWIN_HUMANITIES, humanities=2, detail="Quelaag"),
             Activate("Second bell"),
             Receive(Item.BONE, detail="Second bell"),
             Use(Item.BONE),
@@ -279,6 +305,7 @@ class SensFortressToDarkmoonTomb(Segment):
                 detail="try to stagger and knock him off",
             ),
             Receive("Core of an Iron Golem", souls=12000, detail="Iron Golem"),
+            Receive(Item.HUMANITY, humanities=1, detail="Iron Golem"),
             Region("Anor Londo"),
             BonfireSit(
                 "Anor Londo", detail="safety for rafters", optional=True
@@ -310,6 +337,12 @@ class DarkmoonTombToGiantBlacksmith(Segment):
             BonfireSit("Post-Sniper Bonfire"),
             RunTo("Giant Blacksmith"),
         )
+
+
+# TODO:
+# - 1 humanity from o&s
+# - 1 humanity from pinwheel
+# - 4 humanity from killing patches
 
 
 class SL1MeleeOnlyGlitchless(Segment):

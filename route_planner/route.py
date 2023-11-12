@@ -93,13 +93,17 @@ class Segment:
                 html += (
                     ('<tr class="optional">' if action.optional else "<tr>")
                     + _value_cell("souls", last_state.souls, state.souls)
-                    + _value_cell("item_souls", last_state.item_souls, state.item_souls)
+                    + _value_cell(
+                        "item_souls", last_state.item_souls, state.item_souls
+                    )
                     + _value_cell("bones", last_state.bones, state.bones)
                     + _value_cell(
                         "humanity", last_state.humanity, state.humanity
                     )
                     + _value_cell(
-                        "item_humanities", last_state.item_humanities, state.item_humanities
+                        "item_humanities",
+                        last_state.item_humanities,
+                        state.item_humanities,
                     )
                     + '<td class="action">'
                     f'<span class="name">{action.name}</span>'

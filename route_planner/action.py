@@ -31,10 +31,6 @@ class State:
     def bones(self) -> int:
         return self.inventory[Item.BONE]
 
-    @bones.setter
-    def bones(self, value: int):
-        self.inventory[Item.BONE] = value
-
     def verify(self):
         overdrafts: list[str] = [
             f"{key}({value})"
@@ -173,7 +169,9 @@ class Loot(__ItemCommon):
         if not self.souls:
             self.souls = state.souls_lookup.get(self.target, 0)
         else:
-            stored_souls = state.souls_lookup.setdefault(self.target, self.souls)
+            stored_souls = state.souls_lookup.setdefault(
+                self.target, self.souls
+            )
             if stored_souls != self.souls:
                 raise RuntimeError(
                     f"Previously indicated {self.target} gives"
@@ -183,7 +181,9 @@ class Loot(__ItemCommon):
         if not self.humanities:
             self.humanities = state.humanities_lookup.get(self.target, 0)
         else:
-            stored_humanities = state.humanities_lookup.setdefault(self.target, self.humanities)
+            stored_humanities = state.humanities_lookup.setdefault(
+                self.target, self.humanities
+            )
             if stored_humanities != self.humanities:
                 raise RuntimeError(
                     f"Previously indicated {self.target} gives"
