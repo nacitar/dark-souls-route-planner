@@ -363,33 +363,40 @@ class DarkmoonTombToGiantBlacksmith(Segment):
 class BlacksmithGiantHammer(Segment):
     def __init__(self):
         super().__init__(
+            Region("Anor Londo"),
+            Buy("Weapon Smithbox", souls=2000, detail="Giant Blacksmith"),
             Buy(
                 Item.TWINKLING_TITANITE,
                 count=10,
                 souls=8000,
                 detail="Giant Blacksmith",
             ),
+            Kill("Giant Blacksmith", souls=3000),
+            Loot("Blacksmith Giant Hammer", detail="Giant Blacksmith"),
+            Use(Item.BONE),
             Upgrade(
                 "Unique Upgrade Weapon +0-2",
                 count=2,
                 souls=2000,
                 items=Counter({Item.TWINKLING_TITANITE: 1}),
-                detail="Giant Blacksmith",
+                detail="Bonfire",
             ),
             Upgrade(
                 "Unique Upgrade Weapon +2-4",
                 count=2,
                 souls=2000,
                 items=Counter({Item.TWINKLING_TITANITE: 2}),
-                detail="Giant Blacksmith",
+                detail="Bonfire",
             ),
             Upgrade(
                 "Unique Upgrade Weapon +4-5",
                 count=1,
                 souls=2000,
                 items=Counter({Item.TWINKLING_TITANITE: 4}),
-                detail="Giant Blacksmith",
+                detail="Bonfire",
             ),
+            Equip("Blacksmith Giant Hammer", "Right Hand", detail="could wait until O&S fog gate"),
+            Equip(Item.DARKSIGN, "Item 5", detail="no need for bones anymore"),
         )
 
 
