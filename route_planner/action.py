@@ -11,6 +11,8 @@ class Item:
     HUMANITY = "Humanity"
     TWIN_HUMANITIES = "Twin Humanities"
     DARKSIGN = "Darksign"
+    TITANITE_SHARD = "Titanite Shard"
+    TWINKLING_TITANITE = "Twinkling Titanite"
 
 
 @dataclass(kw_only=True)
@@ -30,6 +32,14 @@ class State:
     @property
     def bones(self) -> int:
         return self.inventory[Item.BONE]
+
+    @property
+    def titanite_shards(self) -> int:
+        return self.inventory[Item.TITANITE_SHARD]
+
+    @property
+    def twinkling_titanite(self) -> int:
+        return self.inventory[Item.TWINKLING_TITANITE]
 
     def verify(self):
         overdrafts: list[str] = [
@@ -264,6 +274,16 @@ class Buy(Kill):
     def __call__(self, state: State) -> None:
         super().__call__(state)
         state.inventory[self.target] += self.count
+
+
+@dataclass
+class Upgrade(Buy):
+    items: Counter[str] = field(default_factory=Counter, repr=False)
+
+    def __call__(self, state: State) -> None:
+        super().__call__(state)
+        for item, count in self.items.items():
+            UseMenu(item, count=(count * self.count))(state)  # call it
 
 
 @dataclass

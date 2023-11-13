@@ -20,11 +20,13 @@ from .action import (
     FallDamage,
     Talk,
     UnEquip,
+    Upgrade,
     Use,
     UseMenu,
     WaitFor,
 )
 from .route import Segment
+from collections import Counter
 
 new_londo_elevator = "elevator to New Londo Ruins"
 basin_elevator = "elevator to Darkroot Basin"
@@ -183,8 +185,28 @@ class NormalUpgradeWeaponPlus5(Segment):
     def __init__(self):
         super().__init__(
             Region("Undead Parish"),
-            Buy("Titanite Shard", count=9, souls=800, detail="Andre"),
-            Buy("Normal Upgrade Weapon", count=5, souls=200, detail="Andre"),
+            Buy(Item.TITANITE_SHARD, count=9, souls=800, detail="Andre"),
+            Upgrade(
+                "Normal Upgrade Weapon +0-2",
+                count=2,
+                souls=200,
+                items=Counter({Item.TITANITE_SHARD: 1}),
+                detail="Andre",
+            ),
+            Upgrade(
+                "Normal Upgrade Weapon +2-4",
+                count=2,
+                souls=200,
+                items=Counter({Item.TITANITE_SHARD: 2}),
+                detail="Andre",
+            ),
+            Upgrade(
+                "Normal Upgrade Weapon +4-5",
+                count=1,
+                souls=200,
+                items=Counter({Item.TITANITE_SHARD: 3}),
+                detail="Andre",
+            ),
         )
 
 
@@ -319,7 +341,6 @@ class SensFortressToDarkmoonTomb(Segment):
                 detail="while pushing bridge lever",
             ),
             BonfireSit("Darkmoon Tomb"),
-            Activate("Bridge lever"),
         )
 
 
@@ -336,6 +357,39 @@ class DarkmoonTombToGiantBlacksmith(Segment):
             ),
             BonfireSit("Post-Sniper Bonfire"),
             RunTo("Giant Blacksmith"),
+        )
+
+
+class BlacksmithGiantHammer(Segment):
+    def __init__(self):
+        super().__init__(
+            Buy(
+                Item.TWINKLING_TITANITE,
+                count=10,
+                souls=8000,
+                detail="Giant Blacksmith",
+            ),
+            Upgrade(
+                "Unique Upgrade Weapon +0-2",
+                count=2,
+                souls=2000,
+                items=Counter({Item.TWINKLING_TITANITE: 1}),
+                detail="Giant Blacksmith",
+            ),
+            Upgrade(
+                "Unique Upgrade Weapon +2-4",
+                count=2,
+                souls=2000,
+                items=Counter({Item.TWINKLING_TITANITE: 2}),
+                detail="Giant Blacksmith",
+            ),
+            Upgrade(
+                "Unique Upgrade Weapon +4-5",
+                count=1,
+                souls=2000,
+                items=Counter({Item.TWINKLING_TITANITE: 4}),
+                detail="Giant Blacksmith",
+            ),
         )
 
 
@@ -362,5 +416,6 @@ class SL1MeleeOnlyGlitchless(Segment):
             FirelinkToSensFortress(),
             SensFortressToDarkmoonTomb(),
             DarkmoonTombToGiantBlacksmith(),
+            BlacksmithGiantHammer(),
         ]:
             self += segment

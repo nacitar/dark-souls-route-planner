@@ -66,8 +66,10 @@ class Segment:
             ("Souls", "Souls"),
             ("Item Souls", "☄️"),
             ("Homeward Bones", "🦴"),
-            ("Humanity", "👨"),
+            ("Titanite Shards", "🌑"),
+            ("Twinkling Titanite", "💎"),
             ("Item Humanities", "👤"),
+            ("Humanity", "👨"),
             ("Action", "Action"),
         ]
         html = (
@@ -98,12 +100,22 @@ class Segment:
                     )
                     + _value_cell("bones", last_state.bones, state.bones)
                     + _value_cell(
-                        "humanity", last_state.humanity, state.humanity
+                        "titanite_shards",
+                        last_state.titanite_shards,
+                        state.titanite_shards,
+                    )
+                    + _value_cell(
+                        "twinkling_titanite",
+                        last_state.twinkling_titanite,
+                        state.twinkling_titanite,
                     )
                     + _value_cell(
                         "item_humanities",
                         last_state.item_humanities,
                         state.item_humanities,
+                    )
+                    + _value_cell(
+                        "humanity", last_state.humanity, state.humanity
                     )
                     + '<td class="action">'
                     f'<span class="name">{action.name}</span>'
