@@ -5,6 +5,9 @@ from dataclasses import dataclass, field
 from itertools import chain
 from typing import Optional
 
+# TODO: implement conditional buying, in case you already have it.
+# write up Battle Axe route.
+# add ability to estimate time for a segment
 
 class Item:
     BONE = "Homeward Bone"
@@ -59,6 +62,7 @@ class Action:
     target: str
     detail: str = field(default="", kw_only=True)
     optional: bool = field(default=False, kw_only=True)
+    output: bool = field(default=True, kw_only=True)
 
     def __post_init__(self) -> None:
         ...  # so code doesn't need changed if this is added later
@@ -110,8 +114,8 @@ class AutoBonfire(BonfireSit):
 @dataclass
 class __EquipCommon(Action):
     slot: str
-    replaces: str = ""
-    expected_to_replace: Optional[str] = None
+    replaces: str = field(default="", init=False)
+    expected_to_replace: Optional[str] = field(default=None, init=False)
 
     def __call__(self, state: State) -> None:
         self.replaces = state.equipment.get(self.slot, "")
@@ -267,18 +271,26 @@ class AutoKill(Kill):
 
 @dataclass(kw_only=True)
 class Buy(Kill):
+    always: bool = False  # if set, make sure you have count, buy as needed
     def __post_init__(self) -> None:
         super().__post_init__()
         self.souls *= -1
 
     def __call__(self, state: State) -> None:
+        if not self.always:
+            self.count = max(self.count - state.inventory[self.target], 0)
+            if not self.count:
+                self.output = False  # no need to buy anything
         super().__call__(state)
         state.inventory[self.target] += self.count
 
-
 @dataclass
-class Upgrade(Buy):
+class Upgrade(Kill):
     items: Counter[str] = field(default_factory=Counter, repr=False)
+
+    def __post_init__(self) -> None:
+        super().__post_init__()
+        self.souls *= -1
 
     def __call__(self, state: State) -> None:
         super().__call__(state)

@@ -91,7 +91,7 @@ class Segment:
                         "</tbody><tbody>"
                     )
                     region = action.target
-            else:
+            elif action.output:
                 html += (
                     ('<tr class="optional">' if action.optional else "<tr>")
                     + _value_cell("souls", last_state.souls, state.souls)

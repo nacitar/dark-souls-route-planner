@@ -81,6 +81,7 @@ class AsylumCellToFirelink(Segment):
             Receive("Undead Asylum F2 East Key", detail="Oscar of Astora"),
             AutoKill("Oscar of Astora", souls=100),
             Kill("Asylum Demon", souls=2000),
+            Receive(Item.HUMANITY, humanities=1, detail="Asylum Demon"),
             Receive("Big Pilgrim's Key", detail="Asylum Demon"),
             Activate("Big Pilgrim's Key Door", detail="Asylum Demon"),
             Activate("Ledge warp trigger to Firelink Shrine"),
@@ -233,17 +234,17 @@ class AndreToGargoyles(Segment):
                 Item.TWIN_HUMANITIES, humanities=2, detail="Bell Gargoyles"
             ),
             Activate("First bell"),
-            RunTo(
-                "Oswald of Carim",
-                detail="RTSR setup: heal, fall down both ladders",
-            ),
-            Kill("Oswald of Carim", souls=2000, detail="can buy bones here"),
-            Loot(
-                Item.TWIN_HUMANITIES,
-                count=2,
-                humanities=2,
-                detail="Oswald of Carim",
-            ),
+            #RunTo(
+            #    "Oswald of Carim",
+            #    detail="RTSR setup: heal, fall down both ladders",
+            #),
+            #Kill("Oswald of Carim", souls=2000, detail="can buy bones here"),
+            #Loot(
+            #    Item.TWIN_HUMANITIES,
+            #    count=2,
+            #    humanities=2,
+            #    detail="Oswald of Carim",
+            #),
             Use(Item.BONE),
         )
 
@@ -375,21 +376,21 @@ class BlacksmithGiantHammer(Segment):
             Loot("Blacksmith Giant Hammer", detail="Giant Blacksmith"),
             Use(Item.BONE),
             Upgrade(
-                "Unique Upgrade Weapon +0-2",
+                "Upgrade Blacksmith Giant Hammer +0-2",
                 count=2,
                 souls=2000,
                 items=Counter({Item.TWINKLING_TITANITE: 1}),
                 detail="Bonfire",
             ),
             Upgrade(
-                "Unique Upgrade Weapon +2-4",
+                "Upgrade Blacksmith Giant Hammer +2-4",
                 count=2,
                 souls=2000,
                 items=Counter({Item.TWINKLING_TITANITE: 2}),
                 detail="Bonfire",
             ),
             Upgrade(
-                "Unique Upgrade Weapon +4-5",
+                "Upgrade Blacksmith Giant Hammer +4-5",
                 count=1,
                 souls=2000,
                 items=Counter({Item.TWINKLING_TITANITE: 4}),
