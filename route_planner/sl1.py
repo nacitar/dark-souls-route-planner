@@ -234,17 +234,17 @@ class AndreToGargoyles(Segment):
                 Item.TWIN_HUMANITIES, humanities=2, detail="Bell Gargoyles"
             ),
             Activate("First bell"),
-            #RunTo(
+            # RunTo(
             #    "Oswald of Carim",
             #    detail="RTSR setup: heal, fall down both ladders",
-            #),
-            #Kill("Oswald of Carim", souls=2000, detail="can buy bones here"),
-            #Loot(
+            # ),
+            # Kill("Oswald of Carim", souls=2000, detail="can buy bones here"),
+            # Loot(
             #    Item.TWIN_HUMANITIES,
             #    count=2,
             #    humanities=2,
             #    detail="Oswald of Carim",
-            #),
+            # ),
             Use(Item.BONE),
         )
 
@@ -361,7 +361,7 @@ class DarkmoonTombToGiantBlacksmith(Segment):
         )
 
 
-class BlacksmithGiantHammer(Segment):
+class GetBlacksmithGiantHammerAndUpgradeMaterials(Segment):
     def __init__(self):
         super().__init__(
             Region("Anor Londo"),
@@ -375,29 +375,50 @@ class BlacksmithGiantHammer(Segment):
             Kill("Giant Blacksmith", souls=3000),
             Loot("Blacksmith Giant Hammer", detail="Giant Blacksmith"),
             Use(Item.BONE),
+        )
+
+
+class UniqueUpgradeWeapon0to5(Segment):
+    def __init__(self, detail: str = ""):
+        super().__init__(
             Upgrade(
-                "Upgrade Blacksmith Giant Hammer +0-2",
+                "Upgrade Unique Weapon +0-2",
                 count=2,
                 souls=2000,
                 items=Counter({Item.TWINKLING_TITANITE: 1}),
-                detail="Bonfire",
+                detail=detail,
             ),
             Upgrade(
-                "Upgrade Blacksmith Giant Hammer +2-4",
+                "Upgrade Unique Weapon +2-4",
                 count=2,
                 souls=2000,
                 items=Counter({Item.TWINKLING_TITANITE: 2}),
-                detail="Bonfire",
+                detail=detail,
             ),
             Upgrade(
-                "Upgrade Blacksmith Giant Hammer +4-5",
+                "Upgrade Unique Weapon +4-5",
                 count=1,
                 souls=2000,
                 items=Counter({Item.TWINKLING_TITANITE: 4}),
-                detail="Bonfire",
+                detail=detail,
             ),
-            Equip("Blacksmith Giant Hammer", "Right Hand", detail="could wait until O&S fog gate"),
-            Equip(Item.DARKSIGN, "Item 5", detail="no need for bones anymore"),
+        )
+
+
+class EquipBlacksmithGiantHammerAndDarksign(Segment):
+    def __init__(self):
+        super().__init__(
+            Equip(
+                "Blacksmith Giant Hammer",
+                "Right Hand",
+                detail="could wait until O&S fog gate",
+            ),
+            Equip(
+                Item.DARKSIGN,
+                "Item 5",
+                detail="no need for bones anymore",
+                expected_to_replace=Item.BONE,
+            ),
         )
 
 
@@ -424,6 +445,10 @@ class SL1MeleeOnlyGlitchless(Segment):
             FirelinkToSensFortress(),
             SensFortressToDarkmoonTomb(),
             DarkmoonTombToGiantBlacksmith(),
-            BlacksmithGiantHammer(),
+            GetBlacksmithGiantHammerAndUpgradeMaterials(),
+            UniqueUpgradeWeapon0to5(
+                detail="(Bonfire) Blacksmith Giant Hammer"
+            ),
+            EquipBlacksmithGiantHammerAndDarksign(),
         ]:
             self += segment

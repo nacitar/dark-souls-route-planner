@@ -115,7 +115,7 @@ class AutoBonfire(BonfireSit):
 class __EquipCommon(Action):
     slot: str
     replaces: str = field(default="", init=False)
-    expected_to_replace: Optional[str] = field(default=None, init=False)
+    expected_to_replace: Optional[str] = field(default=None, kw_only=True)
 
     def __call__(self, state: State) -> None:
         self.replaces = state.equipment.get(self.slot, "")
@@ -272,6 +272,7 @@ class AutoKill(Kill):
 @dataclass(kw_only=True)
 class Buy(Kill):
     always: bool = False  # if set, make sure you have count, buy as needed
+
     def __post_init__(self) -> None:
         super().__post_init__()
         self.souls *= -1
@@ -283,6 +284,7 @@ class Buy(Kill):
                 self.output = False  # no need to buy anything
         super().__call__(state)
         state.inventory[self.target] += self.count
+
 
 @dataclass
 class Upgrade(Kill):

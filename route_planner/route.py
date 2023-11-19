@@ -99,7 +99,9 @@ class Segment:
                     + _value_cell(
                         "Item Souls", last_state.item_souls, state.item_souls
                     )
-                    + _value_cell("Homeward Bones", last_state.bones, state.bones)
+                    + _value_cell(
+                        "Homeward Bones", last_state.bones, state.bones
+                    )
                     + _value_cell(
                         "Titanite Shards",
                         last_state.titanite_shards,
