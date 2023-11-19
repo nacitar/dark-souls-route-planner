@@ -27,8 +27,9 @@ def html_page(source: HtmlSource, *, title: str = "", style: str = "light"):
     return f"<html><head>{title}{style}</head><body>{body}</body></html>"
 
 
-def _value_cell(css_class: str, old_value: int, new_value: int) -> str:
-    html = f'<td class="{css_class}" title="{new_value}">'
+def _value_cell(name: str, old_value: int, new_value: int) -> str:
+    css_class = name.lower().replace(" ", "_")
+    html = f'<td class="{css_class}" title="{new_value} {name}">'
     if new_value != old_value:
         change = new_value - old_value
         change_class = "subtract" if change < 0 else "add"
@@ -94,28 +95,28 @@ class Segment:
             elif action.output:
                 html += (
                     ('<tr class="optional">' if action.optional else "<tr>")
-                    + _value_cell("souls", last_state.souls, state.souls)
+                    + _value_cell("Souls", last_state.souls, state.souls)
                     + _value_cell(
-                        "item_souls", last_state.item_souls, state.item_souls
+                        "Item Souls", last_state.item_souls, state.item_souls
                     )
-                    + _value_cell("bones", last_state.bones, state.bones)
+                    + _value_cell("Homeward Bones", last_state.bones, state.bones)
                     + _value_cell(
-                        "titanite_shards",
+                        "Titanite Shards",
                         last_state.titanite_shards,
                         state.titanite_shards,
                     )
                     + _value_cell(
-                        "twinkling_titanite",
+                        "Twinkling Titanite",
                         last_state.twinkling_titanite,
                         state.twinkling_titanite,
                     )
                     + _value_cell(
-                        "item_humanities",
+                        "Item Humanities",
                         last_state.item_humanities,
                         state.item_humanities,
                     )
                     + _value_cell(
-                        "humanity", last_state.humanity, state.humanity
+                        "Humanity", last_state.humanity, state.humanity
                     )
                     + '<td class="action">'
                     f'<span class="name">{action.name}</span>'
