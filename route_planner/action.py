@@ -5,7 +5,7 @@ from dataclasses import dataclass, field
 from itertools import chain
 from typing import Optional
 
-# TODO: implement conditional buying, in case you already have it.
+# TODO:
 # write up Battle Axe route.
 # add ability to estimate time for a segment
 
