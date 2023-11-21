@@ -5,7 +5,7 @@ from importlib.resources import open_text as open_text_resource
 from typing import Generator, Iterable, Optional, Protocol, Tuple
 
 from . import styles
-from .action import Action, Region, State
+from .action import Action, Error, Region, State
 
 
 class HtmlSource(Protocol):
@@ -60,10 +60,11 @@ class Segment:
         if state is None:
             state = State()
         for action in self.actions:
-            if action.enabled:
+            if action.condition:  # enabled
                 action(state)
-                state.verify()
                 yield (deepcopy(state), action)
+                for error in state.errors():
+                    yield (deepcopy(state), Error(error))
 
     def _repr_html_(self):
         region_count = 0
@@ -79,7 +80,14 @@ class Segment:
             ("Humanity", "👨"),
             ("Action", "Action"),
         ]
-        html = (
+        html = ""
+        if self.notes:
+            html += (
+                '<ul class="notes">'
+                + "".join([f"<li>{note}</li>" for note in self.notes])
+                + "</ul>"
+            )
+        html += (
             '<table class="route"><thead><tr>'
             + "".join(
                 f'<th title="{column[0]}">{column[1]}</th>'
@@ -99,8 +107,13 @@ class Segment:
                     )
                     region = action.target
             elif action.output:
+                rowclass = ""
+                if isinstance(action, Error):
+                    rowclass = "error"
+                elif action.optional:
+                    rowclass = "optional"
                 html += (
-                    ('<tr class="optional">' if action.optional else "<tr>")
+                    (f'<tr class="{rowclass}">' if rowclass else "<tr>")
                     + _value_cell("Souls", last_state.souls, state.souls)
                     + _value_cell(
                         "Item Souls", last_state.item_souls, state.item_souls
@@ -134,13 +147,18 @@ class Segment:
                 )
             last_state = state
         html += "</tbody></table>"
+        if state.error_count:
+            html = (
+                f'<span class="error_count">{state.error_count}'
+                " errors present.</span>"
+            ) + html
         return html
 
 
 class Conditional(Segment):
-    def __init__(self, enabled: bool, *segments: Segment):
+    def __init__(self, condition: bool, *segments: Segment):
         super().__init__()
-        if enabled:
+        if condition:
             self.extend(segments)
 
 
@@ -153,11 +171,5 @@ class Route(Segment):
         html = '<span class="route_header">'
         if self.name:
             html += f'<span class="route_title">{self.name}</span>'
-        if self.notes:
-            html += (
-                '<ul class="notes">'
-                + "".join([f"<li>{note}</li>" for note in self.notes])
-                + "</ul>"
-            )
         html += "</span>"
         return html + super()._repr_html_()

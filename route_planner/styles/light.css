@@ -2,10 +2,16 @@
     font-size: x-large;
     font-weight: bold;
 }
-.route_header .notes {
+.notes {
     font-size: small;
 }
+.error_count {
+    font-size: large;
+    font-weight: bold;
+    color: Red;
+}
 .route_header,
+.notes,
 table.route {
     font-family: 'Helvetica', 'Arial', sans-serif;
 }
@@ -46,6 +52,12 @@ table.route tbody:not(:last-child) tr:last-child td:not(.region) {
 }
 table.route tbody:last-child tr:last-child td:not(.region) {
     border-bottom: 2px solid;  /* last row of route */
+}
+table.route tbody tr.error:nth-child(even) {
+    background-color: Salmon;
+}
+table.route tbody tr.error {
+    background-color: Salmon;
 }
 table.route tbody tr.optional:nth-child(even) {
     background-color: Gold;

@@ -6,8 +6,8 @@ from itertools import chain
 from typing import Optional
 
 # TODO:
-# write up Battle Axe route.
 # add ability to estimate time for a segment
+# fix RTSR setup for gargoyles
 
 
 class Item:
@@ -32,6 +32,9 @@ class State:
     inventory: Counter[str] = field(default_factory=Counter, repr=False)
     souls_lookup: dict[str, int] = field(default_factory=dict, repr=False)
     humanities_lookup: dict[str, int] = field(default_factory=dict, repr=False)
+    new_errors: list[str] = field(default_factory=list, repr=False)
+    last_overdrafts: set[str] = field(default_factory=set, repr=False)
+    error_count: int = 0
 
     @property
     def bones(self) -> int:
@@ -45,17 +48,27 @@ class State:
     def twinkling_titanite(self) -> int:
         return self.inventory[Item.TWINKLING_TITANITE]
 
-    def verify(self):
-        overdrafts: list[str] = [
-            f"{key}({value})"
-            for key, value in chain(
-                self.inventory.items(),
-                [("souls", self.souls), ("item_souls", self.item_souls)],
+    def errors(self) -> list[str]:
+        overdrafts: set[str] = set(
+            [
+                f"{key}({value})"
+                for key, value in chain(
+                    self.inventory.items(),
+                    [("souls", self.souls), ("item_souls", self.item_souls)],
+                )
+                if value < 0
+            ]
+        )
+
+        if overdrafts and self.last_overdrafts != overdrafts:
+            self.new_errors.append(
+                "insufficent amount: " + " ".join(overdrafts)
             )
-            if value < 0
-        ]
-        if overdrafts:
-            raise RuntimeError("insufficent amount: " + " ".join(overdrafts))
+        self.last_overdrafts = overdrafts
+        errors = self.new_errors
+        self.new_errors = []
+        self.error_count += len(errors)
+        return errors
 
 
 @dataclass
@@ -64,7 +77,7 @@ class Action:
     detail: str = field(default="", kw_only=True)
     optional: bool = field(default=False, kw_only=True)
     output: bool = field(default=True, kw_only=True)
-    enabled: bool = field(default=True, kw_only=True)
+    condition: bool = field(default=True, kw_only=True)
 
     def __post_init__(self) -> None:
         ...  # so code doesn't need changed if this is added later
@@ -99,7 +112,7 @@ class BonfireSit(Action):
     def __call__(self, state: State) -> None:
         known_region = state.bonfire_to_region.get(self.target)
         if known_region is not None and known_region != state.region:
-            raise RuntimeError(
+            state.new_errors.append(
                 f'bonfire "{self.target}" was previously listed as being in'
                 f' region "{known_region}" but is currently indicated to be in'
                 f' region "{state.region}"'
@@ -125,7 +138,7 @@ class __EquipCommon(Action):
             self.expected_to_replace is not None
             and self.expected_to_replace != self.replaces
         ):
-            raise RuntimeError(
+            state.new_errors.append(
                 f'expected to replace "{self.expected_to_replace}" in slot'
                 f' "{self.slot}" but found different item "{self.replaces}"'
             )
@@ -143,7 +156,7 @@ class Equip(__EquipCommon):
     def __call__(self, state: State) -> None:
         super().__call__(state)
         if state.inventory[self.target] <= 0:
-            raise RuntimeError(
+            state.new_errors.append(
                 f"Cannot equip item not in inventory: {self.target}"
             )
         state.equipment[self.slot] = self.target
@@ -175,6 +188,10 @@ class __ItemCommon(Action):
             output += f" (x{self.count})"
         return output
 
+    def __call__(self, state: State) -> None:
+        if not self.count:
+            self.output = False
+
 
 @dataclass(kw_only=True)
 class Loot(__ItemCommon):
@@ -189,7 +206,7 @@ class Loot(__ItemCommon):
                 self.target, self.souls
             )
             if stored_souls != self.souls:
-                raise RuntimeError(
+                state.new_errors.append(
                     f"Previously indicated {self.target} gives"
                     f" {stored_souls} souls but now indicating it"
                     f" gives {self.souls} souls."
@@ -201,7 +218,7 @@ class Loot(__ItemCommon):
                 self.target, self.humanities
             )
             if stored_humanities != self.humanities:
-                raise RuntimeError(
+                state.new_errors.append(
                     f"Previously indicated {self.target} gives"
                     f" {stored_humanities} humanities but now indicating it"
                     f" gives {self.humanities} humanities."
@@ -216,15 +233,21 @@ class Receive(Loot):
     ...
 
 
-@dataclass
+@dataclass(kw_only=True)
 class UseMenu(__ItemCommon):
+    ignore_missing: bool = False
+
     def __call__(self, state: State) -> None:
         actual_count = state.inventory[self.target]
         if actual_count < self.count:
-            raise RuntimeError(
-                f"Cannot use {self.count} of {self.target}, only have"
-                f" {actual_count}"
-            )
+            if self.ignore_missing:
+                self.count = actual_count
+            # else:
+            #    state.new_errors.append(
+            #        f"Cannot use {self.count} of {self.target}, only have"
+            #        f" {actual_count}"
+            #    )
+        super().__call__(state)
         if self.target in (Item.BONE, Item.DARKSIGN):
             try:
                 state.region = state.bonfire_to_region[state.bonfire]
@@ -249,7 +272,9 @@ class UseMenu(__ItemCommon):
 class Use(UseMenu):
     def __call__(self, state: State) -> None:
         if self.target not in state.equipment.values():
-            raise RuntimeError(f"Cannot use unequipped item: {self.target}")
+            state.new_errors.append(
+                f"Cannot use unequipped item: {self.target}"
+            )
         super().__call__(state)
         if not state.inventory[self.target]:
             for slot, piece in state.equipment.items():
@@ -304,6 +329,11 @@ class UpgradeCost(Kill):
 
 @dataclass
 class Heal(Action):
+    ...
+
+
+@dataclass
+class Error(Action):
     ...
 
 
