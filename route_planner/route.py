@@ -137,11 +137,16 @@ class Segment:
         return html
 
 
+class Conditional(Segment):
+    def __init__(self, enabled: bool, *segments: Segment):
+        super().__init__()
+        if enabled:
+            self.extend(segments)
+
+
 class Route(Segment):
-    def __init__(
-        self, *actions: Action, notes: list[str] = [], name: str = ""
-    ):
-        super().__init__(*actions, notes=notes)
+    def __init__(self, name: str = "", *, notes: list[str] = []):
+        super().__init__(notes=notes)
         self.name = name
 
     def _repr_html_(self):

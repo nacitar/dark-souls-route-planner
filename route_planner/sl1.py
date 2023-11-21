@@ -25,7 +25,7 @@ from .action import (
     UseMenu,
     WaitFor,
 )
-from .route import Route, Segment
+from .route import Conditional, Route, Segment
 from collections import Counter
 from enum import auto, StrEnum
 
@@ -41,6 +41,10 @@ class EarlyWeapon(StrEnum):
     @property
     def is_reinforced_club(self) -> bool:
         return self == EarlyWeapon.REINFORCED_CLUB
+
+    @property
+    def is_battle_axe(self) -> bool:
+        return self == EarlyWeapon.BATTLE_AXE
 
 
 class InitialState(Segment):
@@ -310,181 +314,205 @@ class SL1StartToAfterGargoylesInFirelink(Segment):
                     ),
                     Use(Item.BONE),
                 ),
-            ]
-        )
-        if early_weapon.is_reinforced_club:
-            self.append(FirelinkToReinforcedClub())
-
-        self.append(
-            Segment(
-                Region("Firelink Shrine"),
-                RunTo(new_londo_elevator),
-                UseMenu(
-                    "Large Soul of a Lost Undead",
-                    count=2,
-                    detail=new_londo_elevator,
-                ),
-                UseMenu(
-                    "Soul of a Lost Undead",
-                    detail=new_londo_elevator,
-                    enabled=early_weapon.is_reinforced_club,
-                ),
-                Region("New Londo Ruins"),
-                Loot(
-                    "Soul of a Nameless Soldier",
-                    souls=800,
-                    detail=f"by bottom of {new_londo_elevator}",
-                ),
-                RunTo("Master Key door to Valley of the Drakes"),
-                Region("Valley of Drakes"),
-                Loot(
-                    "Large Soul of a Nameless Soldier",
-                    souls=1000,
-                    detail="behind master key door",
-                ),
-                FallDamage(
-                    "ledge above Undead Dragon", detail="RTSR setup (1/3)"
-                ),
-                Loot(
-                    "Soul of a Proud Knight",
-                    souls=2000,
-                    detail="last item by Undead Dragon",
-                ),
-                Equip(
-                    "Reinforced Club",
-                    "Right Hand",
-                    detail=ladder,
-                    enabled=early_weapon.is_reinforced_club,
-                ),
-                Equip("Soul of a Nameless Soldier", "Item 2", detail=ladder),
-                Equip(
-                    "Large Soul of a Nameless Soldier", "Item 3", detail=ladder
-                ),
-                Equip("Soul of a Proud Knight", "Item 4", detail=ladder),
-                Loot("Red Tearstone Ring"),
-                FallDamage(
-                    "ledge by Red Tearstone Ring", detail="RTSR setup (2/3)"
-                ),
-                RunTo(basin_elevator),
-                Use("Large Soul of a Nameless Soldier", detail=basin_elevator),
-                Use("Soul of a Proud Knight", detail=basin_elevator),
-                Use("Soul of a Nameless Soldier", detail=basin_elevator),
-                Equip("Red Tearstone Ring", "Ring 2", detail=basin_elevator),
-                Region("Darkroot Basin"),
-                Loot("Grass Crest Shield"),
-                Equip("Grass Crest Shield", "Left Hand", detail="immediately"),
-                Kill(
-                    "Black Knight",
-                    souls=1800,
-                    detail="by Grass Crest Shield",
-                    enabled=early_weapon.is_reinforced_club,
-                ),
-                RunTo(
-                    "Undead Parish",
-                    detail=(
-                        ""
-                        if early_weapon.is_reinforced_club
-                        else "no need to kill Black Knight"
+                Conditional(
+                    early_weapon.is_reinforced_club,
+                    Segment(
+                        Region("Firelink Shrine"),
+                        RunTo("Undead Burg"),
+                        Region("Undead Burg"),
+                        Buy(
+                            "Reinforced Club",
+                            souls=350,
+                            detail="Undead Merchant",
+                        ),
+                        Buy(
+                            "Firebomb",
+                            souls=50,
+                            count=3,
+                            detail="(Undead Merchant) if using Tohki Bombs",
+                            optional=True,
+                        ),
+                        Use(Item.BONE),
                     ),
                 ),
-                Region("Undead Parish"),
-                Buy(
-                    "Battle Axe",
-                    souls=1000,
-                    detail="Andre",
-                    enabled=not early_weapon.is_reinforced_club,
+                Segment(
+                    Region("Firelink Shrine"),
+                    RunTo(new_londo_elevator),
+                    UseMenu(
+                        "Large Soul of a Lost Undead",
+                        count=2,
+                        detail=new_londo_elevator,
+                    ),
+                    UseMenu(
+                        "Soul of a Lost Undead",
+                        detail=new_londo_elevator,
+                        enabled=early_weapon.is_reinforced_club,
+                    ),
+                    Region("New Londo Ruins"),
+                    Loot(
+                        "Soul of a Nameless Soldier",
+                        souls=800,
+                        detail=f"by bottom of {new_londo_elevator}",
+                    ),
+                    RunTo("Master Key door to Valley of the Drakes"),
+                    Region("Valley of Drakes"),
+                    Loot(
+                        "Large Soul of a Nameless Soldier",
+                        souls=1000,
+                        detail="behind master key door",
+                    ),
+                    FallDamage(
+                        "ledge above Undead Dragon", detail="RTSR setup (1/3)"
+                    ),
+                    Loot(
+                        "Soul of a Proud Knight",
+                        souls=2000,
+                        detail="last item by Undead Dragon",
+                    ),
+                    Equip(
+                        "Reinforced Club",
+                        "Right Hand",
+                        detail=ladder,
+                        enabled=early_weapon.is_reinforced_club,
+                    ),
+                    Equip(
+                        "Soul of a Nameless Soldier", "Item 2", detail=ladder
+                    ),
+                    Equip(
+                        "Large Soul of a Nameless Soldier",
+                        "Item 3",
+                        detail=ladder,
+                    ),
+                    Equip("Soul of a Proud Knight", "Item 4", detail=ladder),
+                    Loot("Red Tearstone Ring"),
+                    FallDamage(
+                        "ledge by Red Tearstone Ring",
+                        detail="RTSR setup (2/3)",
+                    ),
+                    RunTo(basin_elevator),
+                    Use(
+                        "Large Soul of a Nameless Soldier",
+                        detail=basin_elevator,
+                    ),
+                    Use("Soul of a Proud Knight", detail=basin_elevator),
+                    Use("Soul of a Nameless Soldier", detail=basin_elevator),
+                    Equip(
+                        "Red Tearstone Ring", "Ring 2", detail=basin_elevator
+                    ),
+                    Region("Darkroot Basin"),
+                    Loot("Grass Crest Shield"),
+                    Equip(
+                        "Grass Crest Shield", "Left Hand", detail="immediately"
+                    ),
+                    Kill(
+                        "Black Knight",
+                        souls=1800,
+                        detail="by Grass Crest Shield",
+                        enabled=early_weapon.is_reinforced_club,
+                    ),
+                    RunTo(
+                        "Undead Parish",
+                        detail=(
+                            ""
+                            if early_weapon.is_reinforced_club
+                            else "no need to kill Black Knight"
+                        ),
+                    ),
+                    Region("Undead Parish"),
                 ),
-                Buy(
-                    Item.TITANITE_SHARD,
-                    count=6,
-                    souls=800,
-                    detail="Andre",
-                    enabled=not early_weapon.is_reinforced_club,
+                Conditional(
+                    early_weapon.is_battle_axe,
+                    Segment(
+                        Buy("Battle Axe", souls=1000, detail="Andre"),
+                        Buy(
+                            Item.TITANITE_SHARD,
+                            count=6,
+                            souls=800,
+                            detail="Andre",
+                        ),
+                        UpgradeCost(
+                            "Normal Weapon +0-4",
+                            souls=800,
+                            items=Counter({Item.TITANITE_SHARD: 6}),
+                            detail="(Andre) Battle Axe +0-4",
+                        ),
+                        Equip("Battle Axe", "Right Hand", detail="Andre"),
+                        BonfireSit(
+                            "Undead Parish",
+                            detail="to upgrade to +5 after Bell Gargoyles",
+                        ),
+                    ),
                 ),
-                Buy(
-                    Item.TITANITE_SHARD,
-                    count=9,
-                    souls=800,
-                    detail="Andre",
-                    enabled=early_weapon.is_reinforced_club,
+                Conditional(
+                    not early_weapon.is_battle_axe,
+                    Segment(
+                        Buy(
+                            Item.TITANITE_SHARD,
+                            count=9,
+                            souls=800,
+                            detail="Andre",
+                        ),
+                        UpgradeCost(
+                            "Normal Weapon +0-5",
+                            souls=1000,
+                            items=Counter({Item.TITANITE_SHARD: 9}),
+                            detail=f"(Andre) {early_weapon} +0-5",
+                        ),
+                    ),
                 ),
-                UpgradeCost(
-                    "Normal Weapon +0-4",
-                    souls=800,
-                    items=Counter({Item.TITANITE_SHARD: 6}),
-                    detail="(Andre) Battle Axe +0-4",
-                    enabled=not early_weapon.is_reinforced_club,
+                Segment(
+                    RunTo("gate area by Basement Key", detail="TODO: remove"),
+                    FallDamage(
+                        "right-side ledge above Basement key",
+                        detail="RTSR setup (3/3)",
+                        optional=True,  # so this is noticed
+                    ),
+                    Loot("Basement Key", detail="by gate lever"),
+                    Loot(
+                        "Fire Keeper Soul",
+                        humanities=5,
+                        detail="on altar behind Berenike Knight",
+                    ),
+                    Activate(
+                        "Elevator to Firelink Shrine",
+                        detail="TODO: remove? just run, don't roll",
+                    ),
+                    Kill("Bell Gargoyles", souls=10000),
+                    Receive(
+                        Item.TWIN_HUMANITIES,
+                        humanities=2,
+                        detail="Bell Gargoyles",
+                    ),
+                    Activate("First bell"),
+                    Use(Item.BONE),
                 ),
-                UpgradeCost(
-                    "Normal Weapon +0-5",
-                    souls=1000,
-                    items=Counter({Item.TITANITE_SHARD: 9}),
-                    detail="(Andre) Reinforced Club +0-5",
-                    enabled=early_weapon.is_reinforced_club,
+                Conditional(
+                    early_weapon.is_battle_axe,
+                    Segment(
+                        Region("Undead Parish"),
+                        Buy(
+                            Item.TITANITE_SHARD,
+                            count=3,
+                            souls=800,
+                            detail="Andre",
+                        ),
+                        UpgradeCost(
+                            "Normal Weapon +4-5",
+                            souls=200,
+                            items=Counter({Item.TITANITE_SHARD: 3}),
+                            detail="(Andre) Battle Axe +4-5",
+                        ),
+                        RunTo(parish_elevator),
+                    ),
                 ),
-                Equip(
-                    "Battle Axe",
-                    "Right Hand",
-                    detail="Andre",
-                    enabled=not early_weapon.is_reinforced_club,
-                ),
-                BonfireSit(
-                    "Undead Parish",
-                    detail="to upgrade to +5 after Bell Gargoyles",
-                    enabled=not early_weapon.is_reinforced_club,
-                ),
-                RunTo("gate area by Basement Key", detail="TODO: remove"),
-                FallDamage(
-                    "right-side ledge above Basement key",
-                    detail="RTSR setup (3/3)",
-                    optional=True,  # so this is noticed
-                ),
-                Loot("Basement Key", detail="by gate lever"),
-                Loot(
-                    "Fire Keeper Soul",
-                    humanities=5,
-                    detail="on altar behind Berenike Knight",
-                ),
-                Activate(
-                    "Elevator to Firelink Shrine",
-                    detail="TODO: remove? just run, don't roll",
-                ),
-                Kill("Bell Gargoyles", souls=10000),
-                Receive(
-                    Item.TWIN_HUMANITIES, humanities=2, detail="Bell Gargoyles"
-                ),
-                Activate("First bell"),
-                Use(Item.BONE),
-                Region(
-                    "Undead Parish",
-                    enabled=not early_weapon.is_reinforced_club,
-                ),
-                Buy(
-                    Item.TITANITE_SHARD,
-                    count=3,
-                    souls=800,
-                    detail="Andre",
-                    enabled=not early_weapon.is_reinforced_club,
-                ),
-                UpgradeCost(
-                    "Normal Weapon +4-5",
-                    souls=200,
-                    items=Counter({Item.TITANITE_SHARD: 3}),
-                    detail="(Andre) Battle Axe +4-5",
-                    enabled=not early_weapon.is_reinforced_club,
-                ),
-                RunTo(
-                    parish_elevator,
-                    enabled=not early_weapon.is_reinforced_club,
-                ),
-            )
+            ]
         )
 
 
 class SL1MeleeOnlyGlitchless(Route):
     def __init__(self):
         super().__init__(
-            name="SL1 Melee Only Glitchless (Reinforced Club)",
+            "SL1 Melee Only Glitchless (Reinforced Club)",
             notes=[
                 "Getting the Reinforced Club takes just under a minute.",
                 (
