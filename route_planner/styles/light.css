@@ -1,12 +1,18 @@
-.route_name {
-    font-size: 1.5em;
+.route_header .route_title {
+    font-size: x-large;
     font-weight: bold;
+}
+.route_header .notes {
+    font-size: small;
+}
+.route_header,
+table.route {
+    font-family: 'Helvetica', 'Arial', sans-serif;
 }
 table.route {
     border-collapse: separate;
     border-spacing: 0; 
     border: 0px solid Black;
-    font-family: 'Helvetica', 'Arial', sans-serif;
 }
 table.route thead {
     position: sticky;

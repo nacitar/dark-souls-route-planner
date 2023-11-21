@@ -20,17 +20,27 @@ from .action import (
     FallDamage,
     Talk,
     UnEquip,
-    Upgrade,
+    UpgradeCost,
     Use,
     UseMenu,
     WaitFor,
 )
-from .route import Segment
+from .route import Route, Segment
 from collections import Counter
+from enum import auto, StrEnum
 
 new_londo_elevator = "elevator to New Londo Ruins"
 basin_elevator = "elevator to Darkroot Basin"
 parish_elevator = "elevator to Undead Parish"
+
+
+class EarlyWeapon(StrEnum):
+    REINFORCED_CLUB = "Reinforced Club"
+    BATTLE_AXE = "Battle Axe"
+
+    @property
+    def is_reinforced_club(self) -> bool:
+        return self == EarlyWeapon.REINFORCED_CLUB
 
 
 class InitialState(Segment):
@@ -90,29 +100,6 @@ class AsylumCellToFirelink(Segment):
         )
 
 
-class FirelinkLoot(Segment):
-    def __init__(self):
-        super().__init__(
-            Region("Firelink Shrine"),
-            Loot(Item.HUMANITY, count=3, humanities=1, detail="side of well"),
-            Loot("Soul of a Lost Undead", souls=200, detail="upper elevator"),
-            Jump("off ledge to hidden chests"),
-            Loot(Item.BONE, count=6, detail="hidden chest"),
-            Equip(Item.BONE, "Item 5", detail="immediately"),
-            Loot(
-                "Large Soul of a Lost Undead",
-                souls=400,
-                detail="middle of graveyard",
-            ),
-            Loot(
-                "Large Soul of a Lost Undead",
-                souls=400,
-                detail="start of graveyard",
-            ),
-            Use(Item.BONE),
-        )
-
-
 class FirelinkToReinforcedClub(Segment):
     def __init__(self):
         super().__init__(
@@ -127,124 +114,6 @@ class FirelinkToReinforcedClub(Segment):
                 detail="Undead Merchant, if using Tohki Bombs on Bed of Chaos",
                 optional=True,
             ),
-            Use(Item.BONE),
-        )
-
-
-class FirelinkToAndre(Segment):
-    def __init__(self):
-        ladder = "climbing ladder to RTSR"
-        super().__init__(
-            Region("Firelink Shrine"),
-            RunTo(new_londo_elevator),
-            UseMenu(
-                "Large Soul of a Lost Undead",
-                count=2,
-                detail=new_londo_elevator,
-            ),
-            UseMenu("Soul of a Lost Undead", detail=new_londo_elevator),
-            Region("New Londo Ruins"),
-            Loot(
-                "Soul of a Nameless Soldier",
-                souls=800,
-                detail=f"by bottom of {new_londo_elevator}",
-            ),
-            Region("Valley of Drakes"),
-            Loot(
-                "Large Soul of a Nameless Soldier",
-                souls=1000,
-                detail="behind master key door",
-            ),
-            FallDamage("ledge above Undead Dragon", detail="RTSR setup (1/3)"),
-            Loot(
-                "Soul of a Proud Knight",
-                souls=2000,
-                detail="last item by Undead Dragon",
-            ),
-            Equip("Reinforced Club", "Right Hand", detail=ladder),
-            Equip("Soul of a Nameless Soldier", "Item 2", detail=ladder),
-            Equip("Large Soul of a Nameless Soldier", "Item 3", detail=ladder),
-            Equip("Soul of a Proud Knight", "Item 4", detail=ladder),
-            Loot("Red Tearstone Ring"),
-            FallDamage(
-                "ledge by Red Tearstone Ring", detail="RTSR setup (2/3)"
-            ),
-            RunTo(basin_elevator),
-            Use("Soul of a Nameless Soldier", detail=basin_elevator),
-            Use("Large Soul of a Nameless Soldier", detail=basin_elevator),
-            Use("Soul of a Proud Knight", detail=basin_elevator),
-            Equip("Red Tearstone Ring", "Ring 2", detail=basin_elevator),
-            Region("Darkroot Basin"),
-            Loot("Grass Crest Shield"),
-            Equip("Grass Crest Shield", "Left Hand", detail="immediately"),
-            Kill("Black Knight", souls=1800, detail="by Grass Crest Shield"),
-            RunTo("Undead Parish"),
-        )
-
-
-class NormalUpgradeWeaponPlus5(Segment):
-    def __init__(self):
-        super().__init__(
-            Region("Undead Parish"),
-            Buy(Item.TITANITE_SHARD, count=9, souls=800, detail="Andre"),
-            Upgrade(
-                "Normal Upgrade Weapon +0-2",
-                count=2,
-                souls=200,
-                items=Counter({Item.TITANITE_SHARD: 1}),
-                detail="Andre",
-            ),
-            Upgrade(
-                "Normal Upgrade Weapon +2-4",
-                count=2,
-                souls=200,
-                items=Counter({Item.TITANITE_SHARD: 2}),
-                detail="Andre",
-            ),
-            Upgrade(
-                "Normal Upgrade Weapon +4-5",
-                count=1,
-                souls=200,
-                items=Counter({Item.TITANITE_SHARD: 3}),
-                detail="Andre",
-            ),
-        )
-
-
-class AndreToGargoyles(Segment):
-    def __init__(self):
-        super().__init__(
-            Region("Undead Parish"),
-            RunTo("gate area by Basement Key"),
-            FallDamage(
-                "right-side ledge above Basement key",
-                detail="RTSR setup (3/3)",
-            ),
-            Loot("Basement Key", detail="by gate lever"),
-            Loot(
-                "Fire Keeper Soul",
-                humanities=5,
-                detail="on altar behind Berenike Knight",
-            ),
-            Activate(
-                "Elevator to Firelink Shrine", detail="just run, don't roll"
-            ),
-            Kill("Bell Gargoyles", souls=10000),
-            Receive(
-                Item.TWIN_HUMANITIES, humanities=2, detail="Bell Gargoyles"
-            ),
-            Activate("First bell"),
-            # RunTo(
-            #    "Oswald of Carim",
-            #    detail="RTSR setup: heal, fall down both ladders",
-            # ),
-            # Kill("Oswald of Carim", souls=2000, detail="can buy bones here"),
-            # Loot(
-            #    Item.TWIN_HUMANITIES,
-            #    count=2,
-            #    humanities=2,
-            #    detail="Oswald of Carim",
-            # ),
             Use(Item.BONE),
         )
 
@@ -378,33 +247,6 @@ class GetBlacksmithGiantHammerAndUpgradeMaterials(Segment):
         )
 
 
-class UniqueUpgradeWeapon0to5(Segment):
-    def __init__(self, detail: str = ""):
-        super().__init__(
-            Upgrade(
-                "Upgrade Unique Weapon +0-2",
-                count=2,
-                souls=2000,
-                items=Counter({Item.TWINKLING_TITANITE: 1}),
-                detail=detail,
-            ),
-            Upgrade(
-                "Upgrade Unique Weapon +2-4",
-                count=2,
-                souls=2000,
-                items=Counter({Item.TWINKLING_TITANITE: 2}),
-                detail=detail,
-            ),
-            Upgrade(
-                "Upgrade Unique Weapon +4-5",
-                count=1,
-                souls=2000,
-                items=Counter({Item.TWINKLING_TITANITE: 4}),
-                detail=detail,
-            ),
-        )
-
-
 class EquipBlacksmithGiantHammerAndDarksign(Segment):
     def __init__(self):
         super().__init__(
@@ -428,27 +270,285 @@ class EquipBlacksmithGiantHammerAndDarksign(Segment):
 # - 4 humanity from killing patches
 
 
-class SL1MeleeOnlyGlitchless(Segment):
-    def __init__(self):
+class SL1StartToBlacksmithGiantHammer(Segment):
+    def __init__(self, early_weapon: EarlyWeapon):
+        ladder = "climbing ladder to RTSR"
         super().__init__()
-        for segment in [
-            InitialState(),
-            PyromancerInitialState(),
-            StartOfGame(),
-            AsylumCellToFirelink(),
-            FirelinkLoot(),
-            FirelinkToReinforcedClub(),
-            FirelinkToAndre(),
-            NormalUpgradeWeaponPlus5(),
-            AndreToGargoyles(),
-            FirelinkToQuelaag(),
-            FirelinkToSensFortress(),
-            SensFortressToDarkmoonTomb(),
-            DarkmoonTombToGiantBlacksmith(),
-            GetBlacksmithGiantHammerAndUpgradeMaterials(),
-            UniqueUpgradeWeapon0to5(
-                detail="(Bonfire) Blacksmith Giant Hammer"
-            ),
-            EquipBlacksmithGiantHammerAndDarksign(),
-        ]:
-            self += segment
+
+        self.extend(
+            [
+                InitialState(),
+                PyromancerInitialState(),
+                StartOfGame(),
+                AsylumCellToFirelink(),
+                Segment(
+                    Region("Firelink Shrine"),
+                    Loot(
+                        Item.HUMANITY,
+                        count=3,
+                        humanities=1,
+                        detail="side of well",
+                    ),
+                    Loot(
+                        "Soul of a Lost Undead",
+                        souls=200,
+                        detail="upper elevator",
+                        enabled=early_weapon.is_reinforced_club,
+                    ),
+                    Jump("off ledge to hidden chests"),
+                    Loot(Item.BONE, count=6, detail="hidden chest"),
+                    Equip(Item.BONE, "Item 5", detail="immediately"),
+                    Loot(
+                        "Large Soul of a Lost Undead",
+                        souls=400,
+                        detail="middle of graveyard",
+                    ),
+                    Loot(
+                        "Large Soul of a Lost Undead",
+                        souls=400,
+                        detail="start of graveyard",
+                    ),
+                    Use(Item.BONE),
+                ),
+            ]
+        )
+        if early_weapon.is_reinforced_club:
+            self.append(FirelinkToReinforcedClub())
+
+        self.append(
+            Segment(
+                Region("Firelink Shrine"),
+                RunTo(new_londo_elevator),
+                UseMenu(
+                    "Large Soul of a Lost Undead",
+                    count=2,
+                    detail=new_londo_elevator,
+                ),
+                UseMenu(
+                    "Soul of a Lost Undead",
+                    detail=new_londo_elevator,
+                    enabled=early_weapon.is_reinforced_club,
+                ),
+                Region("New Londo Ruins"),
+                Loot(
+                    "Soul of a Nameless Soldier",
+                    souls=800,
+                    detail=f"by bottom of {new_londo_elevator}",
+                ),
+                RunTo("Master Key door to Valley of the Drakes"),
+                Region("Valley of Drakes"),
+                Loot(
+                    "Large Soul of a Nameless Soldier",
+                    souls=1000,
+                    detail="behind master key door",
+                ),
+                FallDamage(
+                    "ledge above Undead Dragon", detail="RTSR setup (1/3)"
+                ),
+                Loot(
+                    "Soul of a Proud Knight",
+                    souls=2000,
+                    detail="last item by Undead Dragon",
+                ),
+                Equip(
+                    "Reinforced Club",
+                    "Right Hand",
+                    detail=ladder,
+                    enabled=early_weapon.is_reinforced_club,
+                ),
+                Equip("Soul of a Nameless Soldier", "Item 2", detail=ladder),
+                Equip(
+                    "Large Soul of a Nameless Soldier", "Item 3", detail=ladder
+                ),
+                Equip("Soul of a Proud Knight", "Item 4", detail=ladder),
+                Loot("Red Tearstone Ring"),
+                FallDamage(
+                    "ledge by Red Tearstone Ring", detail="RTSR setup (2/3)"
+                ),
+                RunTo(basin_elevator),
+                Use("Large Soul of a Nameless Soldier", detail=basin_elevator),
+                Use("Soul of a Proud Knight", detail=basin_elevator),
+                Use("Soul of a Nameless Soldier", detail=basin_elevator),
+                Equip("Red Tearstone Ring", "Ring 2", detail=basin_elevator),
+                Region("Darkroot Basin"),
+                Loot("Grass Crest Shield"),
+                Equip("Grass Crest Shield", "Left Hand", detail="immediately"),
+                Kill(
+                    "Black Knight",
+                    souls=1800,
+                    detail="by Grass Crest Shield",
+                    enabled=early_weapon.is_reinforced_club,
+                ),
+                RunTo(
+                    "Undead Parish",
+                    detail=(
+                        ""
+                        if early_weapon.is_reinforced_club
+                        else "no need to kill Black Knight"
+                    ),
+                ),
+                Region("Undead Parish"),
+                Buy(
+                    "Battle Axe",
+                    souls=1000,
+                    detail="Andre",
+                    enabled=not early_weapon.is_reinforced_club,
+                ),
+                Buy(
+                    Item.TITANITE_SHARD,
+                    count=6,
+                    souls=800,
+                    detail="Andre",
+                    enabled=not early_weapon.is_reinforced_club,
+                ),
+                Buy(
+                    Item.TITANITE_SHARD,
+                    count=9,
+                    souls=800,
+                    detail="Andre",
+                    enabled=early_weapon.is_reinforced_club,
+                ),
+                UpgradeCost(
+                    "Normal Weapon +0-4",
+                    souls=800,
+                    items=Counter({Item.TITANITE_SHARD: 6}),
+                    detail="(Andre) Battle Axe +0-4",
+                    enabled=not early_weapon.is_reinforced_club,
+                ),
+                UpgradeCost(
+                    "Normal Weapon +0-5",
+                    souls=1000,
+                    items=Counter({Item.TITANITE_SHARD: 9}),
+                    detail="(Andre) Reinforced Club +0-5",
+                    enabled=early_weapon.is_reinforced_club,
+                ),
+                Equip(
+                    "Battle Axe",
+                    "Right Hand",
+                    detail="Andre",
+                    enabled=not early_weapon.is_reinforced_club,
+                ),
+                BonfireSit(
+                    "Undead Parish",
+                    detail="to upgrade to +5 after Bell Gargoyles",
+                    enabled=not early_weapon.is_reinforced_club,
+                ),
+                RunTo("gate area by Basement Key", detail="TODO: remove"),
+                FallDamage(
+                    "right-side ledge above Basement key",
+                    detail="RTSR setup (3/3)",
+                    optional=True,  # so this is noticed
+                ),
+                Loot("Basement Key", detail="by gate lever"),
+                Loot(
+                    "Fire Keeper Soul",
+                    humanities=5,
+                    detail="on altar behind Berenike Knight",
+                ),
+                Activate(
+                    "Elevator to Firelink Shrine",
+                    detail="TODO: remove? just run, don't roll",
+                ),
+                Kill("Bell Gargoyles", souls=10000),
+                Receive(
+                    Item.TWIN_HUMANITIES, humanities=2, detail="Bell Gargoyles"
+                ),
+                Activate("First bell"),
+                Use(Item.BONE),
+                Region(
+                    "Undead Parish",
+                    enabled=not early_weapon.is_reinforced_club,
+                ),
+                Buy(
+                    Item.TITANITE_SHARD,
+                    count=3,
+                    souls=800,
+                    detail="Andre",
+                    enabled=not early_weapon.is_reinforced_club,
+                ),
+                UpgradeCost(
+                    "Normal Weapon +4-5",
+                    souls=200,
+                    items=Counter({Item.TITANITE_SHARD: 3}),
+                    detail="(Andre) Battle Axe +4-5",
+                    enabled=not early_weapon.is_reinforced_club,
+                ),
+                RunTo(
+                    parish_elevator,
+                    enabled=not early_weapon.is_reinforced_club,
+                ),
+            )
+        )
+        self.extend(
+            [
+                FirelinkToQuelaag(),
+                FirelinkToSensFortress(),
+                SensFortressToDarkmoonTomb(),
+                DarkmoonTombToGiantBlacksmith(),
+                GetBlacksmithGiantHammerAndUpgradeMaterials(),
+                Segment(
+                    UpgradeCost(
+                        "Unique Weapon to +5",
+                        souls=10000,
+                        items=Counter({Item.TWINKLING_TITANITE: 10}),
+                        detail="(Bonfire) Blacksmith Giant Hammer +0-5",
+                    )
+                ),
+                EquipBlacksmithGiantHammerAndDarksign(),
+            ]
+        )
+
+
+class SL1MeleeOnlyGlitchless(Route):
+    def __init__(self):
+        super().__init__(
+            name="SL1 Melee Only Glitchless (Reinforced Club)",
+            notes=[
+                "Getting the Reinforced Club takes just under a minute.",
+                (
+                    "Quelaag dies in 11 heavy RTSR hits (jumping).  Battle Axe"
+                    " takes 13 heavy RTSR hits (vertical) or 19 weak RTSR hits"
+                    " (horizontal)."
+                ),
+                (
+                    "Iron Golem staggers in 3 weak RTSR hits and falls in 2."
+                    " Battle Axe takes 5 weak RTSR hits (horizontal) to"
+                    " stagger and falls in 3."
+                ),
+                (
+                    "Because Battle Axe costs 1000 souls, upgrades are 500"
+                    " souls short of getting to +5, meaning running back to"
+                    " Andre for +4 to +5.  With the Reinforced Club, you even"
+                    " have 150 souls left over for Tohki bombs (optional)."
+                ),
+                (
+                    "There's 200 souls across from snuggly, 200 around where"
+                    " patches moves to firelink, and 200 on the ledge above"
+                    " Frampt's position.  The Ent you run past drops 100."
+                ),
+                (
+                    "If you get the soul across from Snuggly and kill the Ent,"
+                    " you still need 200 more souls from somewhere and all of"
+                    " this must take less than 1 minute to break even with the"
+                    " Reinforced Club route."
+                ),
+                (
+                    "The Battle Axe route would mean using the Hand Axe"
+                    " against the Black Knight."
+                ),
+                (
+                    "Running back to Andre and upgrading again takes around 20"
+                    " seconds if you bone back."
+                ),
+                (
+                    "Conclusion: Battle Axe means longer fights and 20 seconds"
+                    " to upgrade again."
+                ),
+            ],
+        )
+        self.append(
+            SL1StartToBlacksmithGiantHammer(
+                early_weapon=EarlyWeapon.REINFORCED_CLUB
+                # early_weapon=EarlyWeapon.BATTLE_AXE
+            )
+        )

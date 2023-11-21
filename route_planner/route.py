@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from copy import deepcopy
 from importlib.resources import open_text as open_text_resource
-from typing import Generator, Optional, Protocol, Tuple
+from typing import Generator, Iterable, Optional, Protocol, Tuple
 
 from . import styles
 from .action import Action, Region, State
@@ -40,14 +40,19 @@ def _value_cell(name: str, old_value: int, new_value: int) -> str:
 
 
 class Segment:
-    def __init__(self, *actions: Action):
+    def __init__(self, *actions: Action, notes: list[str] = []):
+        self.notes = notes
         self.actions: list[Action] = []
         for action in actions:
             self.actions.append(action)
 
-    def __iadd__(self, other: Segment) -> Segment:
+    def append(self, other: Segment):
         self.actions.extend(other.actions)
-        return self
+        self.notes.extend(other.notes)
+
+    def extend(self, others: Iterable[Segment]):
+        for other in others:
+            self.append(other)
 
     def process(
         self, state: Optional[State] = None
@@ -55,9 +60,10 @@ class Segment:
         if state is None:
             state = State()
         for action in self.actions:
-            action(state)
-            state.verify()
-            yield (deepcopy(state), action)
+            if action.enabled:
+                action(state)
+                state.verify()
+                yield (deepcopy(state), action)
 
     def _repr_html_(self):
         region_count = 0
@@ -129,3 +135,24 @@ class Segment:
             last_state = state
         html += "</tbody></table>"
         return html
+
+
+class Route(Segment):
+    def __init__(
+        self, *actions: Action, notes: list[str] = [], name: str = ""
+    ):
+        super().__init__(*actions, notes=notes)
+        self.name = name
+
+    def _repr_html_(self):
+        html = '<span class="route_header">'
+        if self.name:
+            html += f'<span class="route_title">{self.name}</span>'
+        if self.notes:
+            html += (
+                '<ul class="notes">'
+                + "".join([f"<li>{note}</li>" for note in self.notes])
+                + "</ul>"
+            )
+        html += "</span>"
+        return html + super()._repr_html_()

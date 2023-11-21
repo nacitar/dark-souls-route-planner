@@ -9,6 +9,7 @@ from typing import Optional
 # write up Battle Axe route.
 # add ability to estimate time for a segment
 
+
 class Item:
     BONE = "Homeward Bone"
     HUMANITY = "Humanity"
@@ -63,6 +64,7 @@ class Action:
     detail: str = field(default="", kw_only=True)
     optional: bool = field(default=False, kw_only=True)
     output: bool = field(default=True, kw_only=True)
+    enabled: bool = field(default=True, kw_only=True)
 
     def __post_init__(self) -> None:
         ...  # so code doesn't need changed if this is added later
@@ -287,7 +289,7 @@ class Buy(Kill):
 
 
 @dataclass
-class Upgrade(Kill):
+class UpgradeCost(Kill):
     items: Counter[str] = field(default_factory=Counter, repr=False)
 
     def __post_init__(self) -> None:
