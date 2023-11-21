@@ -270,7 +270,7 @@ class EquipBlacksmithGiantHammerAndDarksign(Segment):
 # - 4 humanity from killing patches
 
 
-class SL1StartToBlacksmithGiantHammer(Segment):
+class SL1StartToAfterGargoylesInFirelink(Segment):
     def __init__(self, early_weapon: EarlyWeapon):
         ladder = "climbing ladder to RTSR"
         super().__init__()
@@ -479,24 +479,6 @@ class SL1StartToBlacksmithGiantHammer(Segment):
                 ),
             )
         )
-        self.extend(
-            [
-                FirelinkToQuelaag(),
-                FirelinkToSensFortress(),
-                SensFortressToDarkmoonTomb(),
-                DarkmoonTombToGiantBlacksmith(),
-                GetBlacksmithGiantHammerAndUpgradeMaterials(),
-                Segment(
-                    UpgradeCost(
-                        "Unique Weapon to +5",
-                        souls=10000,
-                        items=Counter({Item.TWINKLING_TITANITE: 10}),
-                        detail="(Bonfire) Blacksmith Giant Hammer +0-5",
-                    )
-                ),
-                EquipBlacksmithGiantHammerAndDarksign(),
-            ]
-        )
 
 
 class SL1MeleeOnlyGlitchless(Route):
@@ -546,9 +528,25 @@ class SL1MeleeOnlyGlitchless(Route):
                 ),
             ],
         )
-        self.append(
-            SL1StartToBlacksmithGiantHammer(
-                early_weapon=EarlyWeapon.REINFORCED_CLUB
-                # early_weapon=EarlyWeapon.BATTLE_AXE
-            )
+        self.extend(
+            [
+                SL1StartToAfterGargoylesInFirelink(
+                    early_weapon=EarlyWeapon.REINFORCED_CLUB
+                    # early_weapon=EarlyWeapon.BATTLE_AXE
+                ),
+                FirelinkToQuelaag(),
+                FirelinkToSensFortress(),
+                SensFortressToDarkmoonTomb(),
+                DarkmoonTombToGiantBlacksmith(),
+                GetBlacksmithGiantHammerAndUpgradeMaterials(),
+                Segment(
+                    UpgradeCost(
+                        "Unique Weapon to +5",
+                        souls=10000,
+                        items=Counter({Item.TWINKLING_TITANITE: 10}),
+                        detail="(Bonfire) Blacksmith Giant Hammer +0-5",
+                    )
+                ),
+                EquipBlacksmithGiantHammerAndDarksign(),
+            ]
         )
