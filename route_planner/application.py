@@ -1,11 +1,15 @@
 from __future__ import annotations
 
-from .route import html_page
-from .sl1 import SL1MeleeOnlyGlitchless
+from .segment import html_page
+from .sl1 import Route, SL1MeleeOnlyGlitchless
 
 
 def main() -> int:
-    route = SL1MeleeOnlyGlitchless()
+    route = Route.REINFORCED_CLUB
+    # route=Route.BATTLE_AXE_PLUS4
+    # route=Route.BATTLE_AXE_PLUS4_NO_BLACK_KNIGHT
+    # route=Route.BATTLE_AXE_PLUS3
+    segment = SL1MeleeOnlyGlitchless(route)
 
-    print(html_page(route))
+    print(html_page(segment, title=segment.name))
     return 0

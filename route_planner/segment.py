@@ -40,9 +40,12 @@ def _value_cell(name: str, old_value: int, new_value: int) -> str:
 
 
 class Segment:
-    def __init__(self, *actions: Action, notes: list[str] = []):
+    def __init__(
+        self, *actions: Action, notes: list[str] = [], name: str = ""
+    ):
         self.notes = notes
         self.actions: list[Action] = []
+        self.name = name
         for action in actions:
             self.actions.append(action)
 
@@ -80,7 +83,9 @@ class Segment:
             ("Humanity", "👨"),
             ("Action", "Action"),
         ]
-        html = ""
+        html = '<span class="route_header">'
+        if self.name:
+            html += f'<span class="route_title">{self.name}</span>'
         if self.notes:
             html += (
                 '<ul class="notes">'
@@ -88,7 +93,7 @@ class Segment:
                 + "</ul>"
             )
         html += (
-            '<table class="route"><thead><tr>'
+            '</span><table class="route"><thead><tr>'
             + "".join(
                 f'<th title="{column[0]}">{column[1]}</th>'
                 for column in columns
@@ -160,16 +165,3 @@ class Conditional(Segment):
         super().__init__()
         if condition:
             self.extend(segments)
-
-
-class Route(Segment):
-    def __init__(self, name: str = "", *, notes: list[str] = []):
-        super().__init__(notes=notes)
-        self.name = name
-
-    def _repr_html_(self):
-        html = '<span class="route_header">'
-        if self.name:
-            html += f'<span class="route_title">{self.name}</span>'
-        html += "</span>"
-        return html + super()._repr_html_()

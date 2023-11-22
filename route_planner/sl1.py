@@ -1,5 +1,9 @@
 from __future__ import annotations
 
+from collections import Counter
+from dataclasses import dataclass
+from enum import Enum, unique
+
 from .action import (
     Activate,
     AutoBonfire,
@@ -8,6 +12,7 @@ from .action import (
     BonfireSit,
     Buy,
     Equip,
+    FallDamage,
     Heal,
     Item,
     Jump,
@@ -17,7 +22,6 @@ from .action import (
     Receive,
     Region,
     RunTo,
-    FallDamage,
     Talk,
     UnEquip,
     UpgradeCost,
@@ -25,87 +29,98 @@ from .action import (
     UseMenu,
     WaitFor,
 )
-from .route import Conditional, Route, Segment
-from collections import Counter
-from enum import auto, Enum, unique
-from dataclasses import dataclass, field
+from .segment import Conditional, Segment
 
 new_londo_elevator = "elevator to New Londo Ruins"
 basin_elevator = "elevator to Darkroot Basin"
 parish_elevator = "elevator to Undead Parish"
+O_and_S = "Dragon Slayer Ornstein & Executioner Smough"
+sif = "Sif, the Great Grey Wolf"
 
 
 @dataclass
-class EarlyRouteSettings:
-    weapon: str
+class RouteOptions:
+    early_weapon: str
     initial_upgrade: int
     loot_firelink_humanity: bool
     loot_firelink_elevator_soul: bool
     loot_firelink_bones: bool
     loot_firelink_graveyard: bool
     loot_new_londo_ruins_soul: bool
+    loot_undead_parish_fire_keeper_soul: bool
     kill_black_knight: bool
+    # defaulted
     kill_oswald: bool = False
     bone_count_if_from_oswald: int = 5
+    kill_smough_first: bool = False
 
     def __post_init__(self) -> None:
         if self.initial_upgrade < 0 or self.initial_upgrade > 5:
             raise RuntimeError(
-                f"initial_upgrade must be in range [0,5] but is {self.initial_upgrade}"
+                f"initial_upgrade must be in range [0,5]"
+                f" but is {self.initial_upgrade}"
             )
 
 
 @unique
-class EarlyRoute(Enum):
-    REINFORCED_CLUB = EarlyRouteSettings(
-        weapon="Reinforced Club",
+class Route(Enum):
+    REINFORCED_CLUB = RouteOptions(
+        early_weapon="Reinforced Club",
         initial_upgrade=5,
         loot_firelink_humanity=False,
         loot_firelink_elevator_soul=True,
         loot_firelink_bones=True,
         loot_firelink_graveyard=True,
         loot_new_londo_ruins_soul=True,
+        loot_undead_parish_fire_keeper_soul=True,
         kill_black_knight=True,
     )
-    BATTLE_AXE_PLUS3 = EarlyRouteSettings(
-        weapon="Battle Axe",
+    BATTLE_AXE_PLUS3 = RouteOptions(
+        early_weapon="Battle Axe",
         initial_upgrade=3,
         loot_firelink_humanity=False,
         loot_firelink_elevator_soul=False,
         loot_firelink_bones=False,
         loot_firelink_graveyard=False,
         loot_new_londo_ruins_soul=True,
+        loot_undead_parish_fire_keeper_soul=True,
         kill_black_knight=True,
         kill_oswald=True,
     )
-    BATTLE_AXE_PLUS4 = EarlyRouteSettings(
-        weapon="Battle Axe",
+    BATTLE_AXE_PLUS4 = RouteOptions(
+        early_weapon="Battle Axe",
         initial_upgrade=4,
         loot_firelink_humanity=False,
         loot_firelink_elevator_soul=False,
         loot_firelink_bones=False,
         loot_firelink_graveyard=False,
         loot_new_londo_ruins_soul=True,
+        loot_undead_parish_fire_keeper_soul=True,
         kill_black_knight=True,
     )
-    BATTLE_AXE_PLUS4_NO_BLACK_KNIGHT = EarlyRouteSettings(
-        weapon="Battle Axe",
+    BATTLE_AXE_PLUS4_NO_BLACK_KNIGHT = RouteOptions(
+        early_weapon="Battle Axe",
         initial_upgrade=4,
         loot_firelink_humanity=False,
         loot_firelink_elevator_soul=False,
         loot_firelink_bones=True,
         loot_firelink_graveyard=True,
         loot_new_londo_ruins_soul=True,
+        loot_undead_parish_fire_keeper_soul=True,
         kill_black_knight=False,
     )
 
+    @property  # not needed, but reads better in the code
+    def options(self) -> RouteOptions:
+        return self.value
+
     @property
     def uses_reinforced_club(self) -> bool:
-        return self.value.weapon == "Reinforced Club"
+        return self.options.early_weapon == "Reinforced Club"
 
     @property
     def uses_battle_axe(self) -> bool:
-        return self.value.weapon == "Battle Axe"
+        return self.options.early_weapon == "Battle Axe"
 
 
 class InitialState(Segment):
@@ -329,25 +344,15 @@ class EquipBlacksmithGiantHammerAndDarksign(Segment):
         )
 
 
-# TODO:
-# - 1 humanity from o&s
-# - 1 humanity from pinwheel
-# - 4 humanity from killing patches
-
-
 class SL1StartToAfterGargoylesInFirelink(Segment):
-    def __init__(
-        self, early_route: EarlyRoute, skip_firelink_loot: bool = False
-    ):
+    def __init__(self, route: Route, skip_firelink_loot: bool = False):
         ladder = "climbing ladder to RTSR"
         SHARDS_PER_LEVEL = [1, 1, 2, 2, 3]
-        settings = early_route.value
-        pre_gargoyle_titanite_shards = sum(
-            SHARDS_PER_LEVEL[0 : settings.initial_upgrade]
+        options = route.options
+        pre_gargoyle_shards = sum(
+            SHARDS_PER_LEVEL[0 : options.initial_upgrade]
         )
-        post_gargoyle_titanite_shards = sum(
-            SHARDS_PER_LEVEL[settings.initial_upgrade :]
-        )
+        post_gargoyle_shards = sum(SHARDS_PER_LEVEL[options.initial_upgrade :])
         super().__init__()
 
         self.extend(
@@ -363,46 +368,46 @@ class SL1StartToAfterGargoylesInFirelink(Segment):
                         count=3,
                         humanities=1,
                         detail="side of well",
-                        condition=settings.loot_firelink_humanity,
+                        condition=options.loot_firelink_humanity,
                     ),
                     Loot(
                         "Soul of a Lost Undead",
                         souls=200,
                         detail="upper elevator",
-                        condition=settings.loot_firelink_elevator_soul,
+                        condition=options.loot_firelink_elevator_soul,
                     ),
                     Jump(
                         "off ledge to hidden chests",
-                        condition=settings.loot_firelink_bones,
+                        condition=options.loot_firelink_bones,
                     ),
                     Loot(
                         Item.BONE,
                         count=6,
                         detail="hidden chest",
-                        condition=settings.loot_firelink_bones,
+                        condition=options.loot_firelink_bones,
                     ),
                     Equip(
                         Item.BONE,
                         "Item 5",
                         detail="immediately",
-                        condition=settings.loot_firelink_bones,
+                        condition=options.loot_firelink_bones,
                     ),
                     Loot(
                         "Large Soul of a Lost Undead",
                         souls=400,
                         detail="middle of graveyard",
-                        condition=settings.loot_firelink_graveyard,
+                        condition=options.loot_firelink_graveyard,
                     ),
                     Loot(
                         "Large Soul of a Lost Undead",
                         souls=400,
                         detail="start of graveyard",
-                        condition=settings.loot_firelink_graveyard,
+                        condition=options.loot_firelink_graveyard,
                     ),
-                    Use(Item.BONE, condition=settings.loot_firelink_graveyard),
+                    Use(Item.BONE, condition=options.loot_firelink_graveyard),
                 ),
                 Conditional(
-                    early_route.uses_reinforced_club,
+                    route.uses_reinforced_club,
                     Segment(
                         Region("Firelink Shrine"),
                         RunTo("Undead Burg"),
@@ -429,12 +434,12 @@ class SL1StartToAfterGargoylesInFirelink(Segment):
                         "Large Soul of a Lost Undead",
                         count=2,
                         detail=new_londo_elevator,
-                        ignore_missing=True,
+                        allow_partial=True,
                     ),
                     UseMenu(
                         "Soul of a Lost Undead",
                         detail=new_londo_elevator,
-                        ignore_missing=True,
+                        allow_partial=True,
                     ),
                     Region("New Londo Ruins"),
                     Loot(
@@ -461,7 +466,7 @@ class SL1StartToAfterGargoylesInFirelink(Segment):
                         "Reinforced Club",
                         "Right Hand",
                         detail=ladder,
-                        condition=early_route.uses_reinforced_club,
+                        condition=route.uses_reinforced_club,
                     ),
                     Equip(
                         "Soul of a Nameless Soldier", "Item 2", detail=ladder
@@ -496,13 +501,13 @@ class SL1StartToAfterGargoylesInFirelink(Segment):
                         "Black Knight",
                         souls=1800,
                         detail="by Grass Crest Shield",
-                        condition=settings.kill_black_knight,
+                        condition=options.kill_black_knight,
                     ),
                     RunTo(
                         "Undead Parish",
                         detail=(
                             ""
-                            if settings.kill_black_knight
+                            if options.kill_black_knight
                             else "no need to kill Black Knight"
                         ),
                     ),
@@ -511,35 +516,43 @@ class SL1StartToAfterGargoylesInFirelink(Segment):
                         "Battle Axe",
                         souls=1000,
                         detail="Andre",
-                        condition=early_route.uses_battle_axe,
+                        condition=route.uses_battle_axe,
                     ),
-                    Buy(
-                        Item.TITANITE_SHARD,
-                        count=pre_gargoyle_titanite_shards,
-                        souls=800,
-                        detail="Andre",
-                    ),
-                    UpgradeCost(
-                        f"{settings.weapon} +0-{settings.initial_upgrade}",
-                        souls=200 * settings.initial_upgrade,
-                        items=Counter(
-                            {Item.TITANITE_SHARD: pre_gargoyle_titanite_shards}
+                ),
+                Conditional(
+                    options.initial_upgrade > 0,
+                    Segment(
+                        Buy(
+                            Item.TITANITE_SHARD,
+                            count=pre_gargoyle_shards,
+                            souls=800,
+                            detail="Andre",
                         ),
-                        detail="Andre",
-                    ),
-                    Equip(
-                        "Battle Axe",
-                        "Right Hand",
-                        detail="Andre",
-                        condition=early_route.uses_battle_axe,
-                    ),
-                    BonfireSit(
-                        "Undead Parish",
-                        detail="to upgrade to +5 after Bell Gargoyles",
-                        condition=(settings.initial_upgrade < 5),
+                        UpgradeCost(
+                            (
+                                f"{options.early_weapon}"
+                                f" +0-{options.initial_upgrade}"
+                            ),
+                            souls=200 * options.initial_upgrade,
+                            items=Counter(
+                                {Item.TITANITE_SHARD: pre_gargoyle_shards}
+                            ),
+                            detail="Andre",
+                        ),
+                        Equip(
+                            "Battle Axe",
+                            "Right Hand",
+                            detail="Andre",
+                            condition=route.uses_battle_axe,
+                        ),
                     ),
                 ),
                 Segment(
+                    BonfireSit(
+                        "Undead Parish",
+                        detail="to upgrade to +5 after Bell Gargoyles",
+                        condition=(options.initial_upgrade < 5),
+                    ),
                     RunTo("gate area by Basement Key", detail="TODO: remove"),
                     FallDamage(
                         "right-side ledge above Basement key",
@@ -551,6 +564,7 @@ class SL1StartToAfterGargoylesInFirelink(Segment):
                         "Fire Keeper Soul",
                         humanities=5,
                         detail="on altar behind Berenike Knight",
+                        condition=options.loot_undead_parish_fire_keeper_soul,
                     ),
                     Activate(
                         "Elevator to Firelink Shrine",
@@ -567,54 +581,55 @@ class SL1StartToAfterGargoylesInFirelink(Segment):
                         "Oswald of Carim",
                         detail="RTSR setup: heal, fall down both ladders",
                         condition=(
-                            settings.kill_oswald
-                            or not settings.loot_firelink_bones
+                            options.kill_oswald
+                            or not options.loot_firelink_bones
                         ),
                     ),
                     Buy(
                         Item.BONE,
-                        count=settings.bone_count_if_from_oswald,
+                        count=options.bone_count_if_from_oswald,
                         souls=500,
                         detail="Oswald of Carim",
-                        condition=not settings.loot_firelink_bones,
+                        condition=not options.loot_firelink_bones,
                     ),
                     Kill(
                         "Oswald of Carim",
                         souls=2000,
                         detail="can buy bones here",
-                        condition=settings.kill_oswald,
+                        condition=options.kill_oswald,
                     ),
                     Loot(
                         Item.TWIN_HUMANITIES,
                         count=2,
                         humanities=2,
                         detail="Oswald of Carim",
-                        condition=settings.kill_oswald,
+                        condition=options.kill_oswald,
                     ),
                     Equip(
                         Item.BONE,
                         "Item 5",
                         detail="immediately",
-                        condition=not settings.loot_firelink_bones,
+                        condition=not options.loot_firelink_bones,
                     ),
                     Use(Item.BONE),
                 ),
                 Conditional(
-                    settings.initial_upgrade < 5,
+                    options.initial_upgrade < 5,
                     Segment(
                         Buy(
                             Item.TITANITE_SHARD,
-                            count=post_gargoyle_titanite_shards,
+                            count=post_gargoyle_shards,
                             souls=800,
                             detail="Andre",
                         ),
                         UpgradeCost(
-                            f"{settings.weapon} +{settings.initial_upgrade}-5",
-                            souls=200 * (5 - settings.initial_upgrade),
+                            (
+                                f"{options.early_weapon}"
+                                f" +{options.initial_upgrade}-5"
+                            ),
+                            souls=200 * (5 - options.initial_upgrade),
                             items=Counter(
-                                {
-                                    Item.TITANITE_SHARD: post_gargoyle_titanite_shards
-                                }
+                                {Item.TITANITE_SHARD: post_gargoyle_shards}
                             ),
                             detail="Andre",
                         ),
@@ -626,10 +641,11 @@ class SL1StartToAfterGargoylesInFirelink(Segment):
         )
 
 
-class SL1MeleeOnlyGlitchless(Route):
-    def __init__(self):
+class SL1MeleeOnlyGlitchless(Segment):
+    def __init__(self, route: Route):
+        options = route.options
         super().__init__(
-            "SL1 Melee Only Glitchless (Reinforced Club)",
+            name=f"SL1 Melee Only Glitchless ({options.early_weapon})",
             notes=[
                 "Getting the Reinforced Club takes just under a minute.",
                 (
@@ -673,13 +689,14 @@ class SL1MeleeOnlyGlitchless(Route):
                 ),
             ],
         )
+
         self.extend(
             [
                 SL1StartToAfterGargoylesInFirelink(
-                    early_route=EarlyRoute.REINFORCED_CLUB
-                    # early_route=EarlyRoute.BATTLE_AXE_PLUS4
-                    # early_route=EarlyRoute.BATTLE_AXE_PLUS4_NO_BLACK_KNIGHT
-                    # early_route=EarlyRoute.BATTLE_AXE_PLUS3
+                    route=Route.REINFORCED_CLUB
+                    # route=Route.BATTLE_AXE_PLUS4
+                    # route=Route.BATTLE_AXE_PLUS4_NO_BLACK_KNIGHT
+                    # route=Route.BATTLE_AXE_PLUS3
                 ),
                 FirelinkToQuelaag(),
                 FirelinkToSensFortress(),
@@ -695,5 +712,92 @@ class SL1MeleeOnlyGlitchless(Route):
                     )
                 ),
                 EquipBlacksmithGiantHammerAndDarksign(),
+                Segment(
+                    Region("TODO"),
+                    Kill(O_and_S, souls=50000),
+                    Receive(
+                        "Soul of Smough",
+                        souls=12000,
+                        detail=O_and_S,
+                        condition=not options.kill_smough_first,
+                    ),
+                    Receive(
+                        "Soul of Ornstein",
+                        souls=12000,
+                        detail=O_and_S,
+                        condition=options.kill_smough_first,
+                    ),
+                    # Loot(
+                    #    "Leo Ring",
+                    #    detail=O_and_S,
+                    #    condition=options.kill_smough_first,
+                    # ),
+                    Receive(Item.HUMANITY, humanities=1, detail=O_and_S),
+                    Kill("Pinwheel", souls=15000),
+                    Receive("Rite of Kindling", detail="Pinwheel"),
+                    Receive(Item.HUMANITY, humanities=1, detail="Pinwheel"),
+                    Receive(Item.BONE, detail="Pinwheel"),
+                    Kill("Gravelord Nito", souls=60000),
+                    Receive("Lord Soul", detail="Gravelord Nito"),
+                    Receive(
+                        Item.HUMANITY,
+                        humanities=1,
+                        detail="(Gravelord Nito) slow to receive it",
+                        optional=True,
+                    ),
+                    Kill(sif, souls=40000),
+                    Receive("Covenant of Artorias", detail=sif),
+                    Receive("Soul of Sif", souls=16000, detail=sif),
+                    Receive(
+                        Item.HUMANITY,
+                        humanities=1,
+                        detail=f"({sif}) slow to receive it",
+                        optional=True,
+                    ),
+                    Receive(Item.BONE, detail=sif),
+                    Kill("The Four Kings", souls=60000),
+                    Receive(
+                        "Bequeathed Lord Soul Shard", detail="The Four Kings"
+                    ),
+                    Receive(
+                        Item.HUMANITY,
+                        count=4,
+                        humanities=1,
+                        detail="The Four Kings",
+                    ),
+                    Kill("Seath the Scaleless", souls=60000),
+                    Receive(
+                        "Bequeathed Lord Soul Shard",
+                        detail="Seath the Scaleless",
+                    ),
+                    Receive(
+                        Item.HUMANITY,
+                        count=1,
+                        humanities=1,
+                        detail="Seath the Scaleless",
+                    ),
+                    UseMenu(
+                        "Fire Keeper Soul",
+                        count=6,
+                        allow_partial=True,
+                        detail="use all that you have",
+                    ),
+                    UseMenu(
+                        Item.HUMANITY,
+                        count=30,
+                        allow_partial=True,
+                        detail="use all that you have",
+                    ),
+                    UseMenu(
+                        Item.TWIN_HUMANITIES,
+                        count=15,
+                        allow_partial=True,
+                        detail="use all that you have",
+                    ),
+                ),
             ]
         )
+
+
+# TODO:
+# - 4 humanity from killing patches

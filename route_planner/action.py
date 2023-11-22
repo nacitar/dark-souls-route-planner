@@ -235,13 +235,14 @@ class Receive(Loot):
 
 @dataclass(kw_only=True)
 class UseMenu(__ItemCommon):
-    ignore_missing: bool = False
+    allow_partial: bool = False
 
     def __call__(self, state: State) -> None:
         actual_count = state.inventory[self.target]
         if actual_count < self.count:
-            if self.ignore_missing:
+            if self.allow_partial:
                 self.count = actual_count
+            # NOTE: this error is covered by 'State' overdraft checks
             # else:
             #    state.new_errors.append(
             #        f"Cannot use {self.count} of {self.target}, only have"

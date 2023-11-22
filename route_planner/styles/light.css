@@ -2,7 +2,7 @@
     font-size: x-large;
     font-weight: bold;
 }
-.notes {
+.route_header .notes {
     font-size: small;
 }
 .error_count {
@@ -11,7 +11,6 @@
     color: Red;
 }
 .route_header,
-.notes,
 table.route {
     font-family: 'Helvetica', 'Arial', sans-serif;
 }
