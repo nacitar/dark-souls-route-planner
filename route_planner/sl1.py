@@ -34,6 +34,7 @@ from .segment import Conditional, Segment
 new_londo_elevator = "elevator to New Londo Ruins"
 basin_elevator = "elevator to Darkroot Basin"
 parish_elevator = "elevator to Undead Parish"
+andre = "Andre of Astora"
 O_and_S = "Dragon Slayer Ornstein & Executioner Smough"
 sif = "Sif, the Great Grey Wolf"
 
@@ -50,6 +51,8 @@ class RouteOptions:
     loot_undead_parish_fire_keeper_soul: bool
     kill_black_knight: bool
     # defaulted
+    wait_for_slow_humanities: bool = False
+    wait_for_four_kings_humanities: bool = False
     kill_oswald: bool = False
     bone_count_if_from_oswald: int = 5
     kill_smough_first: bool = False
@@ -515,7 +518,7 @@ class SL1StartToAfterGargoylesInFirelink(Segment):
                     Buy(
                         "Battle Axe",
                         souls=1000,
-                        detail="Andre",
+                        detail=andre,
                         condition=route.uses_battle_axe,
                     ),
                 ),
@@ -526,7 +529,7 @@ class SL1StartToAfterGargoylesInFirelink(Segment):
                             Item.TITANITE_SHARD,
                             count=pre_gargoyle_shards,
                             souls=800,
-                            detail="Andre",
+                            detail=andre,
                         ),
                         UpgradeCost(
                             (
@@ -537,12 +540,12 @@ class SL1StartToAfterGargoylesInFirelink(Segment):
                             items=Counter(
                                 {Item.TITANITE_SHARD: pre_gargoyle_shards}
                             ),
-                            detail="Andre",
+                            detail=andre,
                         ),
                         Equip(
                             "Battle Axe",
                             "Right Hand",
-                            detail="Andre",
+                            detail=andre,
                             condition=route.uses_battle_axe,
                         ),
                     ),
@@ -620,7 +623,7 @@ class SL1StartToAfterGargoylesInFirelink(Segment):
                             Item.TITANITE_SHARD,
                             count=post_gargoyle_shards,
                             souls=800,
-                            detail="Andre",
+                            detail=andre,
                         ),
                         UpgradeCost(
                             (
@@ -631,7 +634,7 @@ class SL1StartToAfterGargoylesInFirelink(Segment):
                             items=Counter(
                                 {Item.TITANITE_SHARD: post_gargoyle_shards}
                             ),
-                            detail="Andre",
+                            detail=andre,
                         ),
                         RunTo(parish_elevator),
                         Region("Firelink Shrine"),
@@ -686,6 +689,11 @@ class SL1MeleeOnlyGlitchless(Segment):
                 (
                     "Conclusion: Battle Axe means longer fights and 20 seconds"
                     " to upgrade again."
+                ),
+                (
+                    "Black Knight with Hand Axe +0 with RTSR"
+                    " takes 3 ripostes + 1 hit."
+                    # 10 + 179
                 ),
             ],
         )
@@ -743,7 +751,7 @@ class SL1MeleeOnlyGlitchless(Segment):
                         Item.HUMANITY,
                         humanities=1,
                         detail="(Gravelord Nito) slow to receive it",
-                        optional=True,
+                        condition=options.wait_for_slow_humanities,
                     ),
                     Kill(sif, souls=40000),
                     Receive("Covenant of Artorias", detail=sif),
@@ -752,7 +760,7 @@ class SL1MeleeOnlyGlitchless(Segment):
                         Item.HUMANITY,
                         humanities=1,
                         detail=f"({sif}) slow to receive it",
-                        optional=True,
+                        condition=options.wait_for_slow_humanities,
                     ),
                     Receive(Item.BONE, detail=sif),
                     Kill("The Four Kings", souls=60000),
@@ -763,8 +771,15 @@ class SL1MeleeOnlyGlitchless(Segment):
                         Item.HUMANITY,
                         count=4,
                         humanities=1,
-                        detail="The Four Kings",
+                        detail="(The Four Kings) slow to receive it",
+                        condition=options.wait_for_four_kings_humanities,
                     ),
+                    Kill(
+                        "Darkmoon Knightess",
+                        souls=1000,
+                        detail="Anor Londo fire keeper",
+                    ),
+                    Loot("Fire Keeper Soul", detail="Darkmoon Knightess"),
                     Kill("Seath the Scaleless", souls=60000),
                     Receive(
                         "Bequeathed Lord Soul Shard",
@@ -772,10 +787,24 @@ class SL1MeleeOnlyGlitchless(Segment):
                     ),
                     Receive(
                         Item.HUMANITY,
-                        count=1,
                         humanities=1,
-                        detail="Seath the Scaleless",
+                        optional=True,
+                        detail="(Seath the Scaleless) slow to receive it",
+                        condition=options.wait_for_slow_humanities,
                     ),
+                    Kill("Patches", souls=2000, detail="Tomb of the Giants"),
+                    Loot(
+                        Item.HUMANITY, count=4, humanities=1, detail="Patches"
+                    ),
+                    Kill("Petrus of Thorolund", souls=1000),
+                    Loot(
+                        Item.HUMANITY,
+                        count=2,
+                        humanities=1,
+                        detail="Petrus of Thorolund",
+                    ),
+                    Kill(andre, souls=1000),
+                    Loot(Item.HUMANITY, count=3, humanities=1, detail=andre),
                     UseMenu(
                         "Fire Keeper Soul",
                         count=6,
@@ -800,4 +829,9 @@ class SL1MeleeOnlyGlitchless(Segment):
 
 
 # TODO:
-# - 4 humanity from killing patches
+# - check timing for grabbing firelink souls
+# - check killing petrus with upgrades
+# - check killing patches with upgrades
+# - check killing darkmoon knightess with upgrades
+# - check killing oswald with upgrades
+# - make multiple routes be output
