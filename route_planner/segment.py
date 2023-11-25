@@ -41,8 +41,13 @@ def _value_cell(name: str, old_value: int, new_value: int) -> str:
 
 class Segment:
     def __init__(
-        self, *actions: Action, notes: list[str] = [], name: str = ""
+        self,
+        *actions: Action,
+        notes: Optional[list[str]] = None,
+        name: str = "",
     ):
+        if notes is None:
+            notes = []
         self.notes = notes
         self.actions: list[Action] = []
         self.name = name

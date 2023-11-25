@@ -35,8 +35,11 @@ new_londo_elevator = "elevator to New Londo Ruins"
 basin_elevator = "elevator to Darkroot Basin"
 parish_elevator = "elevator to Undead Parish"
 andre = "Andre of Astora"
+petrus = "Petrus of Thorolund"
 O_and_S = "Dragon Slayer Ornstein & Executioner Smough"
 sif = "Sif, the Great Grey Wolf"
+nito = "Gravelord Nito"
+seath = "Seath the Scaleless"
 
 
 @dataclass
@@ -50,10 +53,15 @@ class RouteOptions:
     loot_new_londo_ruins_soul: bool
     loot_undead_parish_fire_keeper_soul: bool
     kill_black_knight: bool
+    wait_for_four_kings_drops: bool
     # defaulted
-    wait_for_slow_humanities: bool = False
-    wait_for_four_kings_humanities: bool = False
+    wait_for_sif_drops: bool = False
+    wait_for_nito_drops: bool = False
+    wait_for_seath_drops: bool = False
     kill_oswald: bool = False
+    kill_andre: bool = False
+    kill_petrus: bool = False
+    kill_patches: bool = False
     bone_count_if_from_oswald: int = 5
     kill_smough_first: bool = False
 
@@ -70,47 +78,50 @@ class Route(Enum):
     REINFORCED_CLUB = RouteOptions(
         early_weapon="Reinforced Club",
         initial_upgrade=5,
-        loot_firelink_humanity=False,
+        loot_firelink_humanity=True,
         loot_firelink_elevator_soul=True,
         loot_firelink_bones=True,
         loot_firelink_graveyard=True,
         loot_new_londo_ruins_soul=True,
         loot_undead_parish_fire_keeper_soul=True,
         kill_black_knight=True,
+        wait_for_four_kings_drops=True,
     )
     BATTLE_AXE_PLUS3 = RouteOptions(
         early_weapon="Battle Axe",
         initial_upgrade=3,
-        loot_firelink_humanity=False,
+        loot_firelink_humanity=True,
         loot_firelink_elevator_soul=False,
         loot_firelink_bones=False,
         loot_firelink_graveyard=False,
         loot_new_londo_ruins_soul=True,
         loot_undead_parish_fire_keeper_soul=True,
         kill_black_knight=True,
-        kill_oswald=True,
+        wait_for_four_kings_drops=True,
     )
     BATTLE_AXE_PLUS4 = RouteOptions(
         early_weapon="Battle Axe",
         initial_upgrade=4,
-        loot_firelink_humanity=False,
+        loot_firelink_humanity=True,
         loot_firelink_elevator_soul=False,
         loot_firelink_bones=False,
         loot_firelink_graveyard=False,
         loot_new_londo_ruins_soul=True,
         loot_undead_parish_fire_keeper_soul=True,
         kill_black_knight=True,
+        wait_for_four_kings_drops=True,
     )
     BATTLE_AXE_PLUS4_NO_BLACK_KNIGHT = RouteOptions(
         early_weapon="Battle Axe",
         initial_upgrade=4,
-        loot_firelink_humanity=False,
+        loot_firelink_humanity=True,
         loot_firelink_elevator_soul=False,
         loot_firelink_bones=True,
         loot_firelink_graveyard=True,
         loot_new_londo_ruins_soul=True,
         loot_undead_parish_fire_keeper_soul=True,
         kill_black_knight=False,
+        wait_for_four_kings_drops=True,
     )
 
     @property  # not needed, but reads better in the code
@@ -180,24 +191,6 @@ class AsylumCellToFirelink(Segment):
             Activate("Ledge warp trigger to Firelink Shrine"),
             Region("Firelink Shrine"),
             AutoBonfire("Firelink Shrine"),
-        )
-
-
-class FirelinkToReinforcedClub(Segment):
-    def __init__(self):
-        super().__init__(
-            Region("Firelink Shrine"),
-            RunTo("Undead Burg"),
-            Region("Undead Burg"),
-            Buy("Reinforced Club", souls=350, detail="Undead Merchant"),
-            Buy(
-                "Firebomb",
-                souls=50,
-                count=3,
-                detail="Undead Merchant, if using Tohki Bombs on Bed of Chaos",
-                optional=True,
-            ),
-            Use(Item.BONE),
         )
 
 
@@ -348,7 +341,7 @@ class EquipBlacksmithGiantHammerAndDarksign(Segment):
 
 
 class SL1StartToAfterGargoylesInFirelink(Segment):
-    def __init__(self, route: Route, skip_firelink_loot: bool = False):
+    def __init__(self, route: Route):
         ladder = "climbing ladder to RTSR"
         SHARDS_PER_LEVEL = [1, 1, 2, 2, 3]
         options = route.options
@@ -648,7 +641,7 @@ class SL1MeleeOnlyGlitchless(Segment):
     def __init__(self, route: Route):
         options = route.options
         super().__init__(
-            name=f"SL1 Melee Only Glitchless ({options.early_weapon})",
+            name=f"SL1 Melee Only Glitchless ({route.name})",
             notes=[
                 "Getting the Reinforced Club takes just under a minute.",
                 (
@@ -700,12 +693,7 @@ class SL1MeleeOnlyGlitchless(Segment):
 
         self.extend(
             [
-                SL1StartToAfterGargoylesInFirelink(
-                    route=Route.REINFORCED_CLUB
-                    # route=Route.BATTLE_AXE_PLUS4
-                    # route=Route.BATTLE_AXE_PLUS4_NO_BLACK_KNIGHT
-                    # route=Route.BATTLE_AXE_PLUS3
-                ),
+                SL1StartToAfterGargoylesInFirelink(route),
                 FirelinkToQuelaag(),
                 FirelinkToSensFortress(),
                 SensFortressToDarkmoonTomb(),
@@ -745,24 +733,55 @@ class SL1MeleeOnlyGlitchless(Segment):
                     Receive("Rite of Kindling", detail="Pinwheel"),
                     Receive(Item.HUMANITY, humanities=1, detail="Pinwheel"),
                     Receive(Item.BONE, detail="Pinwheel"),
-                    Kill("Gravelord Nito", souls=60000),
-                    Receive("Lord Soul", detail="Gravelord Nito"),
-                    Receive(
-                        Item.HUMANITY,
-                        humanities=1,
-                        detail="(Gravelord Nito) slow to receive it",
-                        condition=options.wait_for_slow_humanities,
+                    Kill(nito, souls=60000),
+                    Receive("Lord Soul", detail=nito),
+                ),
+                Conditional(
+                    not options.wait_for_nito_drops,
+                    Segment(notes=[f"1 slow humanity skipped from {nito}."]),
+                ),
+                Conditional(
+                    options.wait_for_nito_drops,
+                    Segment(
+                        Receive(
+                            Item.HUMANITY,
+                            humanities=1,
+                            detail=f"{nito} (slow to receive it)",
+                        ),
+                        notes=[
+                            f"wait for 1 slow {Item.HUMANITY} from {nito}."
+                        ],
                     ),
+                ),
+                Segment(
                     Kill(sif, souls=40000),
                     Receive("Covenant of Artorias", detail=sif),
                     Receive("Soul of Sif", souls=16000, detail=sif),
-                    Receive(
-                        Item.HUMANITY,
-                        humanities=1,
-                        detail=f"({sif}) slow to receive it",
-                        condition=options.wait_for_slow_humanities,
+                ),
+                Conditional(
+                    not options.wait_for_sif_drops,
+                    Segment(
+                        notes=[
+                            f"1 slow {Item.HUMANITY} and {Item.BONE}"
+                            f" skipped from {sif}."
+                        ]
                     ),
-                    Receive(Item.BONE, detail=sif),
+                ),
+                Conditional(
+                    options.wait_for_sif_drops,
+                    Segment(
+                        Receive(
+                            Item.HUMANITY,
+                            humanities=1,
+                            detail=f"{sif} (slow to receive it)",
+                        ),
+                        Receive(
+                            Item.BONE, detail=f"{sif} (slow to receive it)"
+                        ),
+                        notes=[f"wait for 1 slow humanity from {sif}."],
+                    ),
+                ),
+                Segment(
                     Kill("The Four Kings", souls=60000),
                     Receive(
                         "Bequeathed Lord Soul Shard", detail="The Four Kings"
@@ -771,8 +790,8 @@ class SL1MeleeOnlyGlitchless(Segment):
                         Item.HUMANITY,
                         count=4,
                         humanities=1,
-                        detail="(The Four Kings) slow to receive it",
-                        condition=options.wait_for_four_kings_humanities,
+                        detail="The Four Kings (slow to receive it)",
+                        condition=options.wait_for_four_kings_drops,
                     ),
                     Kill(
                         "Darkmoon Knightess",
@@ -780,31 +799,56 @@ class SL1MeleeOnlyGlitchless(Segment):
                         detail="Anor Londo fire keeper",
                     ),
                     Loot("Fire Keeper Soul", detail="Darkmoon Knightess"),
-                    Kill("Seath the Scaleless", souls=60000),
-                    Receive(
-                        "Bequeathed Lord Soul Shard",
-                        detail="Seath the Scaleless",
+                    Kill(seath, souls=60000),
+                    Receive("Bequeathed Lord Soul Shard", detail=seath),
+                ),
+                Conditional(
+                    not options.wait_for_seath_drops,
+                    Segment(
+                        notes=[f"1 slow {Item.HUMANITY} skipped from {seath}."]
                     ),
-                    Receive(
-                        Item.HUMANITY,
-                        humanities=1,
-                        optional=True,
-                        detail="(Seath the Scaleless) slow to receive it",
-                        condition=options.wait_for_slow_humanities,
+                ),
+                Conditional(
+                    options.wait_for_seath_drops,
+                    Segment(
+                        Receive(
+                            Item.HUMANITY,
+                            humanities=1,
+                            detail=f"{seath} (slow to receive it)",
+                        ),
+                        notes=[f"wait for 1 slow humanity from {seath}."],
                     ),
-                    Kill("Patches", souls=2000, detail="Tomb of the Giants"),
+                ),
+                Segment(
+                    Kill(
+                        "Patches",
+                        souls=2000,
+                        detail="Tomb of the Giants",
+                        condition=options.kill_patches,
+                    ),
                     Loot(
-                        Item.HUMANITY, count=4, humanities=1, detail="Patches"
+                        Item.HUMANITY,
+                        count=4,
+                        humanities=1,
+                        detail="Patches",
+                        condition=options.kill_patches,
                     ),
-                    Kill("Petrus of Thorolund", souls=1000),
+                    Kill(petrus, souls=1000, condition=options.kill_petrus),
                     Loot(
                         Item.HUMANITY,
                         count=2,
                         humanities=1,
-                        detail="Petrus of Thorolund",
+                        detail=petrus,
+                        condition=options.kill_petrus,
                     ),
-                    Kill(andre, souls=1000),
-                    Loot(Item.HUMANITY, count=3, humanities=1, detail=andre),
+                    Kill(andre, souls=1000, condition=options.kill_andre),
+                    Loot(
+                        Item.HUMANITY,
+                        count=3,
+                        humanities=1,
+                        detail=andre,
+                        condition=options.kill_andre,
+                    ),
                     UseMenu(
                         "Fire Keeper Soul",
                         count=6,
@@ -830,8 +874,3 @@ class SL1MeleeOnlyGlitchless(Segment):
 
 # TODO:
 # - check timing for grabbing firelink souls
-# - check killing petrus with upgrades
-# - check killing patches with upgrades
-# - check killing darkmoon knightess with upgrades
-# - check killing oswald with upgrades
-# - make multiple routes be output
