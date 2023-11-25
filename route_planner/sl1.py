@@ -40,6 +40,7 @@ O_and_S = "Dragon Slayer Ornstein & Executioner Smough"
 sif = "Sif, the Great Grey Wolf"
 nito = "Gravelord Nito"
 seath = "Seath the Scaleless"
+four_kings = "The Four Kings"
 
 
 @dataclass
@@ -738,7 +739,9 @@ class SL1MeleeOnlyGlitchless(Segment):
                 ),
                 Conditional(
                     not options.wait_for_nito_drops,
-                    Segment(notes=[f"1 slow humanity skipped from {nito}."]),
+                    Segment(
+                        notes=[f"1 slow {Item.HUMANITY} skipped from {nito}."]
+                    ),
                 ),
                 Conditional(
                     options.wait_for_nito_drops,
@@ -778,21 +781,38 @@ class SL1MeleeOnlyGlitchless(Segment):
                         Receive(
                             Item.BONE, detail=f"{sif} (slow to receive it)"
                         ),
-                        notes=[f"wait for 1 slow humanity from {sif}."],
+                        notes=[f"wait for 1 slow {Item.HUMANITY} from {sif}."],
                     ),
                 ),
                 Segment(
-                    Kill("The Four Kings", souls=60000),
-                    Receive(
-                        "Bequeathed Lord Soul Shard", detail="The Four Kings"
+                    Kill(four_kings, souls=60000),
+                    Receive("Bequeathed Lord Soul Shard", detail=four_kings),
+                ),
+                Conditional(
+                    not options.wait_for_four_kings_drops,
+                    Segment(
+                        notes=[
+                            f"4 slow {Item.HUMANITY}"
+                            " skipped from {four_kings}."
+                        ]
                     ),
-                    Receive(
-                        Item.HUMANITY,
-                        count=4,
-                        humanities=1,
-                        detail="The Four Kings (slow to receive it)",
-                        condition=options.wait_for_four_kings_drops,
+                ),
+                Conditional(
+                    options.wait_for_four_kings_drops,
+                    Segment(
+                        Receive(
+                            Item.HUMANITY,
+                            count=4,
+                            humanities=1,
+                            detail=f"{four_kings} (slow to receive it)",
+                        ),
+                        notes=[
+                            f"wait for 4 slow {Item.HUMANITY}"
+                            f" from {four_kings}."
+                        ],
                     ),
+                ),
+                Segment(
                     Kill(
                         "Darkmoon Knightess",
                         souls=1000,
@@ -873,4 +893,4 @@ class SL1MeleeOnlyGlitchless(Segment):
 
 
 # TODO:
-# - check timing for grabbing firelink souls
+# - check timing for grabbing firelink humanities
