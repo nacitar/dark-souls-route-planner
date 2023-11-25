@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from copy import deepcopy
 from importlib.resources import open_text as open_text_resource
-from typing import Generator, Iterable, Optional, Protocol, Tuple
+from typing import Generator, Optional, Protocol, Tuple
 
 from . import styles
 from .action import Action, Error, Region, State
@@ -39,28 +39,39 @@ def _value_cell(name: str, old_value: int, new_value: int) -> str:
     return html
 
 
+class Step(Protocol):
+    @property
+    def actions(self) -> list[Action]:
+        ...
+
+    @property
+    def notes(self) -> list[str]:
+        ...
+
+
 class Segment:
     def __init__(
-        self,
-        *actions: Action,
-        notes: Optional[list[str]] = None,
-        name: str = "",
+        self, *steps: Step, notes: Optional[list[str]] = None, name: str = ""
     ):
-        if notes is None:
-            notes = []
-        self.notes = notes
-        self.actions: list[Action] = []
         self.name = name
-        for action in actions:
-            self.actions.append(action)
+        self._notes: list[str] = []
+        self._actions: list[Action] = []
+        if notes:
+            self._notes.extend(notes)
+        self.append(*steps)
 
-    def append(self, other: Segment):
-        self.actions.extend(other.actions)
-        self.notes.extend(other.notes)
+    def append(self, *steps: Step):
+        for step in steps:
+            self._actions.extend(step.actions)
+            self._notes.extend(step.notes)
 
-    def extend(self, others: Iterable[Segment]):
-        for other in others:
-            self.append(other)
+    @property
+    def actions(self) -> list[Action]:
+        return list(self._actions)
+
+    @property
+    def notes(self) -> list[str]:
+        return list(self._notes)
 
     def process(
         self, state: Optional[State] = None
@@ -74,9 +85,9 @@ class Segment:
                 for error in state.errors():
                     yield (deepcopy(state), Error(error))
 
-    def _repr_html_(self):
+    def _repr_html_(self, initial_state: Optional[State] = None):
         region_count = 0
-        last_state = State()
+        last_state = initial_state if initial_state is not None else State()
         region = ""
         columns = [
             ("Souls", "Souls"),
@@ -166,7 +177,13 @@ class Segment:
 
 
 class Conditional(Segment):
-    def __init__(self, condition: bool, *segments: Segment):
-        super().__init__()
+    def __init__(
+        self,
+        condition: bool,
+        *steps: Step,
+        notes: Optional[list[str]] = None,
+        name: str = "",
+    ):
+        super().__init__(name=name, notes=notes)
         if condition:
-            self.extend(segments)
+            self.append(*steps)

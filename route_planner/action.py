@@ -78,6 +78,11 @@ class Action:
     optional: bool = field(default=False, kw_only=True)
     output: bool = field(default=True, kw_only=True)
     condition: bool = field(default=True, kw_only=True)
+    notes: list[str] = field(default_factory=list, kw_only=True)
+
+    @property
+    def actions(self) -> list[Action]:  # so this is a 'segment.Step'
+        return [self]
 
     def __post_init__(self) -> None:
         ...  # so code doesn't need changed if this is added later
