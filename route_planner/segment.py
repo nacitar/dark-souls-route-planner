@@ -97,17 +97,19 @@ class Segment:  # is a 'Step'
             ("Humanity", "👨"),
             ("Action", "Action"),
         ]
-        html = '<span class="route_header">'
+        header = '<span class="route_header">'
         if self.name:
-            html += f'<span class="route_title">{self.name}</span>'
+            header += f'<span class="route_title">{self.name}</span>'
         if self.notes:
-            html += (
+            header += (
                 '<ul class="notes">'
                 + "".join([f"<li>{note}</li>" for note in self.notes])
                 + "</ul>"
             )
-        html += (
-            '</span><table class="route"><thead><tr>'
+        header += "</span>"
+
+        body = (
+            '<table class="route"><thead><tr>'
             + "".join(
                 f'<th title="{column[0]}">{column[1]}</th>'
                 for column in columns
@@ -118,7 +120,7 @@ class Segment:  # is a 'Step'
             if isinstance(action, Region):
                 if action.target != region:
                     region_count += 1
-                    html += (
+                    body += (
                         "</tbody><tbody><tr>"
                         f'<td colspan="{len(columns)}" class="region">'
                         f"{region_count:02}. {action.target}</td></tr>"
@@ -131,7 +133,7 @@ class Segment:  # is a 'Step'
                     rowclass = "error"
                 elif action.optional:
                     rowclass = "optional"
-                html += (
+                body += (
                     (f'<tr class="{rowclass}">' if rowclass else "<tr>")
                     + _value_cell("Souls", last_state.souls, state.souls)
                     + _value_cell(
@@ -165,13 +167,14 @@ class Segment:  # is a 'Step'
                     "</span></td></tr>"
                 )
             last_state = state
-        html += "</tbody></table>"
+        body += "</tbody></table>"
+
         if state.error_count:
-            html = (
+            header += (
                 f'<span class="error_count">{state.error_count}'
                 " errors present.</span>"
-            ) + html
-        return html
+            )
+        return header + body
 
 
 def conditional(

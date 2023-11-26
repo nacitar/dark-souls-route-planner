@@ -96,9 +96,9 @@ class Route(Enum):
         loot_firelink_elevator_soul=False,
         loot_firelink_bones=False,
         loot_firelink_graveyard=False,
-        loot_new_londo_ruins_soul=True,
+        loot_new_londo_ruins_soul=False,
         loot_undead_parish_fire_keeper_soul=True,
-        kill_black_knight=True,
+        kill_black_knight=False,
         wait_for_four_kings_drops=True,
     )
     BATTLE_AXE_PLUS4 = RouteOptions(
@@ -108,7 +108,7 @@ class Route(Enum):
         loot_firelink_elevator_soul=False,
         loot_firelink_bones=False,
         loot_firelink_graveyard=False,
-        loot_new_londo_ruins_soul=True,
+        loot_new_londo_ruins_soul=False,
         loot_undead_parish_fire_keeper_soul=True,
         kill_black_knight=True,
         wait_for_four_kings_drops=True,
@@ -397,10 +397,9 @@ class SL1StartToAfterGargoylesInFirelink(Segment):
     def __post_init__(self):
         SHARDS_PER_LEVEL = [1, 1, 2, 2, 3]
         options = self.route.options
-        pre_gargoyle_shards = sum(
+        early_weapon_shards = sum(
             SHARDS_PER_LEVEL[0 : options.initial_upgrade]
         )
-        post_gargoyle_shards = sum(SHARDS_PER_LEVEL[options.initial_upgrade :])
 
         super().__post_init__()
         self.add_steps(
@@ -498,6 +497,7 @@ class SL1StartToAfterGargoylesInFirelink(Segment):
                 "Soul of a Nameless Soldier",
                 souls=800,
                 detail=f"by bottom of {new_londo_elevator}",
+                condition=options.loot_new_londo_ruins_soul,
             ),
             RunTo("Master Key door to Valley of the Drakes"),
             Region("Valley of Drakes"),
@@ -518,7 +518,12 @@ class SL1StartToAfterGargoylesInFirelink(Segment):
                 detail=rtsr_ladder,
                 condition=self.route.uses_reinforced_club,
             ),
-            Equip("Soul of a Nameless Soldier", "Item 2", detail=rtsr_ladder),
+            Equip(
+                "Soul of a Nameless Soldier",
+                "Item 2",
+                detail=rtsr_ladder,
+                condition=options.loot_new_londo_ruins_soul,
+            ),
             Equip(
                 "Large Soul of a Nameless Soldier",
                 "Item 3",
@@ -532,7 +537,11 @@ class SL1StartToAfterGargoylesInFirelink(Segment):
             RunTo(basin_elevator),
             Use("Large Soul of a Nameless Soldier", detail=basin_elevator),
             Use("Soul of a Proud Knight", detail=basin_elevator),
-            Use("Soul of a Nameless Soldier", detail=basin_elevator),
+            Use(
+                "Soul of a Nameless Soldier",
+                detail=basin_elevator,
+                condition=options.loot_new_londo_ruins_soul,
+            ),
             Equip("Red Tearstone Ring", "Ring 2", detail=basin_elevator),
             Region("Darkroot Basin"),
             Loot("Grass Crest Shield"),
@@ -542,6 +551,11 @@ class SL1StartToAfterGargoylesInFirelink(Segment):
                 souls=1800,
                 detail="by Grass Crest Shield",
                 condition=options.kill_black_knight,
+                notes=["Black Knight in Darkroot Basin MUST be killed."],
+            ),
+            conditional(
+                not options.kill_black_knight,
+                notes=["Black Knight in Darkroot Basin DOES NOT need killed."],
             ),
             RunTo(
                 "Undead Parish",
@@ -562,7 +576,7 @@ class SL1StartToAfterGargoylesInFirelink(Segment):
                 options.initial_upgrade > 0,
                 Buy(
                     Item.TITANITE_SHARD,
-                    count=pre_gargoyle_shards,
+                    count=early_weapon_shards,
                     souls=800,
                     detail=andre,
                 ),
@@ -572,7 +586,7 @@ class SL1StartToAfterGargoylesInFirelink(Segment):
                         f" +0-{options.initial_upgrade}"
                     ),
                     souls=200 * options.initial_upgrade,
-                    items=Counter({Item.TITANITE_SHARD: pre_gargoyle_shards}),
+                    items=Counter({Item.TITANITE_SHARD: early_weapon_shards}),
                     detail=andre,
                 ),
                 Equip(
@@ -581,11 +595,6 @@ class SL1StartToAfterGargoylesInFirelink(Segment):
                     detail=andre,
                     condition=self.route.uses_battle_axe,
                 ),
-            ),
-            BonfireSit(
-                "Undead Parish",
-                detail="to upgrade to +5 after Bell Gargoyles",
-                condition=(options.initial_upgrade < 5),
             ),
             Loot(
                 "Fire Keeper Soul",
@@ -604,7 +613,7 @@ class SL1StartToAfterGargoylesInFirelink(Segment):
             Activate("First bell"),
             RunTo(
                 "Oswald of Carim",
-                detail="RTSR setup: heal, fall down both ladders",
+                detail="TODO: RTSR setup: heal, fall down both ladders",
                 condition=(
                     options.kill_oswald or not options.loot_firelink_bones
                 ),
@@ -636,26 +645,6 @@ class SL1StartToAfterGargoylesInFirelink(Segment):
                 condition=not options.loot_firelink_bones,
             ),
             Use(Item.BONE),
-            conditional(
-                options.initial_upgrade < 5,
-                Buy(
-                    Item.TITANITE_SHARD,
-                    count=post_gargoyle_shards,
-                    souls=800,
-                    detail=andre,
-                ),
-                UpgradeCost(
-                    (
-                        f"{options.early_weapon}"
-                        f" +{options.initial_upgrade}-5"
-                    ),
-                    souls=200 * (5 - options.initial_upgrade),
-                    items=Counter({Item.TITANITE_SHARD: post_gargoyle_shards}),
-                    detail=andre,
-                ),
-                RunTo(parish_elevator),
-                Region("Firelink Shrine"),
-            ),
         )
 
 
@@ -675,13 +664,15 @@ class SL1MeleeOnlyGlitchless(Segment):
                 "Quelaag dies in 11 heavy RTSR hits (jumping).",
                 "Iron Golem staggers in 3 weak RTSR hits and falls in 2.",
                 (
-                    "You can't run back to Andre to finish upgrading unless you"
-                    " sit in Undead Parish and lose RTSR range.  Would take"
-                    " about 20-30 seconds, too."
+                    "You can't run back to Andre to finish upgrading unless"
+                    " you sit in Undead Parish and lose RTSR range.  Elevator"
+                    " RTSR strat takes 50-55 seconds, and running to Andre to"
+                    " upgrade takes 20-30 seconds."
                 ),
                 (
                     "The Battle Axe route would mean using the Hand Axe"
-                    " against the Black Knight."
+                    " against the Black Knight, boss fights would be longer"
+                    " and the Iron Golem in particular would be harder."
                 ),
                 (
                     "Black Knight with Hand Axe +0 with RTSR"
@@ -854,8 +845,7 @@ class SL1MeleeOnlyGlitchless(Segment):
 
 
 # TODO:
+# - check if the firelink elevator soul is best for Reinforced Club route
+#   or if perhaps the one on the way to get the weapon is better.
 # - check timing for grabbing firelink humanities
 # - determine when to loot Lautrec, or how to replace him (quitoutless)
-# - remove 2nd upgrade from Battle Axe routes.  Using the Undead Parish bonfire
-#   so you can warp back to upgrade again means that you'll heal, and need
-#   another RTSR setup, so it cannot be done.
