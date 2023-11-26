@@ -9,6 +9,20 @@ from . import styles
 from .action import Action, Error, Region, State
 
 
+class Step(Protocol):
+    @property
+    def actions(self) -> list[Action]:
+        ...
+
+    @property
+    def notes(self) -> list[str]:
+        ...
+
+    @property
+    def condition(self) -> bool:
+        ...
+
+
 class HtmlSource(Protocol):
     def _repr_html_(self) -> str:
         ...
@@ -38,20 +52,6 @@ def _value_cell(name: str, old_value: int, new_value: int) -> str:
         html += f"<br/>{new_value}"
     html += "</td>"
     return html
-
-
-class Step(Protocol):
-    @property
-    def actions(self) -> list[Action]:
-        ...
-
-    @property
-    def notes(self) -> list[str]:
-        ...
-
-    @property
-    def condition(self) -> bool:
-        ...
 
 
 @dataclass(kw_only=True)

@@ -670,50 +670,22 @@ class SL1MeleeOnlyGlitchless(Segment):
             self.name = f"SL1 Melee Only Glitchless ({self.route.name})"
         self.notes.extend(
             [
+                "TODO: fix RTSR setup for Gargoyles",
                 "Getting the Reinforced Club takes just under a minute.",
+                "Quelaag dies in 11 heavy RTSR hits (jumping).",
+                "Iron Golem staggers in 3 weak RTSR hits and falls in 2.",
                 (
-                    "Quelaag dies in 11 heavy RTSR hits (jumping).  Battle Axe"
-                    " takes 13 heavy RTSR hits (vertical) or 19 weak RTSR hits"
-                    " (horizontal)."
-                ),
-                (
-                    "Iron Golem staggers in 3 weak RTSR hits and falls in 2."
-                    " Battle Axe takes 5 weak RTSR hits (horizontal) to"
-                    " stagger and falls in 3."
-                ),
-                (
-                    "Because Battle Axe costs 1000 souls, upgrades are 500"
-                    " souls short of getting to +5, meaning running back to"
-                    " Andre for +4 to +5.  With the Reinforced Club, you even"
-                    " have 150 souls left over for Tohki bombs (optional)."
-                ),
-                (
-                    "There's 200 souls across from snuggly, 200 around where"
-                    " patches moves to firelink, and 200 on the ledge above"
-                    " Frampt's position.  The Ent you run past drops 100."
-                ),
-                (
-                    "If you get the soul across from Snuggly and kill the Ent,"
-                    " you still need 200 more souls from somewhere and all of"
-                    " this must take less than 1 minute to break even with the"
-                    " Reinforced Club route."
+                    "You can't run back to Andre to finish upgrading unless you"
+                    " sit in Undead Parish and lose RTSR range.  Would take"
+                    " about 20-30 seconds, too."
                 ),
                 (
                     "The Battle Axe route would mean using the Hand Axe"
                     " against the Black Knight."
                 ),
                 (
-                    "Running back to Andre and upgrading again takes around 20"
-                    " seconds if you bone back."
-                ),
-                (
-                    "Conclusion: Battle Axe means longer fights and 20 seconds"
-                    " to upgrade again."
-                ),
-                (
                     "Black Knight with Hand Axe +0 with RTSR"
-                    " takes 3 ripostes + 1 hit."
-                    # 10 + 179
+                    " takes 3 ripostes + 1 hit. (10+179)"
                 ),
             ]
         )
@@ -883,8 +855,7 @@ class SL1MeleeOnlyGlitchless(Segment):
 
 # TODO:
 # - check timing for grabbing firelink humanities
-# - adjust notes
 # - determine when to loot Lautrec, or how to replace him (quitoutless)
 # - remove 2nd upgrade from Battle Axe routes.  Using the Undead Parish bonfire
-#   so you can warpe back to upgrade again means that you'll heal, and need
+#   so you can warp back to upgrade again means that you'll heal, and need
 #   another RTSR setup, so it cannot be done.

@@ -10,7 +10,7 @@ def main() -> int:
     route_names = set()
 
     with open(f"{output_dir}/index.html", "w") as index:
-        index.write("<h1>Route Index</h1>\n<ul>\n")
+        index.write("<h1>Route Index</h1><ul>")
         for segment in [
             SL1MeleeOnlyGlitchless(route=Route.REINFORCED_CLUB),
             SL1MeleeOnlyGlitchless(route=Route.BATTLE_AXE_PLUS4),
