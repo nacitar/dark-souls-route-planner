@@ -131,7 +131,7 @@ class Route(Enum):
         return self.value
 
     @property
-    def loots_firelink_early(self) -> bool:
+    def loots_firelink_at_start(self) -> bool:
         return (
             self.options.loot_firelink_elevator_soul
             or self.options.loot_firelink_bones
@@ -271,7 +271,7 @@ class FirelinkToSensFortress(Segment):
                 detail=f"side of well, get on way to {parish_elevator}.",
                 condition=(
                     options.loot_firelink_humanity
-                    and not self.route.loots_firelink_early
+                    and not self.route.loots_firelink_at_start
                     and not self.route.uses_reinforced_club
                 ),
                 notes=[
@@ -408,53 +408,65 @@ class SL1StartToAfterGargoylesInFirelink(Segment):
             StartOfGame(),
             AsylumCellToFirelink(),
             Region("Firelink Shrine"),
-            Loot(
-                Item.HUMANITY,
-                count=3,
-                humanities=1,
-                detail="side of well, get during Firelink loot route.",
-                condition=(
-                    options.loot_firelink_humanity
-                    and self.route.loots_firelink_early
-                    and not self.route.uses_reinforced_club
+            conditional(
+                not self.route.loots_firelink_at_start,
+                notes=[
+                    "Firelink IS NOT looted at start;"
+                    f" goes straight to {andre}."
+                ],
+            ),
+            conditional(
+                self.route.loots_firelink_at_start,
+                Loot(
+                    Item.HUMANITY,
+                    count=3,
+                    humanities=1,
+                    detail="side of well, get during Firelink loot route.",
+                    condition=(
+                        options.loot_firelink_humanity
+                        and not self.route.uses_reinforced_club
+                    ),
+                    notes=[
+                        "3 humanities at Firelink well looted immediately."
+                    ],
                 ),
-                notes=["3 humanities at Firelink well looted early."],
+                Loot(
+                    "Soul of a Lost Undead",
+                    souls=200,
+                    detail="upper elevator",
+                    condition=options.loot_firelink_elevator_soul,
+                ),
+                Jump(
+                    "off ledge to hidden chests",
+                    condition=options.loot_firelink_bones,
+                ),
+                Loot(
+                    Item.BONE,
+                    count=6,
+                    detail="hidden chest",
+                    condition=options.loot_firelink_bones,
+                ),
+                Equip(
+                    Item.BONE,
+                    "Item 5",
+                    detail="immediately",
+                    condition=options.loot_firelink_bones,
+                ),
+                Loot(
+                    "Large Soul of a Lost Undead",
+                    souls=400,
+                    detail="middle of graveyard",
+                    condition=options.loot_firelink_graveyard,
+                ),
+                Loot(
+                    "Large Soul of a Lost Undead",
+                    souls=400,
+                    detail="start of graveyard",
+                    condition=options.loot_firelink_graveyard,
+                ),
+                Use(Item.BONE, condition=options.loot_firelink_graveyard),
+                notes=["Firelink is looted upon arrival."],
             ),
-            Loot(
-                "Soul of a Lost Undead",
-                souls=200,
-                detail="upper elevator",
-                condition=options.loot_firelink_elevator_soul,
-            ),
-            Jump(
-                "off ledge to hidden chests",
-                condition=options.loot_firelink_bones,
-            ),
-            Loot(
-                Item.BONE,
-                count=6,
-                detail="hidden chest",
-                condition=options.loot_firelink_bones,
-            ),
-            Equip(
-                Item.BONE,
-                "Item 5",
-                detail="immediately",
-                condition=options.loot_firelink_bones,
-            ),
-            Loot(
-                "Large Soul of a Lost Undead",
-                souls=400,
-                detail="middle of graveyard",
-                condition=options.loot_firelink_graveyard,
-            ),
-            Loot(
-                "Large Soul of a Lost Undead",
-                souls=400,
-                detail="start of graveyard",
-                condition=options.loot_firelink_graveyard,
-            ),
-            Use(Item.BONE, condition=options.loot_firelink_graveyard),
             conditional(
                 self.route.uses_reinforced_club,
                 Region("Firelink Shrine"),
@@ -657,29 +669,14 @@ class SL1MeleeOnlyGlitchless(Segment):
         super().__post_init__()
         if not self.name:
             self.name = f"SL1 Melee Only Glitchless ({self.route.name})"
-        self.notes.extend(
-            [
-                "TODO: fix RTSR setup for Gargoyles",
-                "Getting the Reinforced Club takes just under a minute.",
-                "Quelaag dies in 11 heavy RTSR hits (jumping).",
-                "Iron Golem staggers in 3 weak RTSR hits and falls in 2.",
-                (
-                    "You can't run back to Andre to finish upgrading unless"
-                    " you sit in Undead Parish and lose RTSR range.  Elevator"
-                    " RTSR strat takes 50-55 seconds, and running to Andre to"
-                    " upgrade takes 20-30 seconds."
-                ),
-                (
-                    "The Battle Axe route would mean using the Hand Axe"
-                    " against the Black Knight, boss fights would be longer"
-                    " and the Iron Golem in particular would be harder."
-                ),
-                (
-                    "Black Knight with Hand Axe +0 with RTSR"
-                    " takes 3 ripostes + 1 hit. (10+179)"
-                ),
-            ]
-        )
+        self.notes.extend(["TODO: fix RTSR setup for Gargoyles"])
+        if self.route.uses_reinforced_club:
+            self.notes.extend(
+                [
+                    "Quelaag dies in 11 heavy RTSR hits (jumping).",
+                    "Iron Golem staggers in 3 weak RTSR hits and falls in 2.",
+                ]
+            )
         self.add_steps(
             SL1StartToAfterGargoylesInFirelink(route=self.route),
             FirelinkToQuelaag(),
@@ -688,7 +685,7 @@ class SL1MeleeOnlyGlitchless(Segment):
             DarkmoonTombToGiantBlacksmith(),
             GetBlacksmithGiantHammerAndUpgradeMaterials(),
             UpgradeCost(
-                "Unique Weapon to +5",
+                "Blacksmith Giant Hammer +0-5",
                 souls=10000,
                 items=Counter({Item.TWINKLING_TITANITE: 10}),
                 detail="(Bonfire) Blacksmith Giant Hammer +0-5",
@@ -844,8 +841,49 @@ class SL1MeleeOnlyGlitchless(Segment):
         )
 
 
+# MISPLACED NOTES:
+# "Getting the Reinforced Club takes just under a minute.",
+# (
+#    "You can't run back to Andre to finish upgrading unless"
+#    " you sit in Undead Parish and lose RTSR range.  Elevator"
+#    " RTSR strat takes 50-55 seconds, and running to Andre to"
+#    " upgrade takes 20-30 seconds."
+# ),
+# (
+#    "The Battle Axe route would mean using the Hand Axe"
+#    " against the Black Knight, boss fights would be longer"
+#    " and the Iron Golem in particular would be harder."
+# ),
+# (
+#    "Black Knight with Hand Axe +0 with RTSR"
+#    " takes 3 ripostes + 1 hit. (10+179)"
+# ),
+
+
 # TODO:
 # - check if the firelink elevator soul is best for Reinforced Club route
 #   or if perhaps the one on the way to get the weapon is better.
 # - check timing for grabbing firelink humanities
 # - determine when to loot Lautrec, or how to replace him (quitoutless)
+# - add ability to estimate time for a segment
+# - fix RTSR setup for gargoyles
+# - add variable to configure number of painting guardians to count on dying?
+
+# Data to get:
+# - Firelink
+#   - seconds to loot Firelink fully and bone
+#   - seconds to loot Firelink fully and bone (without elevator soul)
+#   - seconds to get Reinforced Club (~1 minute)
+# - Black Knight
+#   - seconds to kill Black Knight with +0 Hand Axe and RTSR
+#   - seconds to kill Black Knight with +0 Reinforced Club and RTSR
+#   - seconds to kill Black Knight with unintended ledge fall
+#   - damage/hits with +0 Hand Axe and Reinforced Club
+# - Darkroot Basin
+#   - seconds to get soul item toward secret bonfire and run back (slow)
+#   - seconds from Reinforced Club through Havel's door to Grass Crest Shield
+#   - seconds from Grass Crest Shield backwards to RTSR
+# - Undead Parish
+#   - seconds to get RTSR if sat at Andre/darkroot basin
+# - Bell Gargoyles/Quelaag/Iron Golem stagger + fall/Giant Blacksmith
+#   - damage/hits with +3 and +4 Battle Axe and +5 Reinforced Club
