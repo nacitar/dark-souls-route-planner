@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from copy import deepcopy
+from dataclasses import dataclass, field
 from importlib.resources import open_text as open_text_resource
 from typing import Generator, Optional, Protocol, Tuple
 
@@ -48,30 +49,28 @@ class Step(Protocol):
     def notes(self) -> list[str]:
         ...
 
+    @property
+    def condition(self) -> bool:
+        ...
 
-class Segment:
-    def __init__(
-        self, *steps: Step, notes: Optional[list[str]] = None, name: str = ""
-    ):
-        self.name = name
-        self._notes: list[str] = []
-        self._actions: list[Action] = []
-        if notes:
-            self._notes.extend(notes)
-        self.append(*steps)
 
-    def append(self, *steps: Step):
+@dataclass(kw_only=True)
+class Segment:  # is a 'Step'
+    name: str = ""
+    notes: list[str] = field(default_factory=list)
+    condition: bool = True
+    actions: list[Action] = field(default_factory=list, init=False)
+
+    def __post_init__(self):
+        if not self.condition:
+            self.notes = []
+
+    def add_steps(self, *steps: Step) -> Segment:
         for step in steps:
-            self._actions.extend(step.actions)
-            self._notes.extend(step.notes)
-
-    @property
-    def actions(self) -> list[Action]:
-        return list(self._actions)
-
-    @property
-    def notes(self) -> list[str]:
-        return list(self._notes)
+            if step.condition:
+                self.notes.extend(step.notes)
+                self.actions.extend(step.actions)
+        return self
 
     def process(
         self, state: Optional[State] = None
@@ -79,11 +78,10 @@ class Segment:
         if state is None:
             state = State()
         for action in self.actions:
-            if action.condition:  # enabled
-                action(state)
-                yield (deepcopy(state), action)
-                for error in state.errors():
-                    yield (deepcopy(state), Error(error))
+            action(state)
+            yield (deepcopy(state), action)
+            for error in state.errors():
+                yield (deepcopy(state), Error(error))
 
     def _repr_html_(self, initial_state: Optional[State] = None):
         region_count = 0
@@ -176,14 +174,9 @@ class Segment:
         return html
 
 
-class Conditional(Segment):
-    def __init__(
-        self,
-        condition: bool,
-        *steps: Step,
-        notes: Optional[list[str]] = None,
-        name: str = "",
-    ):
-        super().__init__(name=name, notes=notes)
-        if condition:
-            self.append(*steps)
+def conditional(
+    condition: bool, *steps: Step, notes: Optional[list[str]] = None
+) -> Segment:
+    if not condition:
+        return Segment()
+    return Segment(notes=notes if notes else []).add_steps(*steps)

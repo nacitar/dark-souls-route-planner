@@ -12,10 +12,12 @@ def main() -> int:
     with open(f"{output_dir}/index.html", "w") as index:
         index.write("<h1>Route Index</h1>\n<ul>\n")
         for segment in [
-            SL1MeleeOnlyGlitchless(Route.REINFORCED_CLUB),
-            SL1MeleeOnlyGlitchless(Route.BATTLE_AXE_PLUS4),
-            SL1MeleeOnlyGlitchless(Route.BATTLE_AXE_PLUS4_NO_BLACK_KNIGHT),
-            SL1MeleeOnlyGlitchless(Route.BATTLE_AXE_PLUS3),
+            SL1MeleeOnlyGlitchless(route=Route.REINFORCED_CLUB),
+            SL1MeleeOnlyGlitchless(route=Route.BATTLE_AXE_PLUS4),
+            SL1MeleeOnlyGlitchless(
+                route=Route.BATTLE_AXE_PLUS4_NO_BLACK_KNIGHT
+            ),
+            SL1MeleeOnlyGlitchless(route=Route.BATTLE_AXE_PLUS3),
         ]:
             filename = (
                 "".join(ch for ch in segment.name if ch.isalnum()) + ".html"

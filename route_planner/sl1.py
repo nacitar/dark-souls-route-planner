@@ -29,7 +29,7 @@ from .action import (
     UseMenu,
     WaitFor,
 )
-from .segment import Conditional, Segment
+from .segment import Segment, conditional
 
 rtsr_ladder = "climbing ladder to RTSR"
 new_londo_elevator = "elevator to New Londo Ruins"
@@ -147,20 +147,24 @@ class Route(Enum):
         return self.options.early_weapon == "Battle Axe"
 
 
+@dataclass
 class InitialState(Segment):
-    def __init__(self):
+    def __post_init__(self):
         detail = "starting equipment"
-        super().__init__(
+        super().__post_init__()
+        self.add_steps(
             Receive(Item.DARKSIGN, detail=detail),
             Receive("Straight Sword Hilt", detail=detail),
             AutoEquip("Straight Sword Hilt", "Right Hand", detail=detail),
         )
 
 
+@dataclass
 class PyromancerInitialState(Segment):
-    def __init__(self):
+    def __post_init__(self):
         detail = "Pyromancer starting equipment"
-        super().__init__(
+        super().__post_init__()
+        self.add_steps(
             Receive("Tattered Cloth Hood", detail=detail),
             Receive("Tattered Cloth Robe", detail=detail),
             Receive("Tattered Cloth Manchette", detail=detail),
@@ -172,17 +176,21 @@ class PyromancerInitialState(Segment):
         )
 
 
+@dataclass
 class StartOfGame(Segment):
-    def __init__(self):
-        super().__init__(
+    def __post_init__(self):
+        super().__post_init__()
+        self.add_steps(
             Region("Northern Undead Asylum"),
             AutoBonfire("Undead Asylum Dungeon Cell"),
         )
 
 
+@dataclass
 class AsylumCellToFirelink(Segment):
-    def __init__(self):
-        super().__init__(
+    def __post_init__(self):
+        super().__post_init__()
+        self.add_steps(
             Region("Northern Undead Asylum"),
             Loot("Dungeon Cell Key"),
             UnEquip("Torso", detail="First ladder or big door."),
@@ -204,9 +212,11 @@ class AsylumCellToFirelink(Segment):
         )
 
 
+@dataclass
 class FirelinkToQuelaag(Segment):
-    def __init__(self):
-        super().__init__(
+    def __post_init__(self):
+        super().__post_init__()
+        self.add_steps(
             Region("Firelink Shrine"),
             Kill(
                 "Lautrec",
@@ -245,10 +255,14 @@ class FirelinkToQuelaag(Segment):
         )
 
 
+@dataclass(kw_only=True)
 class FirelinkToSensFortress(Segment):
-    def __init__(self, route: Route):
-        options = route.options
-        super().__init__(
+    route: Route
+
+    def __post_init__(self):
+        options = self.route.options
+        super().__post_init__()
+        self.add_steps(
             Region("Firelink Shrine"),
             Loot(
                 Item.HUMANITY,
@@ -257,9 +271,15 @@ class FirelinkToSensFortress(Segment):
                 detail=f"side of well, get on way to {parish_elevator}.",
                 condition=(
                     options.loot_firelink_humanity
-                    and not route.loots_firelink_early
-                    and not route.uses_reinforced_club
+                    and not self.route.loots_firelink_early
+                    and not self.route.uses_reinforced_club
                 ),
+                notes=[
+                    (
+                        "3 humanities at Firelink well looted on way to"
+                        " elevator before Sens Fortress."
+                    )
+                ],
             ),
             RunTo(parish_elevator),
             UseMenu("Soul of Quelaag", detail=parish_elevator),
@@ -273,9 +293,11 @@ class FirelinkToSensFortress(Segment):
         )
 
 
+@dataclass
 class SensFortressToDarkmoonTomb(Segment):
-    def __init__(self):
-        super().__init__(
+    def __post_init__(self):
+        super().__post_init__()
+        self.add_steps(
             Region("Sen's Fortress"),
             RunTo(
                 "hole at dead end below bonfire and to the right",
@@ -312,9 +334,11 @@ class SensFortressToDarkmoonTomb(Segment):
         )
 
 
+@dataclass
 class DarkmoonTombToGiantBlacksmith(Segment):
-    def __init__(self):
-        super().__init__(
+    def __post_init__(self):
+        super().__post_init__()
+        self.add_steps(
             Region("Anor Londo"),
             Activate("Bridge lever"),
             RunTo("sniper ledge"),
@@ -328,9 +352,11 @@ class DarkmoonTombToGiantBlacksmith(Segment):
         )
 
 
+@dataclass
 class GetBlacksmithGiantHammerAndUpgradeMaterials(Segment):
-    def __init__(self):
-        super().__init__(
+    def __post_init__(self):
+        super().__post_init__()
+        self.add_steps(
             Region("Anor Londo"),
             Buy("Weapon Smithbox", souls=2000, detail="Giant Blacksmith"),
             Buy(
@@ -345,9 +371,11 @@ class GetBlacksmithGiantHammerAndUpgradeMaterials(Segment):
         )
 
 
+@dataclass
 class EquipBlacksmithGiantHammerAndDarksign(Segment):
-    def __init__(self):
-        super().__init__(
+    def __post_init__(self):
+        super().__post_init__()
+        self.add_steps(
             Equip(
                 "Blacksmith Giant Hammer",
                 "Right Hand",
@@ -362,16 +390,20 @@ class EquipBlacksmithGiantHammerAndDarksign(Segment):
         )
 
 
+@dataclass(kw_only=True)
 class SL1StartToAfterGargoylesInFirelink(Segment):
-    def __init__(self, route: Route):
+    route: Route
+
+    def __post_init__(self):
         SHARDS_PER_LEVEL = [1, 1, 2, 2, 3]
-        options = route.options
+        options = self.route.options
         pre_gargoyle_shards = sum(
             SHARDS_PER_LEVEL[0 : options.initial_upgrade]
         )
         post_gargoyle_shards = sum(SHARDS_PER_LEVEL[options.initial_upgrade :])
 
-        super().__init__(
+        super().__post_init__()
+        self.add_steps(
             InitialState(),
             PyromancerInitialState(),
             StartOfGame(),
@@ -384,9 +416,10 @@ class SL1StartToAfterGargoylesInFirelink(Segment):
                 detail="side of well, get during Firelink loot route.",
                 condition=(
                     options.loot_firelink_humanity
-                    and route.loots_firelink_early
-                    and not route.uses_reinforced_club
+                    and self.route.loots_firelink_early
+                    and not self.route.uses_reinforced_club
                 ),
+                notes=["3 humanities at Firelink well looted early."],
             ),
             Loot(
                 "Soul of a Lost Undead",
@@ -423,8 +456,8 @@ class SL1StartToAfterGargoylesInFirelink(Segment):
                 condition=options.loot_firelink_graveyard,
             ),
             Use(Item.BONE, condition=options.loot_firelink_graveyard),
-            Conditional(
-                route.uses_reinforced_club,
+            conditional(
+                self.route.uses_reinforced_club,
                 Region("Firelink Shrine"),
                 Loot(
                     Item.HUMANITY,
@@ -433,10 +466,7 @@ class SL1StartToAfterGargoylesInFirelink(Segment):
                     detail=(
                         "side of well, get on way" " to get Reinforced Club"
                     ),
-                    condition=(
-                        options.loot_firelink_humanity
-                        and route.uses_reinforced_club
-                    ),
+                    condition=options.loot_firelink_humanity,
                 ),
                 RunTo("Undead Burg"),
                 Region("Undead Burg"),
@@ -486,7 +516,7 @@ class SL1StartToAfterGargoylesInFirelink(Segment):
                 "Reinforced Club",
                 "Right Hand",
                 detail=rtsr_ladder,
-                condition=route.uses_reinforced_club,
+                condition=self.route.uses_reinforced_club,
             ),
             Equip("Soul of a Nameless Soldier", "Item 2", detail=rtsr_ladder),
             Equip(
@@ -526,9 +556,9 @@ class SL1StartToAfterGargoylesInFirelink(Segment):
                 "Battle Axe",
                 souls=1000,
                 detail=andre,
-                condition=route.uses_battle_axe,
+                condition=self.route.uses_battle_axe,
             ),
-            Conditional(
+            conditional(
                 options.initial_upgrade > 0,
                 Buy(
                     Item.TITANITE_SHARD,
@@ -549,7 +579,7 @@ class SL1StartToAfterGargoylesInFirelink(Segment):
                     "Battle Axe",
                     "Right Hand",
                     detail=andre,
-                    condition=route.uses_battle_axe,
+                    condition=self.route.uses_battle_axe,
                 ),
             ),
             BonfireSit(
@@ -565,7 +595,7 @@ class SL1StartToAfterGargoylesInFirelink(Segment):
             ),
             Activate(
                 "Elevator to Firelink Shrine",
-                detail="TODO: remove? just run, don't roll",
+                detail="run in, trigger it, run back out",
             ),
             Kill("Bell Gargoyles", souls=10000),
             Receive(
@@ -606,7 +636,7 @@ class SL1StartToAfterGargoylesInFirelink(Segment):
                 condition=not options.loot_firelink_bones,
             ),
             Use(Item.BONE),
-            Conditional(
+            conditional(
                 options.initial_upgrade < 5,
                 Buy(
                     Item.TITANITE_SHARD,
@@ -629,61 +659,68 @@ class SL1StartToAfterGargoylesInFirelink(Segment):
         )
 
 
+@dataclass(kw_only=True)
 class SL1MeleeOnlyGlitchless(Segment):
-    def __init__(self, route: Route):
-        options = route.options
-        name = f"SL1 Melee Only Glitchless ({route.name})"
-        notes = [
-            "Getting the Reinforced Club takes just under a minute.",
-            (
-                "Quelaag dies in 11 heavy RTSR hits (jumping).  Battle Axe"
-                " takes 13 heavy RTSR hits (vertical) or 19 weak RTSR hits"
-                " (horizontal)."
-            ),
-            (
-                "Iron Golem staggers in 3 weak RTSR hits and falls in 2."
-                " Battle Axe takes 5 weak RTSR hits (horizontal) to"
-                " stagger and falls in 3."
-            ),
-            (
-                "Because Battle Axe costs 1000 souls, upgrades are 500"
-                " souls short of getting to +5, meaning running back to"
-                " Andre for +4 to +5.  With the Reinforced Club, you even"
-                " have 150 souls left over for Tohki bombs (optional)."
-            ),
-            (
-                "There's 200 souls across from snuggly, 200 around where"
-                " patches moves to firelink, and 200 on the ledge above"
-                " Frampt's position.  The Ent you run past drops 100."
-            ),
-            (
-                "If you get the soul across from Snuggly and kill the Ent,"
-                " you still need 200 more souls from somewhere and all of"
-                " this must take less than 1 minute to break even with the"
-                " Reinforced Club route."
-            ),
-            (
-                "The Battle Axe route would mean using the Hand Axe"
-                " against the Black Knight."
-            ),
-            (
-                "Running back to Andre and upgrading again takes around 20"
-                " seconds if you bone back."
-            ),
-            (
-                "Conclusion: Battle Axe means longer fights and 20 seconds"
-                " to upgrade again."
-            ),
-            (
-                "Black Knight with Hand Axe +0 with RTSR"
-                " takes 3 ripostes + 1 hit."
-                # 10 + 179
-            ),
-        ]
-        super().__init__(
-            SL1StartToAfterGargoylesInFirelink(route),
+    route: Route
+
+    def __post_init__(self):
+        options = self.route.options
+        super().__post_init__()
+        if not self.name:
+            self.name = f"SL1 Melee Only Glitchless ({self.route.name})"
+        self.notes.extend(
+            [
+                "Getting the Reinforced Club takes just under a minute.",
+                (
+                    "Quelaag dies in 11 heavy RTSR hits (jumping).  Battle Axe"
+                    " takes 13 heavy RTSR hits (vertical) or 19 weak RTSR hits"
+                    " (horizontal)."
+                ),
+                (
+                    "Iron Golem staggers in 3 weak RTSR hits and falls in 2."
+                    " Battle Axe takes 5 weak RTSR hits (horizontal) to"
+                    " stagger and falls in 3."
+                ),
+                (
+                    "Because Battle Axe costs 1000 souls, upgrades are 500"
+                    " souls short of getting to +5, meaning running back to"
+                    " Andre for +4 to +5.  With the Reinforced Club, you even"
+                    " have 150 souls left over for Tohki bombs (optional)."
+                ),
+                (
+                    "There's 200 souls across from snuggly, 200 around where"
+                    " patches moves to firelink, and 200 on the ledge above"
+                    " Frampt's position.  The Ent you run past drops 100."
+                ),
+                (
+                    "If you get the soul across from Snuggly and kill the Ent,"
+                    " you still need 200 more souls from somewhere and all of"
+                    " this must take less than 1 minute to break even with the"
+                    " Reinforced Club route."
+                ),
+                (
+                    "The Battle Axe route would mean using the Hand Axe"
+                    " against the Black Knight."
+                ),
+                (
+                    "Running back to Andre and upgrading again takes around 20"
+                    " seconds if you bone back."
+                ),
+                (
+                    "Conclusion: Battle Axe means longer fights and 20 seconds"
+                    " to upgrade again."
+                ),
+                (
+                    "Black Knight with Hand Axe +0 with RTSR"
+                    " takes 3 ripostes + 1 hit."
+                    # 10 + 179
+                ),
+            ]
+        )
+        self.add_steps(
+            SL1StartToAfterGargoylesInFirelink(route=self.route),
             FirelinkToQuelaag(),
-            FirelinkToSensFortress(route),
+            FirelinkToSensFortress(route=self.route),
             SensFortressToDarkmoonTomb(),
             DarkmoonTombToGiantBlacksmith(),
             GetBlacksmithGiantHammerAndUpgradeMaterials(),
@@ -720,11 +757,11 @@ class SL1MeleeOnlyGlitchless(Segment):
             Receive(Item.BONE, detail="Pinwheel"),
             Kill(nito, souls=60000),
             Receive("Lord Soul", detail=nito),
-            Conditional(
+            conditional(
                 not options.wait_for_nito_drops,
                 notes=[f"1 slow {Item.HUMANITY} skipped from {nito}."],
             ),
-            Conditional(
+            conditional(
                 options.wait_for_nito_drops,
                 Receive(
                     Item.HUMANITY,
@@ -736,14 +773,14 @@ class SL1MeleeOnlyGlitchless(Segment):
             Kill(sif, souls=40000),
             Receive("Covenant of Artorias", detail=sif),
             Receive("Soul of Sif", souls=16000, detail=sif),
-            Conditional(
+            conditional(
                 not options.wait_for_sif_drops,
                 notes=[
                     f"1 slow {Item.HUMANITY} and {Item.BONE}"
                     f" skipped from {sif}."
                 ],
             ),
-            Conditional(
+            conditional(
                 options.wait_for_sif_drops,
                 Receive(
                     Item.HUMANITY,
@@ -755,13 +792,13 @@ class SL1MeleeOnlyGlitchless(Segment):
             ),
             Kill(four_kings, souls=60000),
             Receive("Bequeathed Lord Soul Shard", detail=four_kings),
-            Conditional(
+            conditional(
                 not options.wait_for_four_kings_drops,
                 notes=[
                     f"4 slow {Item.HUMANITY}" " skipped from {four_kings}."
                 ],
             ),
-            Conditional(
+            conditional(
                 options.wait_for_four_kings_drops,
                 Receive(
                     Item.HUMANITY,
@@ -781,11 +818,11 @@ class SL1MeleeOnlyGlitchless(Segment):
             Loot("Fire Keeper Soul", detail="Darkmoon Knightess"),
             Kill(seath, souls=60000),
             Receive("Bequeathed Lord Soul Shard", detail=seath),
-            Conditional(
+            conditional(
                 not options.wait_for_seath_drops,
                 notes=[f"1 slow {Item.HUMANITY} skipped from {seath}."],
             ),
-            Conditional(
+            conditional(
                 options.wait_for_seath_drops,
                 Receive(
                     Item.HUMANITY,
@@ -841,11 +878,13 @@ class SL1MeleeOnlyGlitchless(Segment):
                 allow_partial=True,
                 detail="use all that you have",
             ),
-            # keyword arguments
-            name=name,
-            notes=notes,
         )
 
 
 # TODO:
 # - check timing for grabbing firelink humanities
+# - adjust notes
+# - determine when to loot Lautrec, or how to replace him (quitoutless)
+# - remove 2nd upgrade from Battle Axe routes.  Using the Undead Parish bonfire
+#   so you can warpe back to upgrade again means that you'll heal, and need
+#   another RTSR setup, so it cannot be done.

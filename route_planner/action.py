@@ -72,7 +72,7 @@ class State:
 
 
 @dataclass
-class Action:
+class Action:  # is a 'segment.Step'
     target: str
     detail: str = field(default="", kw_only=True)
     optional: bool = field(default=False, kw_only=True)
