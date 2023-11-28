@@ -1,8 +1,9 @@
 from __future__ import annotations
 
 from collections import Counter
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from enum import Enum, unique
+from math import ceil
 
 from .action import (
     Activate,
@@ -45,7 +46,7 @@ seath = "Seath the Scaleless"
 four_kings = "The Four Kings"
 
 
-@dataclass
+@dataclass(kw_only=True)
 class RouteOptions:
     display_name: str
     early_weapon: str
@@ -68,6 +69,7 @@ class RouteOptions:
     kill_patches: bool = False
     bone_count_if_from_oswald: int = 5
     kill_smough_first: bool = False
+    notes: list[str] = field(default_factory=list)
 
     def __post_init__(self) -> None:
         if self.initial_upgrade < 0 or self.initial_upgrade > 5:
@@ -75,6 +77,23 @@ class RouteOptions:
                 f"initial_upgrade must be in range [0,5]"
                 f" but is {self.initial_upgrade}"
             )
+
+
+def hits(name: str, *, health: int, damage: int) -> str:
+    value = "TODO"
+    if damage:
+        value = str(ceil(health / damage))
+    return f"{name} (<b>{value}</b>)"
+
+
+BATTLE_AXE_PLUS_4_HITS = [
+    hits("Bell Gargoyle A", health=999, damage=205),
+    hits("Bell Gargoyle A", health=480, damage=205),
+    hits("Quelaag", health=3139, damage=149),
+    hits("Iron Golem stagger", health=400, damage=78),
+    hits("Iron Golem fall", health=200, damage=78),
+    hits("Giant Blacksmith", health=1812, damage=0),
+]
 
 
 @unique
@@ -91,6 +110,22 @@ class Route(Enum):
         loot_undead_parish_fire_keeper_soul=True,
         kill_black_knight=True,
         wait_for_four_kings_drops=True,
+        notes=[
+            (
+                "Hits with RTSR weak attack:"
+                + ", ".join(
+                    [
+                        hits("Bell Gargoyle A", health=999, damage=230),
+                        hits("Bell Gargoyle A", health=480, damage=230),
+                        hits("Quelaag", health=3139, damage=187),
+                        hits("Iron Golem stagger", health=400, damage=159),
+                        hits("Iron Golem fall", health=200, damage=159),
+                        hits("Giant Blacksmith", health=1812, damage=0),
+                    ]
+                )
+                #       " Quelaag(17), Iron Golem(3+2), Giant Blacksmith(??)"
+            )
+        ],
     )
     BATTLE_AXE_PLUS_4_OR_3 = RouteOptions(
         display_name="Battle Axe +4 or +3",
@@ -104,6 +139,25 @@ class Route(Enum):
         loot_undead_parish_fire_keeper_soul=True,
         kill_black_knight=True,
         wait_for_four_kings_drops=True,
+        notes=[
+            (
+                "Hits with RTSR weak attack [+4]: "
+                + ", ".join(BATTLE_AXE_PLUS_4_HITS)
+            ),
+            (
+                "Hits with RTSR weak attack [+3]: "
+                + ", ".join(
+                    [
+                        hits("Bell Gargoyle A", health=999, damage=0),
+                        hits("Bell Gargoyle A", health=480, damage=0),
+                        hits("Quelaag", health=3139, damage=0),
+                        hits("Iron Golem stagger", health=400, damage=0),
+                        hits("Iron Golem fall", health=200, damage=0),
+                        hits("Giant Blacksmith", health=1812, damage=0),
+                    ]
+                )
+            ),
+        ],
     )
     BATTLE_AXE_PLUS_4_SKIPPING_BLACK_KNIGHT = RouteOptions(
         display_name="Battle Axe +4 skipping Black Knight",
@@ -117,6 +171,12 @@ class Route(Enum):
         loot_undead_parish_fire_keeper_soul=True,
         kill_black_knight=False,
         wait_for_four_kings_drops=True,
+        notes=[
+            (
+                "Hits with RTSR weak attack: "
+                + ", ".join(BATTLE_AXE_PLUS_4_HITS)
+            )
+        ],
     )
 
     @property  # not needed, but reads better in the code
@@ -685,13 +745,7 @@ class SL1MeleeOnlyGlitchless(Segment):
         if not self.name:
             self.name = f"SL1 Melee Only Glitchless ({options.display_name})"
         self.notes.extend(["TODO: fix RTSR setup for Gargoyles"])
-        if self.route.uses_reinforced_club:
-            self.notes.extend(
-                [
-                    "Quelaag dies in 11 heavy RTSR hits (jumping).",
-                    "Iron Golem staggers in 3 weak RTSR hits and falls in 2.",
-                ]
-            )
+        self.notes.extend(options.notes)
         self.add_steps(
             SL1StartToAfterGargoylesInFirelink(route=self.route),
             FirelinkToQuelaag(),
