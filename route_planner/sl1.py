@@ -112,7 +112,7 @@ class Route(Enum):
         wait_for_four_kings_drops=True,
         notes=[
             (
-                "Hits with RTSR weak attack:"
+                "Hits with RTSR weak attack: "
                 + ", ".join(
                     [
                         hits("Bell Gargoyle A", health=999, damage=230),
