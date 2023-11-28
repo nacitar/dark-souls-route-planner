@@ -37,6 +37,7 @@ basin_elevator = "elevator to Darkroot Basin"
 parish_elevator = "elevator to Undead Parish"
 andre = "Andre of Astora"
 petrus = "Petrus of Thorolund"
+oswald = "Oswald of Carim"
 O_and_S = "Dragon Slayer Ornstein & Executioner Smough"
 sif = "Sif, the Great Grey Wolf"
 nito = "Gravelord Nito"
@@ -46,6 +47,7 @@ four_kings = "The Four Kings"
 
 @dataclass
 class RouteOptions:
+    display_name: str
     early_weapon: str
     initial_upgrade: int
     loot_firelink_humanity: bool
@@ -78,6 +80,7 @@ class RouteOptions:
 @unique
 class Route(Enum):
     REINFORCED_CLUB = RouteOptions(
+        display_name="Reinforced Club +5",
         early_weapon="Reinforced Club",
         initial_upgrade=5,
         loot_firelink_humanity=True,
@@ -89,19 +92,8 @@ class Route(Enum):
         kill_black_knight=True,
         wait_for_four_kings_drops=True,
     )
-    BATTLE_AXE_PLUS3 = RouteOptions(
-        early_weapon="Battle Axe",
-        initial_upgrade=3,
-        loot_firelink_humanity=True,
-        loot_firelink_elevator_soul=False,
-        loot_firelink_bones=False,
-        loot_firelink_graveyard=False,
-        loot_new_londo_ruins_soul=False,
-        loot_undead_parish_fire_keeper_soul=True,
-        kill_black_knight=False,
-        wait_for_four_kings_drops=True,
-    )
-    BATTLE_AXE_PLUS4 = RouteOptions(
+    BATTLE_AXE_PLUS_4_OR_3 = RouteOptions(
+        display_name="Battle Axe +4 or +3",
         early_weapon="Battle Axe",
         initial_upgrade=4,
         loot_firelink_humanity=True,
@@ -113,7 +105,8 @@ class Route(Enum):
         kill_black_knight=True,
         wait_for_four_kings_drops=True,
     )
-    BATTLE_AXE_PLUS4_NO_BLACK_KNIGHT = RouteOptions(
+    BATTLE_AXE_PLUS_4_SKIPPING_BLACK_KNIGHT = RouteOptions(
+        display_name="Battle Axe +4 skipping Black Knight",
         early_weapon="Battle Axe",
         initial_upgrade=4,
         loot_firelink_humanity=True,
@@ -149,7 +142,7 @@ class Route(Enum):
 
 @dataclass
 class InitialState(Segment):
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         detail = "starting equipment"
         super().__post_init__()
         self.add_steps(
@@ -161,7 +154,7 @@ class InitialState(Segment):
 
 @dataclass
 class PyromancerInitialState(Segment):
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         detail = "Pyromancer starting equipment"
         super().__post_init__()
         self.add_steps(
@@ -178,7 +171,7 @@ class PyromancerInitialState(Segment):
 
 @dataclass
 class StartOfGame(Segment):
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         super().__post_init__()
         self.add_steps(
             Region("Northern Undead Asylum"),
@@ -188,7 +181,7 @@ class StartOfGame(Segment):
 
 @dataclass
 class AsylumCellToFirelink(Segment):
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         super().__post_init__()
         self.add_steps(
             Region("Northern Undead Asylum"),
@@ -214,7 +207,7 @@ class AsylumCellToFirelink(Segment):
 
 @dataclass
 class FirelinkToQuelaag(Segment):
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         super().__post_init__()
         self.add_steps(
             Region("Firelink Shrine"),
@@ -259,7 +252,7 @@ class FirelinkToQuelaag(Segment):
 class FirelinkToSensFortress(Segment):
     route: Route
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         options = self.route.options
         super().__post_init__()
         self.add_steps(
@@ -295,7 +288,7 @@ class FirelinkToSensFortress(Segment):
 
 @dataclass
 class SensFortressToDarkmoonTomb(Segment):
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         super().__post_init__()
         self.add_steps(
             Region("Sen's Fortress"),
@@ -336,7 +329,7 @@ class SensFortressToDarkmoonTomb(Segment):
 
 @dataclass
 class DarkmoonTombToGiantBlacksmith(Segment):
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         super().__post_init__()
         self.add_steps(
             Region("Anor Londo"),
@@ -354,7 +347,7 @@ class DarkmoonTombToGiantBlacksmith(Segment):
 
 @dataclass
 class GetBlacksmithGiantHammerAndUpgradeMaterials(Segment):
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         super().__post_init__()
         self.add_steps(
             Region("Anor Londo"),
@@ -373,7 +366,7 @@ class GetBlacksmithGiantHammerAndUpgradeMaterials(Segment):
 
 @dataclass
 class EquipBlacksmithGiantHammerAndDarksign(Segment):
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         super().__post_init__()
         self.add_steps(
             Equip(
@@ -394,7 +387,7 @@ class EquipBlacksmithGiantHammerAndDarksign(Segment):
 class SL1StartToAfterGargoylesInFirelink(Segment):
     route: Route
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         SHARDS_PER_LEVEL = [1, 1, 2, 2, 3]
         options = self.route.options
         early_weapon_shards = sum(
@@ -411,7 +404,7 @@ class SL1StartToAfterGargoylesInFirelink(Segment):
             conditional(
                 not self.route.loots_firelink_at_start,
                 notes=[
-                    "Firelink IS NOT looted at start;"
+                    "Firelink <b>IS NOT</b> looted at start;"
                     f" goes straight to {andre}."
                 ],
             ),
@@ -482,13 +475,6 @@ class SL1StartToAfterGargoylesInFirelink(Segment):
                 RunTo("Undead Burg"),
                 Region("Undead Burg"),
                 Buy("Reinforced Club", souls=350, detail="Undead Merchant"),
-                Buy(
-                    "Firebomb",
-                    souls=50,
-                    count=3,
-                    detail="(Undead Merchant) if using Tohki Bombs",
-                    optional=True,
-                ),
                 Use(Item.BONE),
             ),
             Region("Firelink Shrine"),
@@ -561,13 +547,44 @@ class SL1StartToAfterGargoylesInFirelink(Segment):
             Kill(
                 "Black Knight",
                 souls=1800,
-                detail="by Grass Crest Shield",
+                detail=(
+                    "by Grass Crest Shield."
+                    + (
+                        (
+                            '<br/><span class="warning">SKIPPING THIS MEANS'
+                            " ONLY HAVING A +3 WEAPON</span>"
+                        )
+                        if options.initial_upgrade == 4
+                        else ""
+                    )
+                ),
                 condition=options.kill_black_knight,
-                notes=["Black Knight in Darkroot Basin MUST be killed."],
+                optional=options.initial_upgrade == 4,
+                notes=(
+                    [
+                        (
+                            "Black Knight in Darkroot Basin <b>PRECISELY</b>"
+                            " determines whether you can afford upgrading your"
+                            f" {options.early_weapon} to +3 or +4."
+                        )
+                    ]
+                    if options.initial_upgrade == 4
+                    else [
+                        (
+                            "Black Knight in Darkroot Basin"
+                            " <b>MUST</b> be killed."
+                        )
+                    ]
+                ),
             ),
             conditional(
                 not options.kill_black_knight,
-                notes=["Black Knight in Darkroot Basin DOES NOT need killed."],
+                notes=[
+                    (
+                        "Black Knight in Darkroot Basin"
+                        " <b>DOES NOT</b> need killed."
+                    )
+                ],
             ),
             RunTo(
                 "Undead Parish",
@@ -624,7 +641,7 @@ class SL1StartToAfterGargoylesInFirelink(Segment):
             ),
             Activate("First bell"),
             RunTo(
-                "Oswald of Carim",
+                oswald,
                 detail="TODO: RTSR setup: heal, fall down both ladders",
                 condition=(
                     options.kill_oswald or not options.loot_firelink_bones
@@ -634,20 +651,18 @@ class SL1StartToAfterGargoylesInFirelink(Segment):
                 Item.BONE,
                 count=options.bone_count_if_from_oswald,
                 souls=500,
-                detail="Oswald of Carim",
+                detail=oswald,
                 condition=not options.loot_firelink_bones,
+                notes=[
+                    f"{oswald} <b>MUST</b> be visited to buy {Item.BONE}s."
+                ],
             ),
-            Kill(
-                "Oswald of Carim",
-                souls=2000,
-                detail="can buy bones here",
-                condition=options.kill_oswald,
-            ),
+            Kill(oswald, souls=2000, condition=options.kill_oswald),
             Loot(
                 Item.TWIN_HUMANITIES,
                 count=2,
                 humanities=2,
-                detail="Oswald of Carim",
+                detail=oswald,
                 condition=options.kill_oswald,
             ),
             Equip(
@@ -664,11 +679,11 @@ class SL1StartToAfterGargoylesInFirelink(Segment):
 class SL1MeleeOnlyGlitchless(Segment):
     route: Route
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         options = self.route.options
         super().__post_init__()
         if not self.name:
-            self.name = f"SL1 Melee Only Glitchless ({self.route.name})"
+            self.name = f"SL1 Melee Only Glitchless ({options.display_name})"
         self.notes.extend(["TODO: fix RTSR setup for Gargoyles"])
         if self.route.uses_reinforced_club:
             self.notes.extend(
@@ -861,13 +876,9 @@ class SL1MeleeOnlyGlitchless(Segment):
 
 
 # TODO:
-# - check if the firelink elevator soul is best for Reinforced Club route
-#   or if perhaps the one on the way to get the weapon is better.
-# - check timing for grabbing firelink humanities
 # - determine when to loot Lautrec, or how to replace him (quitoutless)
 # - add ability to estimate time for a segment
 # - fix RTSR setup for gargoyles
-# - add variable to configure number of painting guardians to count on dying?
 
 # Data to get:
 # - Firelink

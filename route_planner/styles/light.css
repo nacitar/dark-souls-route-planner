@@ -5,7 +5,7 @@
 .route_header .notes {
     font-size: small;
 }
-.error_count {
+.warning {
     font-size: large;
     font-weight: bold;
     color: Red;
@@ -62,7 +62,7 @@ table.route tbody tr.optional:nth-child(even) {
     background-color: Gold;
 }
 table.route tbody tr.optional {
-    background-color: Yellow;
+    background-color: #F6BE00;
 }
 table.route tbody tr:nth-child(even) {
     background-color: Gainsboro;

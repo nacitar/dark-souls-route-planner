@@ -88,11 +88,11 @@ class Action:  # is a 'segment.Step'
         ...  # so code doesn't need changed if this is added later
 
     @property
-    def display(self):
+    def display(self) -> str:
         return self.target
 
     @property
-    def name(self):
+    def name(self) -> str:
         return f"{'Optional' if self.optional else ''}{type(self).__name__}"
 
     def __call__(self, state: State) -> None:

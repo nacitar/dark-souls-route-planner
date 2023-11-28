@@ -13,11 +13,10 @@ def main() -> int:
         index.write("<h1>Route Index</h1><ul>")
         for segment in [
             SL1MeleeOnlyGlitchless(route=Route.REINFORCED_CLUB),
-            SL1MeleeOnlyGlitchless(route=Route.BATTLE_AXE_PLUS4),
+            SL1MeleeOnlyGlitchless(route=Route.BATTLE_AXE_PLUS_4_OR_3),
             SL1MeleeOnlyGlitchless(
-                route=Route.BATTLE_AXE_PLUS4_NO_BLACK_KNIGHT
+                route=Route.BATTLE_AXE_PLUS_4_SKIPPING_BLACK_KNIGHT
             ),
-            SL1MeleeOnlyGlitchless(route=Route.BATTLE_AXE_PLUS3),
         ]:
             filename = (
                 "".join(ch for ch in segment.name if ch.isalnum()) + ".html"

@@ -32,7 +32,9 @@ def html(source: HtmlSource) -> str:
     return source._repr_html_()
 
 
-def html_page(source: HtmlSource, *, title: str = "", style: str = "light"):
+def html_page(
+    source: HtmlSource, *, title: str = "", style: str = "light"
+) -> str:
     if title:
         title = f"<title>{title}</title>"
     if style:
@@ -61,7 +63,7 @@ class Segment:  # is a 'Step'
     condition: bool = True
     actions: list[Action] = field(default_factory=list, init=False)
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         if not self.condition:
             self.notes = []
 
@@ -83,7 +85,7 @@ class Segment:  # is a 'Step'
             for error in state.errors():
                 yield (deepcopy(state), Error(error))
 
-    def _repr_html_(self, initial_state: Optional[State] = None):
+    def _repr_html_(self, initial_state: Optional[State] = None) -> str:
         region_count = 0
         last_state = initial_state if initial_state is not None else State()
         region = ""
@@ -171,7 +173,7 @@ class Segment:  # is a 'Step'
 
         if state.error_count:
             header += (
-                f'<span class="error_count">{state.error_count}'
+                f'<span class="warning">{state.error_count}'
                 " errors present.</span>"
             )
         return header + body
