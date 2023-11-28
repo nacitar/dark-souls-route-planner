@@ -65,12 +65,14 @@ class Enemy(Enum):
     IRON_GOLEM = EnemyInfo("Iron Golem", health=2880)
     GIANT_BLACKSMITH = EnemyInfo("Giant Blacksmith", health=1812)
 
+    @property  # not needed, but reads better in the code
+    def info(self) -> EnemyInfo:
+        return self.value
+
 
 def hits_text(enemy: Enemy, *, damage: int = 0) -> str:
-    return f"{enemy.value.display_name}=" + (
-        f"<b>{enemy.value.hits(damage=damage)}</b>"
-        if damage
-        else "<b>TODO</b>"
+    return f"{enemy.info.display_name}=" + (
+        f"<b>{enemy.info.hits(damage=damage)}</b>" if damage else "<b>TODO</b>"
     )
 
 
