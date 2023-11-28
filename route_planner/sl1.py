@@ -46,6 +46,34 @@ seath = "Seath the Scaleless"
 four_kings = "The Four Kings"
 
 
+@dataclass
+class EnemyInfo:
+    display_name: str
+    health: int = field(kw_only=True)
+
+    def hits(self, *, damage: int) -> int:
+        return ceil(self.health / damage)
+
+
+@unique
+class Enemy(Enum):
+    BELL_GARGOYLE_A = EnemyInfo("Bell Gargoyle A", health=999)
+    BELL_GARGOYLE_B = EnemyInfo("Bell Gargoyle A", health=480)
+    QUELAAG = EnemyInfo("Chaos Witch Quelaag", health=3139)
+    IRON_GOLEM_STAGGER = EnemyInfo("Iron Golem stagger", health=400)
+    IRON_GOLEM_FALL = EnemyInfo("Iron Golem fall", health=200)
+    IRON_GOLEM = EnemyInfo("Iron Golem", health=2880)
+    GIANT_BLACKSMITH = EnemyInfo("Giant Blacksmith", health=1812)
+
+
+def hits_text(enemy: Enemy, *, damage: int = 0) -> str:
+    return f"{enemy.value.display_name}=" + (
+        f"<b>{enemy.value.hits(damage=damage)}</b>"
+        if damage
+        else "<b>TODO</b>"
+    )
+
+
 @dataclass(kw_only=True)
 class RouteOptions:
     display_name: str
@@ -79,20 +107,23 @@ class RouteOptions:
             )
 
 
-def hits(name: str, *, health: int, damage: int) -> str:
-    value = "TODO"
-    if damage:
-        value = str(ceil(health / damage))
-    return f"{name} (<b>{value}</b>)"
-
-
+BATTLE_AXE_PLUS_4_RTSR_HITS = [
+    hits_text(Enemy.BELL_GARGOYLE_A, damage=205),
+    hits_text(Enemy.BELL_GARGOYLE_B, damage=205),
+    hits_text(Enemy.QUELAAG, damage=149),
+    hits_text(Enemy.IRON_GOLEM_STAGGER, damage=78),
+    hits_text(Enemy.IRON_GOLEM_FALL, damage=78),
+    hits_text(Enemy.IRON_GOLEM, damage=78),
+    hits_text(Enemy.GIANT_BLACKSMITH),
+]
 BATTLE_AXE_PLUS_4_HITS = [
-    hits("Bell Gargoyle A", health=999, damage=205),
-    hits("Bell Gargoyle A", health=480, damage=205),
-    hits("Quelaag", health=3139, damage=149),
-    hits("Iron Golem stagger", health=400, damage=78),
-    hits("Iron Golem fall", health=200, damage=78),
-    hits("Giant Blacksmith", health=1812, damage=0),
+    hits_text(Enemy.BELL_GARGOYLE_A, damage=107),
+    hits_text(Enemy.BELL_GARGOYLE_B, damage=107),
+    hits_text(Enemy.QUELAAG, damage=57),
+    hits_text(Enemy.IRON_GOLEM_STAGGER),
+    hits_text(Enemy.IRON_GOLEM_FALL),
+    hits_text(Enemy.IRON_GOLEM),
+    hits_text(Enemy.GIANT_BLACKSMITH),
 ]
 
 
@@ -115,16 +146,30 @@ class Route(Enum):
                 "Hits with RTSR weak attack: "
                 + ", ".join(
                     [
-                        hits("Bell Gargoyle A", health=999, damage=230),
-                        hits("Bell Gargoyle A", health=480, damage=230),
-                        hits("Quelaag", health=3139, damage=187),
-                        hits("Iron Golem stagger", health=400, damage=159),
-                        hits("Iron Golem fall", health=200, damage=159),
-                        hits("Giant Blacksmith", health=1812, damage=0),
+                        hits_text(Enemy.BELL_GARGOYLE_A, damage=230),
+                        hits_text(Enemy.BELL_GARGOYLE_B, damage=230),
+                        hits_text(Enemy.QUELAAG, damage=187),
+                        hits_text(Enemy.IRON_GOLEM_STAGGER, damage=159),
+                        hits_text(Enemy.IRON_GOLEM_FALL, damage=159),
+                        hits_text(Enemy.IRON_GOLEM, damage=159),
+                        hits_text(Enemy.GIANT_BLACKSMITH),
                     ]
                 )
-                #       " Quelaag(17), Iron Golem(3+2), Giant Blacksmith(??)"
-            )
+            ),
+            (
+                "Hits with weak attack: "
+                + ", ".join(
+                    [
+                        hits_text(Enemy.BELL_GARGOYLE_A),
+                        hits_text(Enemy.BELL_GARGOYLE_B),
+                        hits_text(Enemy.QUELAAG, damage=77),
+                        hits_text(Enemy.IRON_GOLEM_STAGGER),
+                        hits_text(Enemy.IRON_GOLEM_FALL),
+                        hits_text(Enemy.IRON_GOLEM),
+                        hits_text(Enemy.GIANT_BLACKSMITH),
+                    ]
+                )
+            ),
         ],
     )
     BATTLE_AXE_PLUS_4_OR_3 = RouteOptions(
@@ -142,18 +187,37 @@ class Route(Enum):
         notes=[
             (
                 "Hits with RTSR weak attack [+4]: "
-                + ", ".join(BATTLE_AXE_PLUS_4_HITS)
+                + ", ".join(BATTLE_AXE_PLUS_4_RTSR_HITS)
             ),
             (
                 "Hits with RTSR weak attack [+3]: "
                 + ", ".join(
                     [
-                        hits("Bell Gargoyle A", health=999, damage=0),
-                        hits("Bell Gargoyle A", health=480, damage=0),
-                        hits("Quelaag", health=3139, damage=0),
-                        hits("Iron Golem stagger", health=400, damage=0),
-                        hits("Iron Golem fall", health=200, damage=0),
-                        hits("Giant Blacksmith", health=1812, damage=0),
+                        hits_text(Enemy.BELL_GARGOYLE_A),
+                        hits_text(Enemy.BELL_GARGOYLE_B),
+                        hits_text(Enemy.QUELAAG),
+                        hits_text(Enemy.IRON_GOLEM_STAGGER),
+                        hits_text(Enemy.IRON_GOLEM_FALL),
+                        hits_text(Enemy.IRON_GOLEM),
+                        hits_text(Enemy.GIANT_BLACKSMITH),
+                    ]
+                )
+            ),
+            (
+                "Hits with weak attack [+4]: "
+                + ", ".join(BATTLE_AXE_PLUS_4_HITS)
+            ),
+            (
+                "Hits with weak attack [+3]: "
+                + ", ".join(
+                    [
+                        hits_text(Enemy.BELL_GARGOYLE_A),
+                        hits_text(Enemy.BELL_GARGOYLE_B),
+                        hits_text(Enemy.QUELAAG),
+                        hits_text(Enemy.IRON_GOLEM_STAGGER),
+                        hits_text(Enemy.IRON_GOLEM_FALL),
+                        hits_text(Enemy.IRON_GOLEM),
+                        hits_text(Enemy.GIANT_BLACKSMITH),
                     ]
                 )
             ),
@@ -174,7 +238,7 @@ class Route(Enum):
         notes=[
             (
                 "Hits with RTSR weak attack: "
-                + ", ".join(BATTLE_AXE_PLUS_4_HITS)
+                + ", ".join(BATTLE_AXE_PLUS_4_RTSR_HITS)
             )
         ],
     )
