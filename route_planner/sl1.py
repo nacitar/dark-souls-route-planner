@@ -3,7 +3,6 @@ from __future__ import annotations
 from collections import Counter
 from dataclasses import dataclass, field
 from enum import Enum, unique
-from math import ceil
 
 from .action import (
     Activate,
@@ -30,7 +29,7 @@ from .action import (
     UseMenu,
     WaitFor,
 )
-from .segment import Segment, conditional
+from .route import Segment, conditional, Enemy, HitType, DamageTable, Route
 
 rtsr_ladder = "climbing ladder to RTSR"
 new_londo_elevator = "elevator to New Londo Ruins"
@@ -46,30 +45,6 @@ seath = "Seath the Scaleless"
 four_kings = "The Four Kings"
 
 
-@dataclass
-class EnemyInfo:
-    display_name: str
-    health: int = field(kw_only=True)
-
-    def hits(self, *, damage: int) -> int:
-        return ceil(self.health / damage)
-
-
-@unique
-class Enemy(Enum):
-    BELL_GARGOYLE_A = EnemyInfo("Bell Gargoyle A", health=999)
-    BELL_GARGOYLE_B = EnemyInfo("Bell Gargoyle A", health=480)
-    QUELAAG = EnemyInfo("Chaos Witch Quelaag", health=3139)
-    IRON_GOLEM_STAGGER = EnemyInfo("Iron Golem stagger", health=400)
-    IRON_GOLEM_FALL = EnemyInfo("Iron Golem fall", health=200)
-    IRON_GOLEM = EnemyInfo("Iron Golem", health=2880)
-    GIANT_BLACKSMITH = EnemyInfo("Giant Blacksmith", health=1812)
-
-    @property  # not needed, but reads better in the code
-    def info(self) -> EnemyInfo:
-        return self.value
-
-
 def hits_text(enemy: Enemy, *, damage: int = 0) -> str:
     return f"{enemy.info.display_name}=" + (
         f"<b>{enemy.info.hits(damage=damage)}</b>" if damage else "<b>TODO</b>"
@@ -77,7 +52,7 @@ def hits_text(enemy: Enemy, *, damage: int = 0) -> str:
 
 
 @dataclass(kw_only=True)
-class RouteOptions:
+class Options:
     display_name: str
     early_weapon: str
     initial_upgrade: int
@@ -100,6 +75,7 @@ class RouteOptions:
     bone_count_if_from_oswald: int = 5
     kill_smough_first: bool = False
     notes: list[str] = field(default_factory=list)
+    damage_tables: list[DamageTable] = field(default_factory=list)
 
     def __post_init__(self) -> None:
         if self.initial_upgrade < 0 or self.initial_upgrade > 5:
@@ -129,9 +105,167 @@ BATTLE_AXE_PLUS_4_HITS = [
 ]
 
 
+# Boss | Health | WeaponA | WeaponB | WeaponC
+# perhaps list which weapons are used in the Variation object?
+# do I break the notes functionality out into its own component?
+
+SL1_DAMAGE_LOOKUP: dict[str, dict[Enemy, dict[HitType, int]]] = {
+    "Reinforced Club +5": {
+        Enemy.BELL_GARGOYLE_A: {
+            # HitType.WEAK: 0,
+            HitType.WEAK_RTSR: 230,
+            # HitType.HEAVY: 0,
+            # HitType.HEAVY_RTSR: 0,
+            # HitType.RUNNING: 0
+            # HitType.RUNNING_RTSR: 0
+        },
+        Enemy.BELL_GARGOYLE_B: {
+            # HitType.WEAK: 0,
+            HitType.WEAK_RTSR: 230,
+            # HitType.HEAVY: 0,
+            # HitType.HEAVY_RTSR: 0,
+            # HitType.RUNNING: 0
+            # HitType.RUNNING_RTSR: 0
+        },
+        Enemy.QUELAAG: {
+            HitType.WEAK: 77,
+            HitType.WEAK_RTSR: 187,
+            # HitType.HEAVY: 0,
+            # HitType.HEAVY_RTSR: 0,
+            # HitType.RUNNING: 0
+            # HitType.RUNNING_RTSR: 0
+        },
+        Enemy.IRON_GOLEM_STAGGER: {
+            # HitType.WEAK: 0,
+            HitType.WEAK_RTSR: 159,
+            # HitType.HEAVY: 0,
+            # HitType.HEAVY_RTSR: 0,
+            # HitType.RUNNING: 0
+            # HitType.RUNNING_RTSR: 0
+        },
+        Enemy.IRON_GOLEM_FALL: {
+            # HitType.WEAK: 0,
+            HitType.WEAK_RTSR: 159,
+            # HitType.HEAVY: 0,
+            # HitType.HEAVY_RTSR: 0,
+            # HitType.RUNNING: 0
+            # HitType.RUNNING_RTSR: 0
+        },
+        Enemy.IRON_GOLEM: {
+            # HitType.WEAK: 0,
+            HitType.WEAK_RTSR: 159,
+            # HitType.HEAVY: 0,
+            # HitType.HEAVY_RTSR: 0,
+            # HitType.RUNNING: 0
+            # HitType.RUNNING_RTSR: 0
+        },
+    },
+    "Battle Axe +4": {
+        Enemy.BELL_GARGOYLE_A: {
+            HitType.WEAK: 107,
+            HitType.WEAK_RTSR: 205,
+            # HitType.HEAVY: 0,
+            # HitType.HEAVY_RTSR: 0,
+            # HitType.RUNNING: 0
+            # HitType.RUNNING_RTSR: 0
+        },
+        Enemy.BELL_GARGOYLE_B: {
+            HitType.WEAK: 107,
+            HitType.WEAK_RTSR: 205,
+            # HitType.HEAVY: 0,
+            # HitType.HEAVY_RTSR: 0,
+            # HitType.RUNNING: 0
+            # HitType.RUNNING_RTSR: 0
+        },
+        Enemy.QUELAAG: {
+            HitType.WEAK: 57,
+            HitType.WEAK_RTSR: 149,
+            # HitType.HEAVY: 0,
+            # HitType.HEAVY_RTSR: 0,
+            # HitType.RUNNING: 0
+            # HitType.RUNNING_RTSR: 0
+        },
+        Enemy.IRON_GOLEM_STAGGER: {
+            # HitType.WEAK: 0,
+            HitType.WEAK_RTSR: 78,
+            # HitType.HEAVY: 0,
+            # HitType.HEAVY_RTSR: 0,
+            # HitType.RUNNING: 0
+            # HitType.RUNNING_RTSR: 0
+        },
+        Enemy.IRON_GOLEM_FALL: {
+            # HitType.WEAK: 0,
+            HitType.WEAK_RTSR: 78,
+            # HitType.HEAVY: 0,
+            # HitType.HEAVY_RTSR: 0,
+            # HitType.RUNNING: 0
+            # HitType.RUNNING_RTSR: 0
+        },
+        Enemy.IRON_GOLEM: {
+            # HitType.WEAK: 0,
+            HitType.WEAK_RTSR: 78,
+            # HitType.HEAVY: 0,
+            # HitType.HEAVY_RTSR: 0,
+            # HitType.RUNNING: 0
+            # HitType.RUNNING_RTSR: 0
+        },
+    },
+    "Battle Axe +3": {
+        Enemy.BELL_GARGOYLE_A: {
+            # HitType.WEAK: 0,
+            # HitType.WEAK_RTSR: 0,
+            # HitType.HEAVY: 0,
+            # HitType.HEAVY_RTSR: 0,
+            # HitType.RUNNING: 0
+            # HitType.RUNNING_RTSR: 0
+        },
+        Enemy.BELL_GARGOYLE_B: {
+            # HitType.WEAK: 0,
+            # HitType.WEAK_RTSR: 0,
+            # HitType.HEAVY: 0,
+            # HitType.HEAVY_RTSR: 0,
+            # HitType.RUNNING: 0
+            # HitType.RUNNING_RTSR: 0
+        },
+        Enemy.QUELAAG: {
+            # HitType.WEAK: 0,
+            # HitType.WEAK_RTSR: 0,
+            # HitType.HEAVY: 0,
+            # HitType.HEAVY_RTSR: 0,
+            # HitType.RUNNING: 0
+            # HitType.RUNNING_RTSR: 0
+        },
+        Enemy.IRON_GOLEM_STAGGER: {
+            # HitType.WEAK: 0,
+            # HitType.WEAK_RTSR: 0,
+            # HitType.HEAVY: 0,
+            # HitType.HEAVY_RTSR: 0,
+            # HitType.RUNNING: 0
+            # HitType.RUNNING_RTSR: 0
+        },
+        Enemy.IRON_GOLEM_FALL: {
+            # HitType.WEAK: 0,
+            # HitType.WEAK_RTSR: 0,
+            # HitType.HEAVY: 0,
+            # HitType.HEAVY_RTSR: 0,
+            # HitType.RUNNING: 0
+            # HitType.RUNNING_RTSR: 0
+        },
+        Enemy.IRON_GOLEM: {
+            # HitType.WEAK: 0,
+            # HitType.WEAK_RTSR: 0,
+            # HitType.HEAVY: 0,
+            # HitType.HEAVY_RTSR: 0,
+            # HitType.RUNNING: 0
+            # HitType.RUNNING_RTSR: 0
+        },
+    },
+}
+
+
 @unique
-class Route(Enum):
-    REINFORCED_CLUB = RouteOptions(
+class Variation(Enum):
+    REINFORCED_CLUB = Options(
         display_name="Reinforced Club +5",
         early_weapon="Reinforced Club",
         initial_upgrade=5,
@@ -173,8 +307,15 @@ class Route(Enum):
                 )
             ),
         ],
+        damage_tables=[
+            DamageTable(
+                weapon="Reinforced Club +5",
+                enemies=list(Enemy),
+                hit_types=list(HitType),
+            )
+        ],
     )
-    BATTLE_AXE_PLUS_4_OR_3 = RouteOptions(
+    BATTLE_AXE_PLUS_4_OR_3 = Options(
         display_name="Battle Axe +4 or +3",
         early_weapon="Battle Axe",
         initial_upgrade=4,
@@ -225,7 +366,7 @@ class Route(Enum):
             ),
         ],
     )
-    BATTLE_AXE_PLUS_4_SKIPPING_BLACK_KNIGHT = RouteOptions(
+    BATTLE_AXE_PLUS_4_SKIPPING_BLACK_KNIGHT = Options(
         display_name="Battle Axe +4 skipping Black Knight",
         early_weapon="Battle Axe",
         initial_upgrade=4,
@@ -241,12 +382,13 @@ class Route(Enum):
             (
                 "Hits with RTSR weak attack: "
                 + ", ".join(BATTLE_AXE_PLUS_4_RTSR_HITS)
-            )
+            ),
+            ("Hits with weak attack: " + ", ".join(BATTLE_AXE_PLUS_4_HITS)),
         ],
     )
 
     @property  # not needed, but reads better in the code
-    def options(self) -> RouteOptions:
+    def options(self) -> Options:
         return self.value
 
     @property
@@ -376,10 +518,10 @@ class FirelinkToQuelaag(Segment):
 
 @dataclass(kw_only=True)
 class FirelinkToSensFortress(Segment):
-    route: Route
+    variation: Variation
 
     def __post_init__(self) -> None:
-        options = self.route.options
+        options = self.variation.options
         super().__post_init__()
         self.add_steps(
             Region("Firelink Shrine"),
@@ -390,8 +532,8 @@ class FirelinkToSensFortress(Segment):
                 detail=f"side of well, get on way to {parish_elevator}.",
                 condition=(
                     options.loot_firelink_humanity
-                    and not self.route.loots_firelink_at_start
-                    and not self.route.uses_reinforced_club
+                    and not self.variation.loots_firelink_at_start
+                    and not self.variation.uses_reinforced_club
                 ),
                 notes=[
                     (
@@ -511,11 +653,11 @@ class EquipBlacksmithGiantHammerAndDarksign(Segment):
 
 @dataclass(kw_only=True)
 class SL1StartToAfterGargoylesInFirelink(Segment):
-    route: Route
+    variation: Variation
 
     def __post_init__(self) -> None:
         SHARDS_PER_LEVEL = [1, 1, 2, 2, 3]
-        options = self.route.options
+        options = self.variation.options
         early_weapon_shards = sum(
             SHARDS_PER_LEVEL[0 : options.initial_upgrade]
         )
@@ -528,14 +670,14 @@ class SL1StartToAfterGargoylesInFirelink(Segment):
             AsylumCellToFirelink(),
             Region("Firelink Shrine"),
             conditional(
-                not self.route.loots_firelink_at_start,
+                not self.variation.loots_firelink_at_start,
                 notes=[
                     "Firelink <b>IS NOT</b> looted at start;"
                     f" goes straight to {andre}."
                 ],
             ),
             conditional(
-                self.route.loots_firelink_at_start,
+                self.variation.loots_firelink_at_start,
                 Loot(
                     Item.HUMANITY,
                     count=3,
@@ -543,7 +685,7 @@ class SL1StartToAfterGargoylesInFirelink(Segment):
                     detail="side of well, get during Firelink loot route.",
                     condition=(
                         options.loot_firelink_humanity
-                        and not self.route.uses_reinforced_club
+                        and not self.variation.uses_reinforced_club
                     ),
                     notes=[
                         "3 humanities at Firelink well looted immediately."
@@ -587,7 +729,7 @@ class SL1StartToAfterGargoylesInFirelink(Segment):
                 notes=["Firelink is looted upon arrival."],
             ),
             conditional(
-                self.route.uses_reinforced_club,
+                self.variation.uses_reinforced_club,
                 Region("Firelink Shrine"),
                 Loot(
                     Item.HUMANITY,
@@ -640,7 +782,7 @@ class SL1StartToAfterGargoylesInFirelink(Segment):
                 "Reinforced Club",
                 "Right Hand",
                 detail=rtsr_ladder,
-                condition=self.route.uses_reinforced_club,
+                condition=self.variation.uses_reinforced_club,
             ),
             Equip(
                 "Soul of a Nameless Soldier",
@@ -725,7 +867,7 @@ class SL1StartToAfterGargoylesInFirelink(Segment):
                 "Battle Axe",
                 souls=1000,
                 detail=andre,
-                condition=self.route.uses_battle_axe,
+                condition=self.variation.uses_battle_axe,
             ),
             conditional(
                 options.initial_upgrade > 0,
@@ -748,7 +890,7 @@ class SL1StartToAfterGargoylesInFirelink(Segment):
                     "Battle Axe",
                     "Right Hand",
                     detail=andre,
-                    condition=self.route.uses_battle_axe,
+                    condition=self.variation.uses_battle_axe,
                 ),
             ),
             Loot(
@@ -802,20 +944,20 @@ class SL1StartToAfterGargoylesInFirelink(Segment):
 
 
 @dataclass(kw_only=True)
-class SL1MeleeOnlyGlitchless(Segment):
-    route: Route
+class SL1MeleeOnlyGlitchlessStart(Segment):
+    variation: Variation
 
     def __post_init__(self) -> None:
-        options = self.route.options
+        options = self.variation.options
         super().__post_init__()
         if not self.name:
             self.name = f"SL1 Melee Only Glitchless ({options.display_name})"
         self.notes.extend(["TODO: fix RTSR setup for Gargoyles"])
         self.notes.extend(options.notes)
         self.add_steps(
-            SL1StartToAfterGargoylesInFirelink(route=self.route),
+            SL1StartToAfterGargoylesInFirelink(variation=self.variation),
             FirelinkToQuelaag(),
-            FirelinkToSensFortress(route=self.route),
+            FirelinkToSensFortress(variation=self.variation),
             SensFortressToDarkmoonTomb(),
             DarkmoonTombToGiantBlacksmith(),
             GetBlacksmithGiantHammerAndUpgradeMaterials(),
@@ -973,6 +1115,19 @@ class SL1MeleeOnlyGlitchless(Segment):
                 allow_partial=True,
                 detail="use all that you have",
             ),
+        )
+
+
+class SL1MeleeOnlyGlitchless(Route):
+    def __init__(self, variation: Variation):
+        super().__init__(
+            name=(
+                "SL1 Melee Only Glitchless"
+                f" ({variation.options.display_name})"
+            ),
+            segment=SL1MeleeOnlyGlitchlessStart(variation=variation),
+            damage_tables=variation.options.damage_tables,
+            damage_lookup=SL1_DAMAGE_LOOKUP,
         )
 
 

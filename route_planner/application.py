@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from .segment import html_page
-from .sl1 import Route, SL1MeleeOnlyGlitchless
+from .sl1 import Variation, SL1MeleeOnlyGlitchless
+from . import report
 
 
 def main() -> int:
@@ -12,10 +12,10 @@ def main() -> int:
     with open(f"{output_dir}/index.html", "w") as index:
         index.write("<h1>Route Index</h1><ul>")
         for segment in [
-            SL1MeleeOnlyGlitchless(route=Route.REINFORCED_CLUB),
-            SL1MeleeOnlyGlitchless(route=Route.BATTLE_AXE_PLUS_4_OR_3),
+            SL1MeleeOnlyGlitchless(variation=Variation.REINFORCED_CLUB),
+            SL1MeleeOnlyGlitchless(variation=Variation.BATTLE_AXE_PLUS_4_OR_3),
             SL1MeleeOnlyGlitchless(
-                route=Route.BATTLE_AXE_PLUS_4_SKIPPING_BLACK_KNIGHT
+                variation=Variation.BATTLE_AXE_PLUS_4_SKIPPING_BLACK_KNIGHT
             ),
         ]:
             filename = (
@@ -28,7 +28,9 @@ def main() -> int:
                         f"Multiple routes with the same name: {filename}"
                     )
                 route_names.add(filename)
-                route_file.write(html_page(segment, title=segment.name))
+                route_file.write(
+                    report.page(report.route(segment), title=segment.name)
+                )
 
             index.write(f'<li><a href="{filename}">{segment.name}</a></li>\n')
         index.write("</ul>")
