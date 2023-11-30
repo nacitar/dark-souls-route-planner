@@ -77,7 +77,7 @@ def segment_notes(segment: Segment) -> str:
 
 def _value_cell(name: str, old_value: int, new_value: int) -> str:
     css_class = name.lower().replace(" ", "_")
-    html = f'<td class="{css_class}" title="{new_value} {name}">'
+    html = f'<td class="{css_class}" title="{new_value} {name.lower()}">'
     if new_value != old_value:
         change = new_value - old_value
         change_class = "subtract" if change < 0 else "add"
