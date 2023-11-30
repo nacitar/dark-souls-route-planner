@@ -44,7 +44,7 @@ table.route tbody tr td.rtsr {
 }
 
 table.route tbody tr:nth-child(even) td.rtsr {
-    background-color: #FA5F55;
+    background-color: #E94E44;
 }
 
 table.route {
