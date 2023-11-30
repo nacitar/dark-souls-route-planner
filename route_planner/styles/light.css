@@ -1,18 +1,35 @@
-.route_header .route_title {
+.route {
+    font-family: 'Helvetica', 'Arial', sans-serif;
+}
+.display_name {
     font-size: x-large;
     font-weight: bold;
 }
-.route_header .notes {
-    font-size: small;
+.section {
+    display: inline-block;
+    font-size: large;
+    font-weight: bold;
+    margin-bottom: .1em;
+    margin-top: .5em;
+}
+.notes {
+    font-size: medium;
+    list-style-position: inside;
+    padding-left: .5em;
+    margin-top: .1em;
+    margin-bottom: .1em;
 }
 .warning {
     font-size: large;
     font-weight: bold;
     color: Red;
 }
-.route_header,
-table.route {
-    font-family: 'Helvetica', 'Arial', sans-serif;
+table.route tbody tr td.rtsr {
+    background-color: Salmon;
+    font-weight: bold;
+}
+table.route tbody tr:nth-child(even) td.rtsr {
+    background-color: #FA5F55;
 }
 table.route {
     border-collapse: separate;
@@ -75,7 +92,8 @@ table.route .region {
     font-size: large;
     font-weight: bold;
 }
-table.route .action {
+table.route .action,
+table.route .enemy {
     text-align: left;
     padding: .1em .5em;
 }
@@ -88,7 +106,10 @@ table.route .homeward_bones,
 table.route .titanite_shards,
 table.route .twinkling_titanite,
 table.route .humanity,
-table.route .item_humanities {
+table.route .item_humanities,
+table.route .weak,
+table.route .heavy,
+table.route .running {
     text-align: center;
 }
 table.route .add,

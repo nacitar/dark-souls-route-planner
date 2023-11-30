@@ -2,29 +2,31 @@ from __future__ import annotations
 
 from copy import deepcopy
 from dataclasses import dataclass, field
+from enum import Enum, unique
+from math import ceil
 from typing import Generator, Optional, Protocol, Tuple
 
 from .action import Action, Error, State
-from enum import Enum, unique
-from math import ceil
 
 
-@dataclass(kw_only=True)
+@dataclass
+class Damage:
+    value: int = 0
+    with_rtsr: int = field(default=0, kw_only=True)
+
+
+@dataclass
 class HitTypeInfo:
     display_name: str
-    column_name: str
+    column_name: str = field(kw_only=True)
 
 
 @unique
 class HitType(Enum):
-    WEAK = HitTypeInfo(display_name="Weak", column_name="W")
-    WEAK_RTSR = HitTypeInfo(display_name="Weak with RTSR", column_name="W🔴")
-    HEAVY = HitTypeInfo(display_name="Heavy", column_name="H")
-    HEAVY_RTSR = HitTypeInfo(display_name="Heavy with RTSR", column_name="H🔴")
-    RUNNING = HitTypeInfo(display_name="Running", column_name="R")
-    RUNNING_RTSR = HitTypeInfo(
-        display_name="Running with RTSR", column_name="R🔴"
-    )
+    RIPOSTE_2H = HitTypeInfo("Riposte (2H)", column_name="R(2H)")
+    RIPOSTE_1H = HitTypeInfo("Riposte (1H)", column_name="R(1H)")
+    HEAVY = HitTypeInfo("Heavy", column_name="Heavy")
+    WEAK = HitTypeInfo("Weak", column_name="Weak")
 
     @property  # not needed, but reads better in the code
     def info(self) -> HitTypeInfo:
@@ -62,7 +64,7 @@ class Enemy(Enum):
 class DamageTable:
     weapon: str
     enemies: list[Enemy]
-    hit_types: list[HitType]
+    hit_types: list[HitType] = field(default_factory=lambda: list(HitType))
 
 
 class Step(Protocol):
@@ -123,4 +125,6 @@ class Route:
     name: str
     segment: Segment
     damage_tables: list[DamageTable] = field(default_factory=list)
-    damage_lookup: Optional[dict[str, dict[Enemy, dict[HitType, int]]]] = None
+    damage_lookup: Optional[
+        dict[str, dict[Enemy, dict[HitType, Damage]]]
+    ] = None

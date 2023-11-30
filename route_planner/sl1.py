@@ -29,7 +29,15 @@ from .action import (
     UseMenu,
     WaitFor,
 )
-from .route import Segment, conditional, Enemy, HitType, DamageTable, Route
+from .route import (
+    Damage,
+    DamageTable,
+    Enemy,
+    HitType,
+    Route,
+    Segment,
+    conditional,
+)
 
 rtsr_ladder = "climbing ladder to RTSR"
 new_londo_elevator = "elevator to New Londo Ruins"
@@ -44,11 +52,73 @@ nito = "Gravelord Nito"
 seath = "Seath the Scaleless"
 four_kings = "The Four Kings"
 
-
-def hits_text(enemy: Enemy, *, damage: int = 0) -> str:
-    return f"{enemy.info.display_name}=" + (
-        f"<b>{enemy.info.hits(damage=damage)}</b>" if damage else "<b>TODO</b>"
-    )
+ENEMIES_BEFORE_EARLY_WEAPON = [Enemy.BLACK_KNIGHT_DARKROOT_BASIN]
+ENEMIES_WITH_EARLY_WEAPON = [
+    Enemy.BELL_GARGOYLE_A,
+    Enemy.BELL_GARGOYLE_B,
+    Enemy.QUELAAG,
+    Enemy.IRON_GOLEM_STAGGER,
+    Enemy.IRON_GOLEM_FALL,
+    Enemy.IRON_GOLEM,
+    Enemy.GIANT_BLACKSMITH,
+]
+SL1_DAMAGE_LOOKUP: dict[str, dict[Enemy, dict[HitType, Damage]]] = {
+    "Hand Axe": {
+        Enemy.BLACK_KNIGHT_DARKROOT_BASIN: {
+            HitType.WEAK: Damage(16, with_rtsr=37),
+            HitType.HEAVY: Damage(28, with_rtsr=72),
+            HitType.RIPOSTE_1H: Damage(57, with_rtsr=146),
+            HitType.RIPOSTE_2H: Damage(75, with_rtsr=179),
+        }
+    },
+    "Reinforced Club": {
+        Enemy.BLACK_KNIGHT_DARKROOT_BASIN: {
+            HitType.WEAK: Damage(28, with_rtsr=71),
+            HitType.HEAVY: Damage(49, with_rtsr=134),
+            HitType.RIPOSTE_1H: Damage(95, with_rtsr=209),
+            HitType.RIPOSTE_2H: Damage(127, with_rtsr=263),
+        }
+    },
+    "Reinforced Club +5": {
+        Enemy.BELL_GARGOYLE_A: {
+            HitType.WEAK: Damage(with_rtsr=230),
+            # HitType.HEAVY: Damage(),
+        },
+        Enemy.BELL_GARGOYLE_B: {HitType.WEAK: Damage(with_rtsr=230)},
+        Enemy.QUELAAG: {HitType.WEAK: Damage(77, with_rtsr=187)},
+        Enemy.IRON_GOLEM_STAGGER: {HitType.WEAK: Damage(with_rtsr=159)},
+        Enemy.IRON_GOLEM_FALL: {HitType.WEAK: Damage(with_rtsr=159)},
+        Enemy.IRON_GOLEM: {HitType.WEAK: Damage(with_rtsr=159)},
+    },
+    "Battle Axe +4": {
+        Enemy.BELL_GARGOYLE_A: {HitType.WEAK: Damage(107, with_rtsr=205)},
+        Enemy.BELL_GARGOYLE_B: {HitType.WEAK: Damage(107, with_rtsr=205)},
+        Enemy.QUELAAG: {HitType.WEAK: Damage(57, with_rtsr=149)},
+        Enemy.IRON_GOLEM_STAGGER: {HitType.WEAK: Damage(with_rtsr=78)},
+        Enemy.IRON_GOLEM_FALL: {HitType.WEAK: Damage(with_rtsr=78)},
+        Enemy.IRON_GOLEM: {HitType.WEAK: Damage(with_rtsr=78)},
+    },
+    "Battle Axe +3": {
+        Enemy.BELL_GARGOYLE_A: {
+            # HitType.WEAK: Damage(),
+        },
+        Enemy.BELL_GARGOYLE_B: {
+            # HitType.WEAK: Damage(),
+        },
+        Enemy.QUELAAG: {
+            # HitType.WEAK: Damage(),
+        },
+        Enemy.IRON_GOLEM_STAGGER: {
+            # HitType.WEAK: Damage(),
+        },
+        Enemy.IRON_GOLEM_FALL: {
+            # HitType.WEAK: Damage(),
+        },
+        Enemy.IRON_GOLEM: {
+            # HitType.WEAK: Damage(),
+        },
+    },
+}
 
 
 @dataclass(kw_only=True)
@@ -85,184 +155,6 @@ class Options:
             )
 
 
-BATTLE_AXE_PLUS_4_RTSR_HITS = [
-    hits_text(Enemy.BELL_GARGOYLE_A, damage=205),
-    hits_text(Enemy.BELL_GARGOYLE_B, damage=205),
-    hits_text(Enemy.QUELAAG, damage=149),
-    hits_text(Enemy.IRON_GOLEM_STAGGER, damage=78),
-    hits_text(Enemy.IRON_GOLEM_FALL, damage=78),
-    hits_text(Enemy.IRON_GOLEM, damage=78),
-    hits_text(Enemy.GIANT_BLACKSMITH),
-]
-BATTLE_AXE_PLUS_4_HITS = [
-    hits_text(Enemy.BELL_GARGOYLE_A, damage=107),
-    hits_text(Enemy.BELL_GARGOYLE_B, damage=107),
-    hits_text(Enemy.QUELAAG, damage=57),
-    hits_text(Enemy.IRON_GOLEM_STAGGER),
-    hits_text(Enemy.IRON_GOLEM_FALL),
-    hits_text(Enemy.IRON_GOLEM),
-    hits_text(Enemy.GIANT_BLACKSMITH),
-]
-
-
-# Boss | Health | WeaponA | WeaponB | WeaponC
-# perhaps list which weapons are used in the Variation object?
-# do I break the notes functionality out into its own component?
-
-SL1_DAMAGE_LOOKUP: dict[str, dict[Enemy, dict[HitType, int]]] = {
-    "Reinforced Club +5": {
-        Enemy.BELL_GARGOYLE_A: {
-            # HitType.WEAK: 0,
-            HitType.WEAK_RTSR: 230,
-            # HitType.HEAVY: 0,
-            # HitType.HEAVY_RTSR: 0,
-            # HitType.RUNNING: 0
-            # HitType.RUNNING_RTSR: 0
-        },
-        Enemy.BELL_GARGOYLE_B: {
-            # HitType.WEAK: 0,
-            HitType.WEAK_RTSR: 230,
-            # HitType.HEAVY: 0,
-            # HitType.HEAVY_RTSR: 0,
-            # HitType.RUNNING: 0
-            # HitType.RUNNING_RTSR: 0
-        },
-        Enemy.QUELAAG: {
-            HitType.WEAK: 77,
-            HitType.WEAK_RTSR: 187,
-            # HitType.HEAVY: 0,
-            # HitType.HEAVY_RTSR: 0,
-            # HitType.RUNNING: 0
-            # HitType.RUNNING_RTSR: 0
-        },
-        Enemy.IRON_GOLEM_STAGGER: {
-            # HitType.WEAK: 0,
-            HitType.WEAK_RTSR: 159,
-            # HitType.HEAVY: 0,
-            # HitType.HEAVY_RTSR: 0,
-            # HitType.RUNNING: 0
-            # HitType.RUNNING_RTSR: 0
-        },
-        Enemy.IRON_GOLEM_FALL: {
-            # HitType.WEAK: 0,
-            HitType.WEAK_RTSR: 159,
-            # HitType.HEAVY: 0,
-            # HitType.HEAVY_RTSR: 0,
-            # HitType.RUNNING: 0
-            # HitType.RUNNING_RTSR: 0
-        },
-        Enemy.IRON_GOLEM: {
-            # HitType.WEAK: 0,
-            HitType.WEAK_RTSR: 159,
-            # HitType.HEAVY: 0,
-            # HitType.HEAVY_RTSR: 0,
-            # HitType.RUNNING: 0
-            # HitType.RUNNING_RTSR: 0
-        },
-    },
-    "Battle Axe +4": {
-        Enemy.BELL_GARGOYLE_A: {
-            HitType.WEAK: 107,
-            HitType.WEAK_RTSR: 205,
-            # HitType.HEAVY: 0,
-            # HitType.HEAVY_RTSR: 0,
-            # HitType.RUNNING: 0
-            # HitType.RUNNING_RTSR: 0
-        },
-        Enemy.BELL_GARGOYLE_B: {
-            HitType.WEAK: 107,
-            HitType.WEAK_RTSR: 205,
-            # HitType.HEAVY: 0,
-            # HitType.HEAVY_RTSR: 0,
-            # HitType.RUNNING: 0
-            # HitType.RUNNING_RTSR: 0
-        },
-        Enemy.QUELAAG: {
-            HitType.WEAK: 57,
-            HitType.WEAK_RTSR: 149,
-            # HitType.HEAVY: 0,
-            # HitType.HEAVY_RTSR: 0,
-            # HitType.RUNNING: 0
-            # HitType.RUNNING_RTSR: 0
-        },
-        Enemy.IRON_GOLEM_STAGGER: {
-            # HitType.WEAK: 0,
-            HitType.WEAK_RTSR: 78,
-            # HitType.HEAVY: 0,
-            # HitType.HEAVY_RTSR: 0,
-            # HitType.RUNNING: 0
-            # HitType.RUNNING_RTSR: 0
-        },
-        Enemy.IRON_GOLEM_FALL: {
-            # HitType.WEAK: 0,
-            HitType.WEAK_RTSR: 78,
-            # HitType.HEAVY: 0,
-            # HitType.HEAVY_RTSR: 0,
-            # HitType.RUNNING: 0
-            # HitType.RUNNING_RTSR: 0
-        },
-        Enemy.IRON_GOLEM: {
-            # HitType.WEAK: 0,
-            HitType.WEAK_RTSR: 78,
-            # HitType.HEAVY: 0,
-            # HitType.HEAVY_RTSR: 0,
-            # HitType.RUNNING: 0
-            # HitType.RUNNING_RTSR: 0
-        },
-    },
-    "Battle Axe +3": {
-        Enemy.BELL_GARGOYLE_A: {
-            # HitType.WEAK: 0,
-            # HitType.WEAK_RTSR: 0,
-            # HitType.HEAVY: 0,
-            # HitType.HEAVY_RTSR: 0,
-            # HitType.RUNNING: 0
-            # HitType.RUNNING_RTSR: 0
-        },
-        Enemy.BELL_GARGOYLE_B: {
-            # HitType.WEAK: 0,
-            # HitType.WEAK_RTSR: 0,
-            # HitType.HEAVY: 0,
-            # HitType.HEAVY_RTSR: 0,
-            # HitType.RUNNING: 0
-            # HitType.RUNNING_RTSR: 0
-        },
-        Enemy.QUELAAG: {
-            # HitType.WEAK: 0,
-            # HitType.WEAK_RTSR: 0,
-            # HitType.HEAVY: 0,
-            # HitType.HEAVY_RTSR: 0,
-            # HitType.RUNNING: 0
-            # HitType.RUNNING_RTSR: 0
-        },
-        Enemy.IRON_GOLEM_STAGGER: {
-            # HitType.WEAK: 0,
-            # HitType.WEAK_RTSR: 0,
-            # HitType.HEAVY: 0,
-            # HitType.HEAVY_RTSR: 0,
-            # HitType.RUNNING: 0
-            # HitType.RUNNING_RTSR: 0
-        },
-        Enemy.IRON_GOLEM_FALL: {
-            # HitType.WEAK: 0,
-            # HitType.WEAK_RTSR: 0,
-            # HitType.HEAVY: 0,
-            # HitType.HEAVY_RTSR: 0,
-            # HitType.RUNNING: 0
-            # HitType.RUNNING_RTSR: 0
-        },
-        Enemy.IRON_GOLEM: {
-            # HitType.WEAK: 0,
-            # HitType.WEAK_RTSR: 0,
-            # HitType.HEAVY: 0,
-            # HitType.HEAVY_RTSR: 0,
-            # HitType.RUNNING: 0
-            # HitType.RUNNING_RTSR: 0
-        },
-    },
-}
-
-
 @unique
 class Variation(Enum):
     REINFORCED_CLUB = Options(
@@ -277,42 +169,16 @@ class Variation(Enum):
         loot_undead_parish_fire_keeper_soul=True,
         kill_black_knight=True,
         wait_for_four_kings_drops=True,
-        notes=[
-            (
-                "Hits with RTSR weak attack: "
-                + ", ".join(
-                    [
-                        hits_text(Enemy.BELL_GARGOYLE_A, damage=230),
-                        hits_text(Enemy.BELL_GARGOYLE_B, damage=230),
-                        hits_text(Enemy.QUELAAG, damage=187),
-                        hits_text(Enemy.IRON_GOLEM_STAGGER, damage=159),
-                        hits_text(Enemy.IRON_GOLEM_FALL, damage=159),
-                        hits_text(Enemy.IRON_GOLEM, damage=159),
-                        hits_text(Enemy.GIANT_BLACKSMITH),
-                    ]
-                )
-            ),
-            (
-                "Hits with weak attack: "
-                + ", ".join(
-                    [
-                        hits_text(Enemy.BELL_GARGOYLE_A),
-                        hits_text(Enemy.BELL_GARGOYLE_B),
-                        hits_text(Enemy.QUELAAG, damage=77),
-                        hits_text(Enemy.IRON_GOLEM_STAGGER),
-                        hits_text(Enemy.IRON_GOLEM_FALL),
-                        hits_text(Enemy.IRON_GOLEM),
-                        hits_text(Enemy.GIANT_BLACKSMITH),
-                    ]
-                )
-            ),
-        ],
+        notes=[],
         damage_tables=[
             DamageTable(
+                weapon="Reinforced Club", enemies=ENEMIES_BEFORE_EARLY_WEAPON
+            ),
+            DamageTable(
                 weapon="Reinforced Club +5",
-                enemies=list(Enemy),
-                hit_types=list(HitType),
-            )
+                enemies=ENEMIES_WITH_EARLY_WEAPON,
+                hit_types=[HitType.HEAVY, HitType.WEAK],
+            ),
         ],
     )
     BATTLE_AXE_PLUS_4_OR_3 = Options(
@@ -327,42 +193,20 @@ class Variation(Enum):
         loot_undead_parish_fire_keeper_soul=True,
         kill_black_knight=True,
         wait_for_four_kings_drops=True,
-        notes=[
-            (
-                "Hits with RTSR weak attack [+4]: "
-                + ", ".join(BATTLE_AXE_PLUS_4_RTSR_HITS)
+        notes=[],
+        damage_tables=[
+            DamageTable(
+                weapon="Hand Axe", enemies=ENEMIES_BEFORE_EARLY_WEAPON
             ),
-            (
-                "Hits with RTSR weak attack [+3]: "
-                + ", ".join(
-                    [
-                        hits_text(Enemy.BELL_GARGOYLE_A),
-                        hits_text(Enemy.BELL_GARGOYLE_B),
-                        hits_text(Enemy.QUELAAG),
-                        hits_text(Enemy.IRON_GOLEM_STAGGER),
-                        hits_text(Enemy.IRON_GOLEM_FALL),
-                        hits_text(Enemy.IRON_GOLEM),
-                        hits_text(Enemy.GIANT_BLACKSMITH),
-                    ]
-                )
+            DamageTable(
+                weapon="Battle Axe +4",
+                enemies=ENEMIES_WITH_EARLY_WEAPON,
+                hit_types=[HitType.HEAVY, HitType.WEAK],
             ),
-            (
-                "Hits with weak attack [+4]: "
-                + ", ".join(BATTLE_AXE_PLUS_4_HITS)
-            ),
-            (
-                "Hits with weak attack [+3]: "
-                + ", ".join(
-                    [
-                        hits_text(Enemy.BELL_GARGOYLE_A),
-                        hits_text(Enemy.BELL_GARGOYLE_B),
-                        hits_text(Enemy.QUELAAG),
-                        hits_text(Enemy.IRON_GOLEM_STAGGER),
-                        hits_text(Enemy.IRON_GOLEM_FALL),
-                        hits_text(Enemy.IRON_GOLEM),
-                        hits_text(Enemy.GIANT_BLACKSMITH),
-                    ]
-                )
+            DamageTable(
+                weapon="Battle Axe +3",
+                enemies=ENEMIES_WITH_EARLY_WEAPON,
+                hit_types=[HitType.HEAVY, HitType.WEAK],
             ),
         ],
     )
@@ -378,12 +222,16 @@ class Variation(Enum):
         loot_undead_parish_fire_keeper_soul=True,
         kill_black_knight=False,
         wait_for_four_kings_drops=True,
-        notes=[
-            (
-                "Hits with RTSR weak attack: "
-                + ", ".join(BATTLE_AXE_PLUS_4_RTSR_HITS)
+        notes=[],
+        damage_tables=[
+            DamageTable(
+                weapon="Hand Axe", enemies=ENEMIES_BEFORE_EARLY_WEAPON
             ),
-            ("Hits with weak attack: " + ", ".join(BATTLE_AXE_PLUS_4_HITS)),
+            DamageTable(
+                weapon="Battle Axe +4",
+                enemies=ENEMIES_WITH_EARLY_WEAPON,
+                hit_types=[HitType.HEAVY, HitType.WEAK],
+            ),
         ],
     )
 

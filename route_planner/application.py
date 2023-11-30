@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from .sl1 import Variation, SL1MeleeOnlyGlitchless
 from . import report
+from .sl1 import SL1MeleeOnlyGlitchless, Variation
 
 
 def main() -> int:
