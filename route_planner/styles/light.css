@@ -70,7 +70,7 @@ table.route tbody:last-child tr:last-child td:not(.region) {
     border-bottom: 2px solid;  /* last row of route */
 }
 table.route tbody tr.error:nth-child(even) {
-    background-color: Salmon;
+    background-color: #FA5F55;
 }
 table.route tbody tr.error {
     background-color: Salmon;
