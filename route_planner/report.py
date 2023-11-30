@@ -5,16 +5,25 @@ from typing import Optional
 
 from . import styles
 from .action import Error, Region, State
-from .route import Damage, DamageTable, Enemy, HitType, Route, Segment
+from .route import DamageTable, Enemy, Hit, HitType, Route, Segment
+
+
+def page(body: str, *, title: str = "", style: str = "light") -> str:
+    if title:
+        title = f"<title>{title}</title>"
+    if style:
+        with open_text_resource(styles, f"{style}.css") as css:
+            style = f"<style>{css.read()}</style>"
+    return f"<html><head>{title}{style}</head><body>{body}</body></html>"
 
 
 def damage_table(
     table: DamageTable,
     *,
-    damage_lookup: Optional[dict[str, dict[Enemy, dict[HitType, Damage]]]],
+    hit_lookup: Optional[dict[str, dict[Enemy, dict[HitType, Hit]]]],
 ) -> str:
-    if not damage_lookup:
-        damage_lookup = {}
+    if not hit_lookup:
+        hit_lookup = {}
     html: list[str] = []
     html.append('<table class="route"><thead><tr>')
     for hit_type in table.hit_types:
@@ -27,40 +36,43 @@ def damage_table(
     for enemy in table.enemies:
         html.append("<tr>")
         for hit_type in table.hit_types:
-            damage = (
-                damage_lookup.get(table.weapon, {})
+            hit: Hit = (
+                hit_lookup.get(table.weapon, {})
                 .get(enemy, {})
-                .get(hit_type, Damage())
+                .get(hit_type, Hit())
             )
-            td_class = hit_type.name.lower()
-            if damage and damage.value:
-                hits = enemy.info.hits(damage=damage.value)
-                html.append(
-                    f'<td class="{td_class}" title="{hits} hits">{hits}</td>'
+            td_classes: list[str] = [hit_type.name.lower()]
+            hit_display = hit_type.info.display_name.lower()
+            hit_cells: list[tuple[int, str, list[str]]] = [
+                (hit.damage, "hits", []),
+                (hit.with_rtsr, "hits with RTSR", ["rtsr"]),
+            ]
+            for damage, hit_text, extra_classes in hit_cells:
+                html.append(  # partial tag
+                    f'<td class="{" ".join(td_classes + extra_classes)}"'
                 )
-            else:
-                html.append(f'<td class="{td_class}"></td>')
-            td_class = f"{td_class} rtsr"
-            if damage and damage.with_rtsr:
-                hits = enemy.info.hits(damage=damage.with_rtsr)
-                html.append(
-                    f'<td class="{td_class}"'
-                    f' title="{hits} RTSR hits">{hits}</td>'
-                )
-            else:
-                html.append(f'<td class="{td_class}"></td>')
-        html.append(f'<td class="enemy">{enemy.info.display_name}</td></tr>')
+                if damage:
+                    hits = enemy.info.hits_to_kill(damage=damage)
+                    title = f"{hits} {hit_display} {hit_text} for {damage}"
+                    html.append(f' title="{title}">{hits}</td>')  # rest of tag
+                else:
+                    html.append("></td>")  # rest of tag
+        html.append(
+            f'<td class="enemy" title="{enemy.info.health} total hp">'
+            f"{enemy.info.display_name}</td></tr>"
+        )
     html.append("</tbody></table>")
     return "".join(html)
 
 
-def page(body: str, *, title: str = "", style: str = "light") -> str:
-    if title:
-        title = f"<title>{title}</title>"
-    if style:
-        with open_text_resource(styles, f"{style}.css") as css:
-            style = f"<style>{css.read()}</style>"
-    return f"<html><head>{title}{style}</head><body>{body}</body></html>"
+def segment_notes(segment: Segment) -> str:
+    if not segment.notes:
+        return ""
+    return (
+        '<ul class="route notes">'
+        + "".join([f"<li>{note}</li>" for note in segment.notes])
+        + "</ul>"
+    )
 
 
 def _value_cell(name: str, old_value: int, new_value: int) -> str:
@@ -75,17 +87,7 @@ def _value_cell(name: str, old_value: int, new_value: int) -> str:
     return html
 
 
-def segment_notes(segment: Segment) -> str:
-    if not segment.notes:
-        return ""
-    return (
-        '<ul class="route notes">'
-        + "".join([f"<li>{note}</li>" for note in segment.notes])
-        + "</ul>"
-    )
-
-
-def segment_action_table(
+def segment_steps_table(
     segment: Segment, *, initial_state: Optional[State] = None
 ) -> str:
     region_count = 0
@@ -172,15 +174,11 @@ def route(
     route: Route,
     *,
     damage_tables: Optional[list[DamageTable]] = None,
-    damage_lookup: Optional[
-        dict[str, dict[Enemy, dict[HitType, Damage]]]
-    ] = None,
+    hit_lookup: Optional[dict[str, dict[Enemy, dict[HitType, Hit]]]] = None,
 ) -> str:
     html: list[str] = []
     if route.name:
-        html.append(
-            f'<span class="route display_name">{route.name}</span><br/>'
-        )
+        html.append(f'<span class="route display_name">{route.name}</span>')
     notes = segment_notes(route.segment)
     if notes:
         html.append('<span class="route section">Notes</span>')
@@ -190,7 +188,7 @@ def route(
             html.append(
                 f'<span class="route section">Hits ({table.weapon})</span>'
             )
-            html.append(damage_table(table, damage_lookup=route.damage_lookup))
+            html.append(damage_table(table, hit_lookup=route.hit_lookup))
     html.append('<span class="route section">Steps</span>')
-    html.append(segment_action_table(route.segment))
+    html.append(segment_steps_table(route.segment))
     return "".join(html)

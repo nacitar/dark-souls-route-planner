@@ -1,89 +1,121 @@
 .route {
     font-family: 'Helvetica', 'Arial', sans-serif;
 }
+
 .display_name {
     font-size: x-large;
     font-weight: bold;
 }
+
 .section {
-    display: inline-block;
+    display: block;
     font-size: large;
     font-weight: bold;
     margin-bottom: .1em;
     margin-top: .5em;
 }
-.notes {
+
+ul.notes {
     font-size: medium;
-    list-style-position: inside;
-    padding-left: .5em;
+    list-style: none;
+    #list-style-position: inside;
+    padding-left: 1.5em;
     margin-top: .1em;
     margin-bottom: .1em;
 }
+
+ul.notes li::before {
+    content: "•";
+    font-weight: bold;
+    display: inline-block;
+    width: 1em;
+    margin-left: -1em
+}
+
 .warning {
     font-size: large;
     font-weight: bold;
     color: Red;
 }
+
 table.route tbody tr td.rtsr {
     background-color: Salmon;
     font-weight: bold;
 }
+
 table.route tbody tr:nth-child(even) td.rtsr {
     background-color: #FA5F55;
 }
+
 table.route {
     border-collapse: separate;
-    border-spacing: 0; 
+    border-spacing: 0;
     border: 0px solid Black;
 }
+
 table.route thead {
     position: sticky;
     top: 0;
 }
+
 table.route th {
     border-top: 2px solid;
     border-bottom: 2px solid;
     text-align: center;
     background-color: LightSkyBlue;
 }
+
 table.route td {
     border-bottom: 1px solid;
 }
+
 table.route td,
 table.route th {
     border-right: 1px solid;
     font-size: medium;
     padding: .1em .1em;
 }
+
 table.route td:first-child,
 table.route th:first-child {
     border-left: 2px solid;
 }
+
 table.route td:last-child,
 table.route th:last-child {
     border-right: 2px solid;
 }
+
 table.route tbody:not(:last-child) tr:last-child td:not(.region) {
-    border-bottom: 0px solid;  /* just before the next region */
+    border-bottom: 0px solid;
+    /* just before the next region */
 }
+
 table.route tbody:last-child tr:last-child td:not(.region) {
-    border-bottom: 2px solid;  /* last row of route */
+    border-bottom: 2px solid;
+    /* last row of route */
 }
+
 table.route tbody tr.error:nth-child(even) {
     background-color: #FA5F55;
 }
+
 table.route tbody tr.error {
     background-color: Salmon;
 }
+
 table.route tbody tr.optional:nth-child(even) {
     background-color: Gold;
 }
+
 table.route tbody tr.optional {
     background-color: #F6BE00;
 }
+
 table.route tbody tr:nth-child(even) {
     background-color: Gainsboro;
 }
+
 table.route .region {
     background-color: LightSkyBlue;
     border-top: 2px solid;
@@ -92,14 +124,17 @@ table.route .region {
     font-size: large;
     font-weight: bold;
 }
+
 table.route .action,
 table.route .enemy {
     text-align: left;
     padding: .1em .5em;
 }
+
 table.route .action .name {
     font-weight: bold;
 }
+
 table.route .souls,
 table.route .item_souls,
 table.route .homeward_bones,
@@ -112,19 +147,23 @@ table.route .heavy,
 table.route .running {
     text-align: center;
 }
+
 table.route .add,
 table.route .subtract,
 table.route .detail {
     font-size: small;
 }
+
 table.route .add {
     color: DarkGreen;
     font-weight: bold;
 }
+
 table.route .subtract {
     color: Red;
     font-weight: bold;
 }
+
 table.route .detail {
     color: DarkBlue;
 }

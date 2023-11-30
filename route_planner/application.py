@@ -11,7 +11,7 @@ def main() -> int:
 
     with open(f"{output_dir}/index.html", "w") as index:
         index.write("<h1>Route Index</h1><ul>")
-        for segment in [
+        for route in [
             SL1MeleeOnlyGlitchless(variation=Variation.REINFORCED_CLUB),
             SL1MeleeOnlyGlitchless(variation=Variation.BATTLE_AXE_PLUS_4_OR_3),
             SL1MeleeOnlyGlitchless(
@@ -19,7 +19,7 @@ def main() -> int:
             ),
         ]:
             filename = (
-                "".join(ch for ch in segment.name if ch.isalnum()) + ".html"
+                "".join(ch for ch in route.name if ch.isalnum()) + ".html"
             )
 
             with open(f"{output_dir}/{filename}", "w") as route_file:
@@ -29,9 +29,9 @@ def main() -> int:
                     )
                 route_names.add(filename)
                 route_file.write(
-                    report.page(report.route(segment), title=segment.name)
+                    report.page(report.route(route), title=route.name)
                 )
 
-            index.write(f'<li><a href="{filename}">{segment.name}</a></li>\n')
+            index.write(f'<li><a href="{filename}">{route.name}</a></li>\n')
         index.write("</ul>")
     return 0

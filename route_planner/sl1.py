@@ -30,9 +30,9 @@ from .action import (
     WaitFor,
 )
 from .route import (
-    Damage,
     DamageTable,
     Enemy,
+    Hit,
     HitType,
     Route,
     Segment,
@@ -62,60 +62,60 @@ ENEMIES_WITH_EARLY_WEAPON = [
     Enemy.IRON_GOLEM,
     Enemy.GIANT_BLACKSMITH,
 ]
-SL1_DAMAGE_LOOKUP: dict[str, dict[Enemy, dict[HitType, Damage]]] = {
+SL1_HIT_LOOKUP: dict[str, dict[Enemy, dict[HitType, Hit]]] = {
     "Hand Axe": {
         Enemy.BLACK_KNIGHT_DARKROOT_BASIN: {
-            HitType.WEAK: Damage(16, with_rtsr=37),
-            HitType.HEAVY: Damage(28, with_rtsr=72),
-            HitType.RIPOSTE_1H: Damage(57, with_rtsr=146),
-            HitType.RIPOSTE_2H: Damage(75, with_rtsr=179),
+            HitType.WEAK: Hit(16, with_rtsr=37),
+            HitType.HEAVY: Hit(28, with_rtsr=72),
+            HitType.RIPOSTE_1H: Hit(57, with_rtsr=146),
+            HitType.RIPOSTE_2H: Hit(75, with_rtsr=179),
         }
     },
     "Reinforced Club": {
         Enemy.BLACK_KNIGHT_DARKROOT_BASIN: {
-            HitType.WEAK: Damage(28, with_rtsr=71),
-            HitType.HEAVY: Damage(49, with_rtsr=134),
-            HitType.RIPOSTE_1H: Damage(95, with_rtsr=209),
-            HitType.RIPOSTE_2H: Damage(127, with_rtsr=263),
+            HitType.WEAK: Hit(28, with_rtsr=71),
+            HitType.HEAVY: Hit(49, with_rtsr=134),
+            HitType.RIPOSTE_1H: Hit(95, with_rtsr=209),
+            HitType.RIPOSTE_2H: Hit(127, with_rtsr=263),
         }
     },
     "Reinforced Club +5": {
         Enemy.BELL_GARGOYLE_A: {
-            HitType.WEAK: Damage(with_rtsr=230),
-            # HitType.HEAVY: Damage(),
+            HitType.WEAK: Hit(with_rtsr=230),
+            # HitType.HEAVY: Hit(),
         },
-        Enemy.BELL_GARGOYLE_B: {HitType.WEAK: Damage(with_rtsr=230)},
-        Enemy.QUELAAG: {HitType.WEAK: Damage(77, with_rtsr=187)},
-        Enemy.IRON_GOLEM_STAGGER: {HitType.WEAK: Damage(with_rtsr=159)},
-        Enemy.IRON_GOLEM_FALL: {HitType.WEAK: Damage(with_rtsr=159)},
-        Enemy.IRON_GOLEM: {HitType.WEAK: Damage(with_rtsr=159)},
+        Enemy.BELL_GARGOYLE_B: {HitType.WEAK: Hit(with_rtsr=230)},
+        Enemy.QUELAAG: {HitType.WEAK: Hit(77, with_rtsr=187)},
+        Enemy.IRON_GOLEM_STAGGER: {HitType.WEAK: Hit(with_rtsr=159)},
+        Enemy.IRON_GOLEM_FALL: {HitType.WEAK: Hit(with_rtsr=159)},
+        Enemy.IRON_GOLEM: {HitType.WEAK: Hit(with_rtsr=159)},
     },
     "Battle Axe +4": {
-        Enemy.BELL_GARGOYLE_A: {HitType.WEAK: Damage(107, with_rtsr=205)},
-        Enemy.BELL_GARGOYLE_B: {HitType.WEAK: Damage(107, with_rtsr=205)},
-        Enemy.QUELAAG: {HitType.WEAK: Damage(57, with_rtsr=149)},
-        Enemy.IRON_GOLEM_STAGGER: {HitType.WEAK: Damage(with_rtsr=78)},
-        Enemy.IRON_GOLEM_FALL: {HitType.WEAK: Damage(with_rtsr=78)},
-        Enemy.IRON_GOLEM: {HitType.WEAK: Damage(with_rtsr=78)},
+        Enemy.BELL_GARGOYLE_A: {HitType.WEAK: Hit(107, with_rtsr=205)},
+        Enemy.BELL_GARGOYLE_B: {HitType.WEAK: Hit(107, with_rtsr=205)},
+        Enemy.QUELAAG: {HitType.WEAK: Hit(57, with_rtsr=149)},
+        Enemy.IRON_GOLEM_STAGGER: {HitType.WEAK: Hit(with_rtsr=78)},
+        Enemy.IRON_GOLEM_FALL: {HitType.WEAK: Hit(with_rtsr=78)},
+        Enemy.IRON_GOLEM: {HitType.WEAK: Hit(with_rtsr=78)},
     },
     "Battle Axe +3": {
         Enemy.BELL_GARGOYLE_A: {
-            # HitType.WEAK: Damage(),
+            # HitType.WEAK: Hit(),
         },
         Enemy.BELL_GARGOYLE_B: {
-            # HitType.WEAK: Damage(),
+            # HitType.WEAK: Hit(),
         },
         Enemy.QUELAAG: {
-            # HitType.WEAK: Damage(),
+            # HitType.WEAK: Hit(),
         },
         Enemy.IRON_GOLEM_STAGGER: {
-            # HitType.WEAK: Damage(),
+            # HitType.WEAK: Hit(),
         },
         Enemy.IRON_GOLEM_FALL: {
-            # HitType.WEAK: Damage(),
+            # HitType.WEAK: Hit(),
         },
         Enemy.IRON_GOLEM: {
-            # HitType.WEAK: Damage(),
+            # HitType.WEAK: Hit(),
         },
     },
 }
@@ -975,7 +975,7 @@ class SL1MeleeOnlyGlitchless(Route):
             ),
             segment=SL1MeleeOnlyGlitchlessStart(variation=variation),
             damage_tables=variation.options.damage_tables,
-            damage_lookup=SL1_DAMAGE_LOOKUP,
+            hit_lookup=SL1_HIT_LOOKUP,
         )
 
 

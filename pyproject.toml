@@ -17,13 +17,14 @@ authors = ["Jacob McIntosh <nacitar.sevaht@gmail.com>"]
 
 [tool.poetry.dependencies]
 python = "^3.10"
-isort = "^5.12.0"
 
-[tool.poetry.dev-dependencies]
+[tool.poetry.group.dev.dependencies]
+cssbeautifier = "^1.14.11"
 pytest = "^7.4.3"
 mypy = "^1.7.1"
 flake8 = "^6.1.0"
 black = {extras = ["jupyter"], version = "^23.11.0"}
+isort = "^5.12.0"
 
 [tool.poetry.scripts]
 route-planner = "route_planner.__main__:main"

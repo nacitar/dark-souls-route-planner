@@ -10,8 +10,8 @@ from .action import Action, Error, State
 
 
 @dataclass
-class Damage:
-    value: int = 0
+class Hit:
+    damage: int = 0
     with_rtsr: int = field(default=0, kw_only=True)
 
 
@@ -23,8 +23,8 @@ class HitTypeInfo:
 
 @unique
 class HitType(Enum):
-    RIPOSTE_2H = HitTypeInfo("Riposte (2H)", column_name="R(2H)")
-    RIPOSTE_1H = HitTypeInfo("Riposte (1H)", column_name="R(1H)")
+    RIPOSTE_2H = HitTypeInfo("Riposte(2H)", column_name="Rip2H")
+    RIPOSTE_1H = HitTypeInfo("Riposte(1H)", column_name="Rip1H")
     HEAVY = HitTypeInfo("Heavy", column_name="Heavy")
     WEAK = HitTypeInfo("Weak", column_name="Weak")
 
@@ -38,7 +38,7 @@ class EnemyInfo:
     display_name: str
     health: int = field(kw_only=True)
 
-    def hits(self, *, damage: int) -> int:
+    def hits_to_kill(self, *, damage: int) -> int:
         return ceil(self.health / damage)
 
 
@@ -48,10 +48,10 @@ class Enemy(Enum):
         "Black Knight (Darkroot Basin)", health=603
     )
     BELL_GARGOYLE_A = EnemyInfo("Bell Gargoyle A", health=999)
-    BELL_GARGOYLE_B = EnemyInfo("Bell Gargoyle A", health=480)
+    BELL_GARGOYLE_B = EnemyInfo("Bell Gargoyle B", health=480)
     QUELAAG = EnemyInfo("Chaos Witch Quelaag", health=3139)
-    IRON_GOLEM_STAGGER = EnemyInfo("Iron Golem stagger", health=400)
-    IRON_GOLEM_FALL = EnemyInfo("Iron Golem fall", health=200)
+    IRON_GOLEM_STAGGER = EnemyInfo("Iron Golem (stagger)", health=400)
+    IRON_GOLEM_FALL = EnemyInfo("Iron Golem (fall)", health=200)
     IRON_GOLEM = EnemyInfo("Iron Golem", health=2880)
     GIANT_BLACKSMITH = EnemyInfo("Giant Blacksmith", health=1812)
 
@@ -125,6 +125,4 @@ class Route:
     name: str
     segment: Segment
     damage_tables: list[DamageTable] = field(default_factory=list)
-    damage_lookup: Optional[
-        dict[str, dict[Enemy, dict[HitType, Damage]]]
-    ] = None
+    hit_lookup: Optional[dict[str, dict[Enemy, dict[HitType, Hit]]]] = None
