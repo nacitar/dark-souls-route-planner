@@ -52,70 +52,82 @@ nito = "Gravelord Nito"
 seath = "Seath the Scaleless"
 four_kings = "The Four Kings"
 
-ENEMIES_BEFORE_EARLY_WEAPON = [Enemy.BLACK_KNIGHT_DARKROOT_BASIN]
-ENEMIES_WITH_EARLY_WEAPON = [
-    Enemy.BELL_GARGOYLE_A,
-    Enemy.BELL_GARGOYLE_B,
+DAMAGE_TABLE_HIT_TYPES = [
+    HitType.RIPOSTE_1H,
+    HitType.RIPOSTE_2H,
+    HitType.HEAVY_2H,
+    HitType.WEAK_2H,
+]
+
+ENEMIES_BEFORE_EARLY_WEAPON_UPGRADE = [Enemy.BLACK_KNIGHT_DARKROOT_BASIN]
+ENEMIES_AFTER_EARLY_WEAPON_UPGRADE = [
+    Enemy.BELL_GARGOYLES,
+    Enemy.LAUTREC,
     Enemy.QUELAAG,
-    Enemy.IRON_GOLEM_STAGGER,
-    Enemy.IRON_GOLEM_FALL,
     Enemy.IRON_GOLEM,
     Enemy.GIANT_BLACKSMITH,
 ]
 SL1_HIT_LOOKUP: dict[str, dict[Enemy, dict[HitType, Hit]]] = {
-    "Hand Axe": {
+    "Hand Axe +0": {
         Enemy.BLACK_KNIGHT_DARKROOT_BASIN: {
-            HitType.WEAK: Hit(16, with_rtsr=37),
-            HitType.HEAVY: Hit(28, with_rtsr=72),
-            HitType.RIPOSTE_1H: Hit(57, with_rtsr=146),
-            HitType.RIPOSTE_2H: Hit(75, with_rtsr=179),
+            HitType.HEAVY_1H: Hit(14, with_rtsr=31),
+            HitType.WEAK_1H: Hit(10, with_rtsr=20),
+            HitType.HEAVY_2H: Hit(28, with_rtsr=72),
+            HitType.WEAK_2H: Hit(16, with_rtsr=37),
+            HitType.RIPOSTE_1H: Hit(5 + 57, with_rtsr=8 + 146),
+            HitType.RIPOSTE_2H: Hit(6 + 75, with_rtsr=10 + 179),
         }
     },
-    "Reinforced Club": {
+    "Reinforced Club +0": {
         Enemy.BLACK_KNIGHT_DARKROOT_BASIN: {
-            HitType.WEAK: Hit(28, with_rtsr=71),
-            HitType.HEAVY: Hit(49, with_rtsr=134),
-            HitType.RIPOSTE_1H: Hit(95, with_rtsr=209),
-            HitType.RIPOSTE_2H: Hit(127, with_rtsr=263),
+            HitType.HEAVY_1H: Hit(31, with_rtsr=82),
+            HitType.WEAK_1H: Hit(15, with_rtsr=33),
+            HitType.HEAVY_2H: Hit(49, with_rtsr=134),
+            HitType.WEAK_2H: Hit(28, with_rtsr=71),
+            HitType.RIPOSTE_1H: Hit(6 + 95, with_rtsr=11 + 209),
+            HitType.RIPOSTE_2H: Hit(7 + 127, with_rtsr=14 + 263),
         }
     },
     "Reinforced Club +5": {
-        Enemy.BELL_GARGOYLE_A: {
-            HitType.WEAK: Hit(with_rtsr=230),
-            # HitType.HEAVY: Hit(),
+        Enemy.BELL_GARGOYLES: {
+            HitType.HEAVY_1H: Hit(161, with_rtsr=275),
+            HitType.WEAK_1H: Hit(84, with_rtsr=170),
+            HitType.HEAVY_2H: Hit(217, with_rtsr=358),
+            HitType.WEAK_2H: Hit(185, with_rtsr=259),
         },
-        Enemy.BELL_GARGOYLE_B: {HitType.WEAK: Hit(with_rtsr=230)},
-        Enemy.QUELAAG: {HitType.WEAK: Hit(77, with_rtsr=187)},
-        Enemy.IRON_GOLEM_STAGGER: {HitType.WEAK: Hit(with_rtsr=159)},
-        Enemy.IRON_GOLEM_FALL: {HitType.WEAK: Hit(with_rtsr=159)},
-        Enemy.IRON_GOLEM: {HitType.WEAK: Hit(with_rtsr=159)},
+        Enemy.LAUTREC: {
+            HitType.HEAVY_1H: Hit(91, with_rtsr=208),
+            HitType.WEAK_1H: Hit(36, with_rtsr=100),
+            HitType.HEAVY_2H: Hit(145, with_rtsr=295),
+            HitType.WEAK_2H: Hit(80, with_rtsr=191),
+            HitType.RIPOSTE_1H: Hit(12 + 220, with_rtsr=25 + 398),
+            HitType.RIPOSTE_2H: Hit(15 + 276, with_rtsr=35 + 469),
+        },
+        Enemy.QUELAAG: {HitType.WEAK_2H: Hit(77, with_rtsr=187)},
+        Enemy.IRON_GOLEM: {HitType.WEAK_2H: Hit(with_rtsr=159)},
     },
     "Battle Axe +4": {
-        Enemy.BELL_GARGOYLE_A: {HitType.WEAK: Hit(107, with_rtsr=205)},
-        Enemy.BELL_GARGOYLE_B: {HitType.WEAK: Hit(107, with_rtsr=205)},
-        Enemy.QUELAAG: {HitType.WEAK: Hit(57, with_rtsr=149)},
-        Enemy.IRON_GOLEM_STAGGER: {HitType.WEAK: Hit(with_rtsr=78)},
-        Enemy.IRON_GOLEM_FALL: {HitType.WEAK: Hit(with_rtsr=78)},
-        Enemy.IRON_GOLEM: {HitType.WEAK: Hit(with_rtsr=78)},
+        Enemy.BELL_GARGOYLES: {
+            HitType.HEAVY_1H: Hit(107, with_rtsr=205),
+            HitType.WEAK_1H: Hit(70, with_rtsr=130),
+            HitType.HEAVY_2H: Hit(175, with_rtsr=295),
+            HitType.WEAK_2H: Hit(122, with_rtsr=226),
+        },
+        Enemy.QUELAAG: {HitType.WEAK_2H: Hit(57, with_rtsr=149)},
+        Enemy.IRON_GOLEM: {HitType.WEAK_2H: Hit(with_rtsr=78)},
     },
     "Battle Axe +3": {
-        Enemy.BELL_GARGOYLE_A: {
-            # HitType.WEAK: Hit(),
-        },
-        Enemy.BELL_GARGOYLE_B: {
-            # HitType.WEAK: Hit(),
+        Enemy.BELL_GARGOYLES: {
+            HitType.HEAVY_1H: Hit(93, with_rtsr=184),
+            HitType.WEAK_1H: Hit(54, with_rtsr=115),
+            HitType.HEAVY_2H: Hit(156, with_rtsr=268),
+            HitType.WEAK_2H: Hit(107, with_rtsr=205),
         },
         Enemy.QUELAAG: {
-            # HitType.WEAK: Hit(),
-        },
-        Enemy.IRON_GOLEM_STAGGER: {
-            # HitType.WEAK: Hit(),
-        },
-        Enemy.IRON_GOLEM_FALL: {
-            # HitType.WEAK: Hit(),
+            # HitType.WEAK_2H: Hit(),
         },
         Enemy.IRON_GOLEM: {
-            # HitType.WEAK: Hit(),
+            # HitType.WEAK_2H: Hit(),
         },
     },
 }
@@ -172,12 +184,14 @@ class Variation(Enum):
         notes=[],
         damage_tables=[
             DamageTable(
-                weapon="Reinforced Club", enemies=ENEMIES_BEFORE_EARLY_WEAPON
+                weapon="Reinforced Club +0",
+                enemies=ENEMIES_BEFORE_EARLY_WEAPON_UPGRADE,
+                hit_types=DAMAGE_TABLE_HIT_TYPES,
             ),
             DamageTable(
                 weapon="Reinforced Club +5",
-                enemies=ENEMIES_WITH_EARLY_WEAPON,
-                hit_types=[HitType.HEAVY, HitType.WEAK],
+                enemies=ENEMIES_AFTER_EARLY_WEAPON_UPGRADE,
+                hit_types=DAMAGE_TABLE_HIT_TYPES,
             ),
         ],
     )
@@ -196,17 +210,19 @@ class Variation(Enum):
         notes=[],
         damage_tables=[
             DamageTable(
-                weapon="Hand Axe", enemies=ENEMIES_BEFORE_EARLY_WEAPON
+                weapon="Hand Axe +0",
+                enemies=ENEMIES_BEFORE_EARLY_WEAPON_UPGRADE,
+                hit_types=DAMAGE_TABLE_HIT_TYPES,
             ),
             DamageTable(
                 weapon="Battle Axe +4",
-                enemies=ENEMIES_WITH_EARLY_WEAPON,
-                hit_types=[HitType.HEAVY, HitType.WEAK],
+                enemies=ENEMIES_AFTER_EARLY_WEAPON_UPGRADE,
+                hit_types=DAMAGE_TABLE_HIT_TYPES,
             ),
             DamageTable(
                 weapon="Battle Axe +3",
-                enemies=ENEMIES_WITH_EARLY_WEAPON,
-                hit_types=[HitType.HEAVY, HitType.WEAK],
+                enemies=ENEMIES_AFTER_EARLY_WEAPON_UPGRADE,
+                hit_types=DAMAGE_TABLE_HIT_TYPES,
             ),
         ],
     )
@@ -225,12 +241,14 @@ class Variation(Enum):
         notes=[],
         damage_tables=[
             DamageTable(
-                weapon="Hand Axe", enemies=ENEMIES_BEFORE_EARLY_WEAPON
+                weapon="Hand Axe +0",
+                enemies=ENEMIES_BEFORE_EARLY_WEAPON_UPGRADE,
+                hit_types=DAMAGE_TABLE_HIT_TYPES,
             ),
             DamageTable(
                 weapon="Battle Axe +4",
-                enemies=ENEMIES_WITH_EARLY_WEAPON,
-                hit_types=[HitType.HEAVY, HitType.WEAK],
+                enemies=ENEMIES_AFTER_EARLY_WEAPON_UPGRADE,
+                hit_types=DAMAGE_TABLE_HIT_TYPES,
             ),
         ],
     )

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from importlib.resources import open_text as open_text_resource
+from math import ceil
 from typing import Optional
 
 from . import styles
@@ -34,33 +35,36 @@ def damage_table(
     html.append('<th title="Enemy">Enemy</th></tr></thead><tbody>')
 
     for enemy in table.enemies:
-        html.append("<tr>")
-        for hit_type in table.hit_types:
-            hit: Hit = (
-                hit_lookup.get(table.weapon, {})
-                .get(enemy, {})
-                .get(hit_type, Hit())
-            )
-            td_classes: list[str] = [hit_type.name.lower()]
-            hit_display = hit_type.info.display_name.lower()
-            hit_cells: list[tuple[int, str, list[str]]] = [
-                (hit.damage, "hits", []),
-                (hit.with_rtsr, "hits with RTSR", ["rtsr"]),
-            ]
-            for damage, hit_text, extra_classes in hit_cells:
-                html.append(  # partial tag
-                    f'<td class="{" ".join(td_classes + extra_classes)}"'
+        for form_name, health in enemy.info.form_health_lookup.items():
+            html.append("<tr>")
+            for hit_type in table.hit_types:
+                hit: Hit = (
+                    hit_lookup.get(table.weapon, {})
+                    .get(enemy, {})
+                    .get(hit_type, Hit())
                 )
-                if damage:
-                    hits = enemy.info.hits_to_kill(damage=damage)
-                    title = f"{hits} {hit_display} {hit_text} for {damage}"
-                    html.append(f' title="{title}">{hits}</td>')  # rest of tag
-                else:
-                    html.append("></td>")  # rest of tag
-        html.append(
-            f'<td class="enemy" title="{enemy.info.health} total hp">'
-            f"{enemy.info.display_name}</td></tr>"
-        )
+                td_classes: list[str] = [hit_type.name.lower()]
+                hit_display = hit_type.info.display_name.lower()
+                hit_cells: list[tuple[int, str, list[str]]] = [
+                    (hit.damage, "hits", []),
+                    (hit.with_rtsr, "hits with RTSR", ["rtsr"]),
+                ]
+                for damage, hit_text, extra_classes in hit_cells:
+                    html.append(  # partial tag
+                        f'<td class="{" ".join(td_classes + extra_classes)}"'
+                    )
+                    if damage:
+                        hits = ceil(health / damage)
+                        title = f"{hits} {hit_display} {hit_text} for {damage}"
+                        html.append(
+                            f' title="{title}">{hits}</td>'
+                        )  # rest of tag
+                    else:
+                        html.append("></td>")  # rest of tag
+            html.append(
+                f'<td class="enemy" title="{health} total hp">'
+                f"{form_name}</td></tr>"
+            )
     html.append("</tbody></table>")
     return "".join(html)
 

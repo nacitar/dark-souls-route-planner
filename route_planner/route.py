@@ -3,7 +3,6 @@ from __future__ import annotations
 from copy import deepcopy
 from dataclasses import dataclass, field
 from enum import Enum, unique
-from math import ceil
 from typing import Generator, Optional, Protocol, Tuple
 
 from .action import Action, Error, State
@@ -23,37 +22,41 @@ class HitTypeInfo:
 
 @unique
 class HitType(Enum):
-    RIPOSTE_2H = HitTypeInfo("Riposte(2H)", column_name="Rip2H")
     RIPOSTE_1H = HitTypeInfo("Riposte(1H)", column_name="Rip1H")
-    HEAVY = HitTypeInfo("Heavy", column_name="Heavy")
-    WEAK = HitTypeInfo("Weak", column_name="Weak")
+    RIPOSTE_2H = HitTypeInfo("Riposte(2H)", column_name="Rip2H")
+    HEAVY_1H = HitTypeInfo("Heavy(1H)", column_name="Hvy1H")
+    WEAK_1H = HitTypeInfo("Weak(1H)", column_name="Wk1H")
+    HEAVY_2H = HitTypeInfo("Heavy(2H)", column_name="Hvy2H")
+    WEAK_2H = HitTypeInfo("Weak(2H)", column_name="Wk2H")
 
     @property  # not needed, but reads better in the code
     def info(self) -> HitTypeInfo:
         return self.value
 
 
-@dataclass
+@dataclass(kw_only=True)
 class EnemyInfo:
-    display_name: str
-    health: int = field(kw_only=True)
-
-    def hits_to_kill(self, *, damage: int) -> int:
-        return ceil(self.health / damage)
+    form_health_lookup: dict[str, int]
 
 
 @unique
 class Enemy(Enum):
     BLACK_KNIGHT_DARKROOT_BASIN = EnemyInfo(
-        "Black Knight (Darkroot Basin)", health=603
+        form_health_lookup={"Black Knight (Darkroot Basin)": 603}
     )
-    BELL_GARGOYLE_A = EnemyInfo("Bell Gargoyle A", health=999)
-    BELL_GARGOYLE_B = EnemyInfo("Bell Gargoyle B", health=480)
-    QUELAAG = EnemyInfo("Chaos Witch Quelaag", health=3139)
-    IRON_GOLEM_STAGGER = EnemyInfo("Iron Golem (stagger)", health=400)
-    IRON_GOLEM_FALL = EnemyInfo("Iron Golem (fall)", health=200)
-    IRON_GOLEM = EnemyInfo("Iron Golem", health=2880)
-    GIANT_BLACKSMITH = EnemyInfo("Giant Blacksmith", health=1812)
+    BELL_GARGOYLES = EnemyInfo(
+        form_health_lookup={"Bell Gargoyle 1": 999, "Bell Gargoyle 2": 480}
+    )
+    QUELAAG = EnemyInfo(form_health_lookup={"Chaos Witch Quelaag": 3139})
+    LAUTREC = EnemyInfo(form_health_lookup={"Knight Lautrec of Carim": 862})
+    IRON_GOLEM = EnemyInfo(
+        form_health_lookup={
+            "Iron Golem": 2880,
+            "Iron Golem (stagger)": 400,
+            "Iron Golem (fall)": 200,
+        }
+    )
+    GIANT_BLACKSMITH = EnemyInfo(form_health_lookup={"Giant Blacksmith": 1812})
 
     @property  # not needed, but reads better in the code
     def info(self) -> EnemyInfo:
