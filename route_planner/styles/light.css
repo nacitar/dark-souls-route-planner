@@ -138,6 +138,7 @@ table.route .action .name {
 table.route td {
     text-align: center;
 }
+
 table.route td.action {
     text-align: left;
 }
