@@ -3,7 +3,7 @@ from __future__ import annotations
 import importlib.util
 import sys
 from pathlib import Path
-from typing import Protocol, cast
+from typing import Protocol, cast, runtime_checkable
 
 from . import report
 from .route import Route
@@ -11,8 +11,11 @@ from .route import Route
 CURRENT_FILE_DIRECTORY = Path(__file__).resolve().parent
 
 
+@runtime_checkable
 class RouteExporter(Protocol):
-    EXPORTED_ROUTES: list[Route]
+    @property
+    def EXPORTED_ROUTES(self) -> list[Route]:
+        ...
 
 
 def sanitize_filename(value: str) -> str:
@@ -43,15 +46,11 @@ def load_routes() -> list[Route]:
             raise RuntimeError(f"Spec has no loader for {file}")
         sys.modules[module_name] = module  # so dataclasses and such are happy
         spec.loader.exec_module(module)
-        if (
-            not hasattr(module, "EXPORTED_ROUTES")
-            or not module.EXPORTED_ROUTES
-        ):
+        if not isinstance(module, RouteExporter):
             raise RuntimeError(
                 f"Module does not contain any exported routes: {file}"
             )
-        route_exporter = cast(RouteExporter, module)
-        routes.extend(route_exporter.EXPORTED_ROUTES)
+        routes.extend(cast(RouteExporter, module).EXPORTED_ROUTES)
     route_names: set[str] = set()
     for route in routes:
         if route.name in route_names:
