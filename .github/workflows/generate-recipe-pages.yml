@@ -1,0 +1,29 @@
+name: Generate route pages
+
+on:
+  push:
+    paths-ignore:
+      - 'docs/**'
+  workflow_dispatch:
+
+jobs:
+  generate-route-pages:
+    name: Generate route pages
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.x
+      - name: Generate route pages
+        run: |
+          sudo apt-get install -y python3-poetry
+          poetry install
+          poetry run route-planner
+          git config user.name "Jacob McIntosh"
+          git config user.email "nacitar.sevaht@gmail.com"
+          git add docs/
+          git diff-index --quiet HEAD || git commit -m "Updated route pages via GitHub Actions"
+          git push

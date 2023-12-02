@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import importlib.util
+import shutil
 import sys
 from pathlib import Path
 from typing import Protocol, cast, runtime_checkable
@@ -64,7 +65,12 @@ def load_routes() -> list[Route]:
 
 def main() -> int:
     output_directory = CURRENT_FILE_DIRECTORY.parent / "docs"
-    # TODO: create dir if needed, delete contents otherwise
+    output_directory.mkdir(exist_ok=True)
+    for item in output_directory.iterdir():
+        if item.is_dir():
+            shutil.rmtree(item)
+        else:
+            item.unlink()
     routes = load_routes()
     with open(f"{output_directory}/index.html", "w") as index:
         index.write("<h1>Route Index</h1><ul>")
