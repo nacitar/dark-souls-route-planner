@@ -19,7 +19,8 @@ jobs:
           python-version: 3.x
       - name: Generate route pages
         run: |
-          sudo apt-get install -y python3-poetry
+          sudo apt-get install -y pipx
+          pipx install poetry
           poetry install
           poetry run route-planner
           git config user.name "Jacob McIntosh"
