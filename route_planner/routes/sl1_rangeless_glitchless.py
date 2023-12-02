@@ -747,7 +747,7 @@ class SL1StartToAfterGargoylesInFirelink(Segment):
 
 
 @dataclass(kw_only=True)
-class SL1MeleeOnlyGlitchlessStart(Segment):
+class StartToBlacksmithGiantHammer(Segment):
     variation: Variation
 
     def __post_init__(self) -> None:
@@ -921,23 +921,23 @@ class SL1MeleeOnlyGlitchlessStart(Segment):
         )
 
 
-class SL1MeleeOnlyGlitchless(Route):
+class SL1RangelessGlitchless(Route):
     def __init__(self, variation: Variation):
         super().__init__(
             name=(
-                "SL1 Melee Only Glitchless"
+                "SL1 Rangeless Glitchless"
                 f" ({variation.options.display_name})"
             ),
-            segment=SL1MeleeOnlyGlitchlessStart(variation=variation),
+            segment=StartToBlacksmithGiantHammer(variation=variation),
             damage_tables=variation.options.damage_tables,
             hit_lookup=SL1_HIT_LOOKUP,
         )
 
 
 EXPORTED_ROUTES: list[Route] = [
-    SL1MeleeOnlyGlitchless(variation=Variation.REINFORCED_CLUB),
-    SL1MeleeOnlyGlitchless(variation=Variation.BATTLE_AXE_PLUS_4_OR_3),
-    SL1MeleeOnlyGlitchless(
+    SL1RangelessGlitchless(variation=Variation.REINFORCED_CLUB),
+    SL1RangelessGlitchless(variation=Variation.BATTLE_AXE_PLUS_4_OR_3),
+    SL1RangelessGlitchless(
         variation=Variation.BATTLE_AXE_PLUS_4_SKIPPING_BLACK_KNIGHT
     ),
 ]
