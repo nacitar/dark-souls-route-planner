@@ -53,14 +53,15 @@ nito = "Gravelord Nito"
 seath = "Seath the Scaleless"
 four_kings = "The Four Kings"
 
-DAMAGE_TABLE_HIT_TYPES = [
-    HitType.RIPOSTE_1H,
-    HitType.RIPOSTE_2H,
-    HitType.HEAVY_2H,
-    HitType.WEAK_2H,
-    HitType.JUMPING_1H,
-    HitType.JUMPING_2H,
-]
+DAMAGE_TABLE_HIT_TYPES = list(HitType)
+# [
+#    HitType.RIPOSTE_1H,
+#    HitType.RIPOSTE_2H,
+#    HitType.HEAVY_2H,
+#    HitType.WEAK_2H,
+#    HitType.JUMPING_1H,
+#    HitType.JUMPING_2H,
+# ]
 
 ENEMIES_BEFORE_EARLY_WEAPON_UPGRADE = [Enemy.BLACK_KNIGHT_DARKROOT_BASIN]
 ENEMIES_AFTER_EARLY_WEAPON_UPGRADE = [

@@ -24,14 +24,14 @@ class HitTypeInfo:
 class HitType(Enum):
     WEAK_1H = HitTypeInfo("Weak(1H)", column_name="Wk1H")
     HEAVY_1H = HitTypeInfo("Heavy(1H)", column_name="Hvy1H")
+    JUMPING_1H = HitTypeInfo("Jumping(1H)", column_name="Jmp1H")
     WEAK_2H = HitTypeInfo("Weak(2H)", column_name="Wk2H")
     HEAVY_2H = HitTypeInfo("Heavy(2H)", column_name="Hvy2H")
+    JUMPING_2H = HitTypeInfo("Jumping(2H)", column_name="Jmp2H")
     BACKSTAB_1H = HitTypeInfo("Backstab(1H)", column_name="Bs1H")
     BACKSTAB_2H = HitTypeInfo("Backstab(2H)", column_name="Bs2H")
     RIPOSTE_1H = HitTypeInfo("Riposte(1H)", column_name="Rip1H")
     RIPOSTE_2H = HitTypeInfo("Riposte(2H)", column_name="Rip2H")
-    JUMPING_1H = HitTypeInfo("Jumping(1H)", column_name="Jmp1H")
-    JUMPING_2H = HitTypeInfo("Jumping(2H)", column_name="Jmp2H")
 
     @property  # not needed, but reads better in the code
     def info(self) -> HitTypeInfo:
