@@ -22,12 +22,16 @@ class HitTypeInfo:
 
 @unique
 class HitType(Enum):
+    WEAK_1H = HitTypeInfo("Weak(1H)", column_name="Wk1H")
+    HEAVY_1H = HitTypeInfo("Heavy(1H)", column_name="Hvy1H")
+    WEAK_2H = HitTypeInfo("Weak(2H)", column_name="Wk2H")
+    HEAVY_2H = HitTypeInfo("Heavy(2H)", column_name="Hvy2H")
+    BACKSTAB_1H = HitTypeInfo("Backstab(1H)", column_name="Bs1H")
+    BACKSTAB_2H = HitTypeInfo("Backstab(2H)", column_name="Bs2H")
     RIPOSTE_1H = HitTypeInfo("Riposte(1H)", column_name="Rip1H")
     RIPOSTE_2H = HitTypeInfo("Riposte(2H)", column_name="Rip2H")
-    HEAVY_1H = HitTypeInfo("Heavy(1H)", column_name="Hvy1H")
-    WEAK_1H = HitTypeInfo("Weak(1H)", column_name="Wk1H")
-    HEAVY_2H = HitTypeInfo("Heavy(2H)", column_name="Hvy2H")
-    WEAK_2H = HitTypeInfo("Weak(2H)", column_name="Wk2H")
+    JUMPING_1H = HitTypeInfo("Jumping(1H)", column_name="Jmp1H")
+    JUMPING_2H = HitTypeInfo("Jumping(2H)", column_name="Jmp2H")
 
     @property  # not needed, but reads better in the code
     def info(self) -> HitTypeInfo:
@@ -47,8 +51,10 @@ class Enemy(Enum):
     BELL_GARGOYLES = EnemyInfo(
         form_health_lookup={"Bell Gargoyle 1": 999, "Bell Gargoyle 2": 480}
     )
-    QUELAAG = EnemyInfo(form_health_lookup={"Chaos Witch Quelaag": 3139})
+    OSWALD = EnemyInfo(form_health_lookup={"Oswald of Carim": 638})
+    PETRUS = EnemyInfo(form_health_lookup={"Petrus of Thorolund": 594})
     LAUTREC = EnemyInfo(form_health_lookup={"Knight Lautrec of Carim": 862})
+    QUELAAG = EnemyInfo(form_health_lookup={"Chaos Witch Quelaag": 3139})
     IRON_GOLEM = EnemyInfo(
         form_health_lookup={
             "Iron Golem": 2880,
