@@ -22,10 +22,11 @@ class HitTypeInfo:
 
 @unique
 class HitType(Enum):
+    # this is ordered from weakest to strongest
     WEAK_1H = HitTypeInfo("Weak(1H)", column_name="Wk1H")
     HEAVY_1H = HitTypeInfo("Heavy(1H)", column_name="Hvy1H")
-    JUMPING_1H = HitTypeInfo("Jumping(1H)", column_name="Jmp1H")
     WEAK_2H = HitTypeInfo("Weak(2H)", column_name="Wk2H")
+    JUMPING_1H = HitTypeInfo("Jumping(1H)", column_name="Jmp1H")
     HEAVY_2H = HitTypeInfo("Heavy(2H)", column_name="Hvy2H")
     JUMPING_2H = HitTypeInfo("Jumping(2H)", column_name="Jmp2H")
     BACKSTAB_1H = HitTypeInfo("Backstab(1H)", column_name="Bs1H")
