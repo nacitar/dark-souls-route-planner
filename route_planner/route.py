@@ -63,6 +63,12 @@ class Enemy(Enum):
         }
     )
     GIANT_BLACKSMITH = EnemyInfo(form_health_lookup={"Giant Blacksmith": 1812})
+    MIMIC_OCCULT_CLUB = EnemyInfo(
+        form_health_lookup={"Mimic (Occult Club)": 1041}
+    )
+    DARKMOON_KNIGHTESS = EnemyInfo(
+        form_health_lookup={"Darkmoon Knightess": 719}
+    )
 
     @property  # not needed, but reads better in the code
     def info(self) -> EnemyInfo:

@@ -29,15 +29,7 @@ from ..action import (
     UseMenu,
     WaitFor,
 )
-from ..route import (
-    DamageTable,
-    Enemy,
-    Hit,
-    HitType,
-    Route,
-    Segment,
-    conditional,
-)
+from ..route import DamageTable, Enemy, HitType, Route, Segment, conditional
 from ..sl1 import SL1_HIT_LOOKUP
 
 rtsr_ladder = "climbing ladder to RTSR"
@@ -53,26 +45,33 @@ nito = "Gravelord Nito"
 seath = "Seath the Scaleless"
 four_kings = "The Four Kings"
 
-DAMAGE_TABLE_HIT_TYPES = list(HitType)
-# [
-#    HitType.RIPOSTE_1H,
-#    HitType.RIPOSTE_2H,
-#    HitType.HEAVY_2H,
-#    HitType.WEAK_2H,
-#    HitType.JUMPING_1H,
-#    HitType.JUMPING_2H,
-# ]
+HUMANOID_HIT_TYPES = list(HitType)
+STANDARD_HIT_TYPES = [
+    hit_type
+    for hit_type in HitType
+    if hit_type.name.split("_", 1)[0] not in ["BACKSTAB", "RIPOSTE"]
+]
+HUMANOID_HIT_TYPES_2H = [
+    hit_type
+    for hit_type in HUMANOID_HIT_TYPES
+    if not hit_type.name.endswith("_1H")
+]
+STANDARD_HIT_TYPES_2H = [
+    hit_type
+    for hit_type in STANDARD_HIT_TYPES
+    if not hit_type.name.endswith("_1H")
+]
 
-ENEMIES_BEFORE_EARLY_WEAPON_UPGRADE = [Enemy.BLACK_KNIGHT_DARKROOT_BASIN]
-ENEMIES_AFTER_EARLY_WEAPON_UPGRADE = [
+HUMANOID_ENEMIES_WITHOUT_UPGRADES = [Enemy.BLACK_KNIGHT_DARKROOT_BASIN]
+ENEMIES_WITH_UPGRADES = [
     Enemy.BELL_GARGOYLES,
-    Enemy.OSWALD,
-    Enemy.PETRUS,
-    Enemy.LAUTREC,
     Enemy.QUELAAG,
     Enemy.IRON_GOLEM,
     Enemy.GIANT_BLACKSMITH,
 ]
+HUMANOID_ENEMIES_WITH_UPGRADES = [Enemy.OSWALD, Enemy.PETRUS, Enemy.LAUTREC]
+ENEMIES_MAYBE_WITH_FINAL_WEAPON = [Enemy.MIMIC_OCCULT_CLUB]
+HUMANOID_ENEMIES_MAYBE_WITH_FINAL_WEAPON = [Enemy.DARKMOON_KNIGHTESS]
 
 
 @dataclass(kw_only=True)
@@ -127,13 +126,33 @@ class Variation(Enum):
         damage_tables=[
             DamageTable(
                 weapon="Reinforced Club +0",
-                enemies=ENEMIES_BEFORE_EARLY_WEAPON_UPGRADE,
-                hit_types=DAMAGE_TABLE_HIT_TYPES,
+                enemies=HUMANOID_ENEMIES_WITHOUT_UPGRADES,
+                hit_types=HUMANOID_HIT_TYPES,
             ),
             DamageTable(
                 weapon="Reinforced Club +5",
-                enemies=ENEMIES_AFTER_EARLY_WEAPON_UPGRADE,
-                hit_types=DAMAGE_TABLE_HIT_TYPES,
+                enemies=(
+                    ENEMIES_WITH_UPGRADES + ENEMIES_MAYBE_WITH_FINAL_WEAPON
+                ),
+                hit_types=STANDARD_HIT_TYPES,
+            ),
+            DamageTable(
+                weapon="Reinforced Club +5",
+                enemies=(
+                    HUMANOID_ENEMIES_WITH_UPGRADES
+                    + HUMANOID_ENEMIES_MAYBE_WITH_FINAL_WEAPON
+                ),
+                hit_types=HUMANOID_HIT_TYPES,
+            ),
+            DamageTable(
+                weapon="Blacksmith Giant Hammer +5",
+                enemies=ENEMIES_MAYBE_WITH_FINAL_WEAPON,
+                hit_types=STANDARD_HIT_TYPES_2H,
+            ),
+            DamageTable(
+                weapon="Blacksmith Giant Hammer +5",
+                enemies=HUMANOID_ENEMIES_MAYBE_WITH_FINAL_WEAPON,
+                hit_types=HUMANOID_HIT_TYPES_2H,
             ),
         ],
     )
@@ -153,18 +172,48 @@ class Variation(Enum):
         damage_tables=[
             DamageTable(
                 weapon="Hand Axe +0",
-                enemies=ENEMIES_BEFORE_EARLY_WEAPON_UPGRADE,
-                hit_types=DAMAGE_TABLE_HIT_TYPES,
+                enemies=HUMANOID_ENEMIES_WITHOUT_UPGRADES,
+                hit_types=HUMANOID_HIT_TYPES,
             ),
             DamageTable(
                 weapon="Battle Axe +4",
-                enemies=ENEMIES_AFTER_EARLY_WEAPON_UPGRADE,
-                hit_types=DAMAGE_TABLE_HIT_TYPES,
+                enemies=(
+                    ENEMIES_WITH_UPGRADES + ENEMIES_MAYBE_WITH_FINAL_WEAPON
+                ),
+                hit_types=STANDARD_HIT_TYPES,
+            ),
+            DamageTable(
+                weapon="Battle Axe +4",
+                enemies=(
+                    HUMANOID_ENEMIES_WITH_UPGRADES
+                    + HUMANOID_ENEMIES_MAYBE_WITH_FINAL_WEAPON
+                ),
+                hit_types=HUMANOID_HIT_TYPES,
             ),
             DamageTable(
                 weapon="Battle Axe +3",
-                enemies=ENEMIES_AFTER_EARLY_WEAPON_UPGRADE,
-                hit_types=DAMAGE_TABLE_HIT_TYPES,
+                enemies=(
+                    ENEMIES_WITH_UPGRADES + ENEMIES_MAYBE_WITH_FINAL_WEAPON
+                ),
+                hit_types=STANDARD_HIT_TYPES,
+            ),
+            DamageTable(
+                weapon="Battle Axe +3",
+                enemies=(
+                    HUMANOID_ENEMIES_WITH_UPGRADES
+                    + HUMANOID_ENEMIES_MAYBE_WITH_FINAL_WEAPON
+                ),
+                hit_types=HUMANOID_HIT_TYPES,
+            ),
+            DamageTable(
+                weapon="Blacksmith Giant Hammer +5",
+                enemies=ENEMIES_MAYBE_WITH_FINAL_WEAPON,
+                hit_types=STANDARD_HIT_TYPES_2H,
+            ),
+            DamageTable(
+                weapon="Blacksmith Giant Hammer +5",
+                enemies=HUMANOID_ENEMIES_MAYBE_WITH_FINAL_WEAPON,
+                hit_types=HUMANOID_HIT_TYPES_2H,
             ),
         ],
     )
@@ -184,13 +233,33 @@ class Variation(Enum):
         damage_tables=[
             DamageTable(
                 weapon="Hand Axe +0",
-                enemies=ENEMIES_BEFORE_EARLY_WEAPON_UPGRADE,
-                hit_types=DAMAGE_TABLE_HIT_TYPES,
+                enemies=HUMANOID_ENEMIES_WITHOUT_UPGRADES,
+                hit_types=HUMANOID_HIT_TYPES,
             ),
             DamageTable(
                 weapon="Battle Axe +4",
-                enemies=ENEMIES_AFTER_EARLY_WEAPON_UPGRADE,
-                hit_types=DAMAGE_TABLE_HIT_TYPES,
+                enemies=(
+                    ENEMIES_WITH_UPGRADES + ENEMIES_MAYBE_WITH_FINAL_WEAPON
+                ),
+                hit_types=STANDARD_HIT_TYPES,
+            ),
+            DamageTable(
+                weapon="Battle Axe +4",
+                enemies=(
+                    HUMANOID_ENEMIES_WITH_UPGRADES
+                    + HUMANOID_ENEMIES_MAYBE_WITH_FINAL_WEAPON
+                ),
+                hit_types=HUMANOID_HIT_TYPES,
+            ),
+            DamageTable(
+                weapon="Blacksmith Giant Hammer +5",
+                enemies=ENEMIES_MAYBE_WITH_FINAL_WEAPON,
+                hit_types=STANDARD_HIT_TYPES_2H,
+            ),
+            DamageTable(
+                weapon="Blacksmith Giant Hammer +5",
+                enemies=HUMANOID_ENEMIES_MAYBE_WITH_FINAL_WEAPON,
+                hit_types=HUMANOID_HIT_TYPES_2H,
             ),
         ],
     )
