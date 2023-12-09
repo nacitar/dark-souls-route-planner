@@ -612,10 +612,14 @@ class SL1StartToAfterGargoylesInFirelink(Segment):
                     Item.HUMANITY,
                     count=3,
                     humanities=1,
-                    detail=(
-                        "side of well, get on way" " to get Reinforced Club"
-                    ),
+                    detail=("side of well, get on way to get Reinforced Club"),
                     condition=options.loot_firelink_humanity,
+                    notes=[
+                        (
+                            "3 humanities at Firelink well looted on way to"
+                            " get Reinforced Club."
+                        )
+                    ],
                 ),
                 RunTo("Undead Burg"),
                 Region("Undead Burg"),
