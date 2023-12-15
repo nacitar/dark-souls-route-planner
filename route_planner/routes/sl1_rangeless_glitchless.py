@@ -75,28 +75,65 @@ HUMANOID_ENEMIES_MAYBE_WITH_FINAL_WEAPON = [Enemy.DARKMOON_KNIGHTESS]
 
 
 @dataclass(kw_only=True)
-class Options:
-    display_name: str
-    early_weapon: str
-    initial_upgrade: int
-    loot_firelink_humanity: bool
-    loot_firelink_elevator_soul: bool
-    loot_firelink_bones: bool
-    loot_firelink_graveyard: bool
-    loot_new_londo_ruins_soul: bool
-    loot_undead_parish_fire_keeper_soul: bool
-    kill_black_knight: bool
-    wait_for_four_kings_drops: bool
-    # defaulted
-    wait_for_sif_drops: bool = False
-    wait_for_nito_drops: bool = False
-    wait_for_seath_drops: bool = False
+class FirelinkOptions:
+    loot_well_humanity: bool = False
+    loot_elevator_soul: bool = False
+    loot_homeward_bones: bool = False
+    loot_graveyard_souls: bool = False
+
+
+@dataclass(kw_only=True)
+class NewLondoRuinsOptions:
+    loot_elevator_soul: bool = False
+
+
+@dataclass(kw_only=True)
+class DarkrootBasinOptions:
+    kill_black_knight: bool = False
+
+
+@dataclass(kw_only=True)
+class UndeadParishOptions:
+    loot_fire_keeper_soul: bool = False
+
+
+@dataclass(kw_only=True)
+class UndeadAsylumOptions:
+    trade_for_ring_of_fog: bool = False
+
+
+@dataclass(kw_only=True)
+class NpcOptions:
+    kill_darkmoon_knightess: bool = False
     kill_oswald: bool = False
     kill_andre: bool = False
     kill_petrus: bool = False
     kill_patches: bool = False
-    bone_count_if_from_oswald: int = 5
+
+
+@dataclass(kw_only=True)
+class BossOptions:
+    wait_for_four_kings_drops: bool = False
+    wait_for_sif_drops: bool = False
+    wait_for_nito_drops: bool = False
+    wait_for_seath_drops: bool = False
     kill_smough_first: bool = False
+    kill_stray_demon: bool = True
+
+
+@dataclass(kw_only=True)
+class Options:
+    display_name: str
+    early_weapon: str
+    initial_upgrade: int
+    firelink: FirelinkOptions
+    new_londo_ruins: NewLondoRuinsOptions
+    darkroot_basin: DarkrootBasinOptions
+    undead_parish: UndeadParishOptions
+    undead_asylum: UndeadAsylumOptions
+    boss: BossOptions
+    npc: NpcOptions
+    bone_count_if_from_oswald: int = 5
     notes: list[str] = field(default_factory=list)
     damage_tables: list[DamageTable] = field(default_factory=list)
 
@@ -107,6 +144,29 @@ class Options:
                 f" but is {self.initial_upgrade}"
             )
 
+    @property
+    def loots_firelink_at_start(self) -> bool:
+        return (
+            self.firelink.loot_elevator_soul
+            or self.firelink.loot_homeward_bones
+            or self.firelink.loot_graveyard_souls
+        )
+
+    @property
+    def uses_reinforced_club(self) -> bool:
+        return self.early_weapon == "Reinforced Club"
+
+    @property
+    def uses_battle_axe(self) -> bool:
+        return self.early_weapon == "Battle Axe"
+
+    @property
+    def revisits_undead_asylum(self) -> bool:
+        return (
+            self.boss.kill_stray_demon
+            or self.undead_asylum.trade_for_ring_of_fog
+        )
+
 
 @unique
 class Variation(Enum):
@@ -114,14 +174,18 @@ class Variation(Enum):
         display_name="Reinforced Club +5",
         early_weapon="Reinforced Club",
         initial_upgrade=5,
-        loot_firelink_humanity=True,
-        loot_firelink_elevator_soul=True,
-        loot_firelink_bones=True,
-        loot_firelink_graveyard=True,
-        loot_new_londo_ruins_soul=True,
-        loot_undead_parish_fire_keeper_soul=True,
-        kill_black_knight=True,
-        wait_for_four_kings_drops=True,
+        firelink=FirelinkOptions(
+            loot_well_humanity=True,
+            loot_elevator_soul=True,
+            loot_homeward_bones=True,
+            loot_graveyard_souls=True,
+        ),
+        new_londo_ruins=NewLondoRuinsOptions(loot_elevator_soul=True),
+        darkroot_basin=DarkrootBasinOptions(kill_black_knight=True),
+        undead_parish=UndeadParishOptions(loot_fire_keeper_soul=True),
+        undead_asylum=UndeadAsylumOptions(),
+        boss=BossOptions(wait_for_four_kings_drops=True),
+        npc=NpcOptions(kill_darkmoon_knightess=True),
         notes=[],
         damage_tables=[
             DamageTable(
@@ -160,14 +224,13 @@ class Variation(Enum):
         display_name="Battle Axe +4 or +3",
         early_weapon="Battle Axe",
         initial_upgrade=4,
-        loot_firelink_humanity=True,
-        loot_firelink_elevator_soul=False,
-        loot_firelink_bones=False,
-        loot_firelink_graveyard=False,
-        loot_new_londo_ruins_soul=False,
-        loot_undead_parish_fire_keeper_soul=True,
-        kill_black_knight=True,
-        wait_for_four_kings_drops=True,
+        firelink=FirelinkOptions(loot_well_humanity=True),
+        new_londo_ruins=NewLondoRuinsOptions(),
+        darkroot_basin=DarkrootBasinOptions(kill_black_knight=True),
+        undead_parish=UndeadParishOptions(loot_fire_keeper_soul=True),
+        undead_asylum=UndeadAsylumOptions(),
+        boss=BossOptions(wait_for_four_kings_drops=True),
+        npc=NpcOptions(kill_darkmoon_knightess=True),
         notes=[],
         damage_tables=[
             DamageTable(
@@ -221,14 +284,17 @@ class Variation(Enum):
         display_name="Battle Axe +4 skipping Black Knight",
         early_weapon="Battle Axe",
         initial_upgrade=4,
-        loot_firelink_humanity=True,
-        loot_firelink_elevator_soul=False,
-        loot_firelink_bones=True,
-        loot_firelink_graveyard=True,
-        loot_new_londo_ruins_soul=True,
-        loot_undead_parish_fire_keeper_soul=True,
-        kill_black_knight=False,
-        wait_for_four_kings_drops=True,
+        firelink=FirelinkOptions(
+            loot_well_humanity=True,
+            loot_homeward_bones=True,
+            loot_graveyard_souls=True,
+        ),
+        new_londo_ruins=NewLondoRuinsOptions(loot_elevator_soul=True),
+        darkroot_basin=DarkrootBasinOptions(),
+        undead_parish=UndeadParishOptions(loot_fire_keeper_soul=True),
+        undead_asylum=UndeadAsylumOptions(),
+        boss=BossOptions(wait_for_four_kings_drops=True),
+        npc=NpcOptions(kill_darkmoon_knightess=True),
         notes=[],
         damage_tables=[
             DamageTable(
@@ -268,21 +334,15 @@ class Variation(Enum):
     def options(self) -> Options:
         return self.value
 
-    @property
-    def loots_firelink_at_start(self) -> bool:
-        return (
-            self.options.loot_firelink_elevator_soul
-            or self.options.loot_firelink_bones
-            or self.options.loot_firelink_graveyard
+
+@dataclass
+class StartOfGame(Segment):
+    def __post_init__(self) -> None:
+        super().__post_init__()
+        self.add_steps(
+            Region("Northern Undead Asylum"),
+            AutoBonfire("Undead Asylum Dungeon Cell"),
         )
-
-    @property
-    def uses_reinforced_club(self) -> bool:
-        return self.options.early_weapon == "Reinforced Club"
-
-    @property
-    def uses_battle_axe(self) -> bool:
-        return self.options.early_weapon == "Battle Axe"
 
 
 @dataclass
@@ -311,16 +371,6 @@ class PyromancerInitialState(Segment):
             AutoEquip("Tattered Cloth Robe", "Torso", detail=detail),
             AutoEquip("Tattered Cloth Manchette", "Arms", detail=detail),
             AutoEquip("Heavy Boots", "Legs", detail=detail),
-        )
-
-
-@dataclass
-class StartOfGame(Segment):
-    def __post_init__(self) -> None:
-        super().__post_init__()
-        self.add_steps(
-            Region("Northern Undead Asylum"),
-            AutoBonfire("Undead Asylum Dungeon Cell"),
         )
 
 
@@ -395,10 +445,9 @@ class FirelinkToQuelaag(Segment):
 
 @dataclass(kw_only=True)
 class FirelinkToSensFortress(Segment):
-    variation: Variation
+    options: Options
 
     def __post_init__(self) -> None:
-        options = self.variation.options
         super().__post_init__()
         self.add_steps(
             Region("Firelink Shrine"),
@@ -408,9 +457,9 @@ class FirelinkToSensFortress(Segment):
                 humanities=1,
                 detail=f"side of well, get on way to {parish_elevator}.",
                 condition=(
-                    options.loot_firelink_humanity
-                    and not self.variation.loots_firelink_at_start
-                    and not self.variation.uses_reinforced_club
+                    self.options.firelink.loot_well_humanity
+                    and not self.options.loots_firelink_at_start
+                    and not self.options.uses_reinforced_club
                 ),
                 notes=[
                     (
@@ -530,13 +579,12 @@ class EquipBlacksmithGiantHammerAndDarksign(Segment):
 
 @dataclass(kw_only=True)
 class SL1StartToAfterGargoylesInFirelink(Segment):
-    variation: Variation
+    options: Options
 
     def __post_init__(self) -> None:
         SHARDS_PER_LEVEL = [1, 1, 2, 2, 3]
-        options = self.variation.options
         early_weapon_shards = sum(
-            SHARDS_PER_LEVEL[0 : options.initial_upgrade]
+            SHARDS_PER_LEVEL[0 : self.options.initial_upgrade]
         )
 
         super().__post_init__()
@@ -547,22 +595,22 @@ class SL1StartToAfterGargoylesInFirelink(Segment):
             AsylumCellToFirelink(),
             Region("Firelink Shrine"),
             conditional(
-                not self.variation.loots_firelink_at_start,
+                not self.options.loots_firelink_at_start,
                 notes=[
                     "Firelink <b>IS NOT</b> looted at start;"
                     f" goes straight to {andre}."
                 ],
             ),
             conditional(
-                self.variation.loots_firelink_at_start,
+                self.options.loots_firelink_at_start,
                 Loot(
                     Item.HUMANITY,
                     count=3,
                     humanities=1,
                     detail="side of well, get during Firelink loot route.",
                     condition=(
-                        options.loot_firelink_humanity
-                        and not self.variation.uses_reinforced_club
+                        self.options.firelink.loot_well_humanity
+                        and not self.options.uses_reinforced_club
                     ),
                     notes=[
                         "3 humanities at Firelink well looted immediately."
@@ -572,48 +620,51 @@ class SL1StartToAfterGargoylesInFirelink(Segment):
                     "Soul of a Lost Undead",
                     souls=200,
                     detail="upper elevator",
-                    condition=options.loot_firelink_elevator_soul,
+                    condition=self.options.firelink.loot_elevator_soul,
                 ),
                 Jump(
                     "off ledge to hidden chests",
-                    condition=options.loot_firelink_bones,
+                    condition=self.options.firelink.loot_homeward_bones,
                 ),
                 Loot(
                     Item.BONE,
                     count=6,
                     detail="hidden chest",
-                    condition=options.loot_firelink_bones,
+                    condition=self.options.firelink.loot_homeward_bones,
                 ),
                 Equip(
                     Item.BONE,
                     "Item 5",
                     detail="immediately",
-                    condition=options.loot_firelink_bones,
+                    condition=self.options.firelink.loot_homeward_bones,
                 ),
                 Loot(
                     "Large Soul of a Lost Undead",
                     souls=400,
                     detail="middle of graveyard",
-                    condition=options.loot_firelink_graveyard,
+                    condition=self.options.firelink.loot_graveyard_souls,
                 ),
                 Loot(
                     "Large Soul of a Lost Undead",
                     souls=400,
                     detail="start of graveyard",
-                    condition=options.loot_firelink_graveyard,
+                    condition=self.options.firelink.loot_graveyard_souls,
                 ),
-                Use(Item.BONE, condition=options.loot_firelink_graveyard),
+                Use(
+                    Item.BONE,
+                    condition=self.options.firelink.loot_graveyard_souls,
+                ),
                 notes=["Firelink is looted upon arrival."],
             ),
             conditional(
-                self.variation.uses_reinforced_club,
+                self.options.uses_reinforced_club,
                 Region("Firelink Shrine"),
                 Loot(
                     Item.HUMANITY,
                     count=3,
                     humanities=1,
                     detail=("side of well, get on way to get Reinforced Club"),
-                    condition=options.loot_firelink_humanity,
+                    condition=self.options.firelink.loot_well_humanity,
                     notes=[
                         (
                             "3 humanities at Firelink well looted on way to"
@@ -644,7 +695,7 @@ class SL1StartToAfterGargoylesInFirelink(Segment):
                 "Soul of a Nameless Soldier",
                 souls=800,
                 detail=f"by bottom of {new_londo_elevator}",
-                condition=options.loot_new_londo_ruins_soul,
+                condition=self.options.new_londo_ruins.loot_elevator_soul,
             ),
             RunTo("Master Key door to Valley of the Drakes"),
             Region("Valley of Drakes"),
@@ -663,13 +714,13 @@ class SL1StartToAfterGargoylesInFirelink(Segment):
                 "Reinforced Club",
                 "Right Hand",
                 detail=rtsr_ladder,
-                condition=self.variation.uses_reinforced_club,
+                condition=self.options.uses_reinforced_club,
             ),
             Equip(
                 "Soul of a Nameless Soldier",
                 "Item 2",
                 detail=rtsr_ladder,
-                condition=options.loot_new_londo_ruins_soul,
+                condition=self.options.new_londo_ruins.loot_elevator_soul,
             ),
             Equip(
                 "Large Soul of a Nameless Soldier",
@@ -687,7 +738,7 @@ class SL1StartToAfterGargoylesInFirelink(Segment):
             Use(
                 "Soul of a Nameless Soldier",
                 detail=basin_elevator,
-                condition=options.loot_new_londo_ruins_soul,
+                condition=self.options.new_londo_ruins.loot_elevator_soul,
             ),
             Equip("Red Tearstone Ring", "Ring 2", detail=basin_elevator),
             Region("Darkroot Basin"),
@@ -703,21 +754,21 @@ class SL1StartToAfterGargoylesInFirelink(Segment):
                             '<br/><span class="warning">SKIPPING THIS MEANS'
                             " ONLY HAVING A +3 WEAPON</span>"
                         )
-                        if options.initial_upgrade == 4
+                        if self.options.initial_upgrade == 4
                         else ""
                     )
                 ),
-                condition=options.kill_black_knight,
-                optional=options.initial_upgrade == 4,
+                condition=self.options.darkroot_basin.kill_black_knight,
+                optional=self.options.initial_upgrade == 4,
                 notes=(
                     [
                         (
                             "Black Knight in Darkroot Basin <b>PRECISELY</b>"
                             " determines whether you can afford upgrading your"
-                            f" {options.early_weapon} to +3 or +4."
+                            f" {self.options.early_weapon} to +3 or +4."
                         )
                     ]
-                    if options.initial_upgrade == 4
+                    if self.options.initial_upgrade == 4
                     else [
                         (
                             "Black Knight in Darkroot Basin"
@@ -727,7 +778,7 @@ class SL1StartToAfterGargoylesInFirelink(Segment):
                 ),
             ),
             conditional(
-                not options.kill_black_knight,
+                not self.options.darkroot_basin.kill_black_knight,
                 notes=[
                     (
                         "Black Knight in Darkroot Basin"
@@ -739,7 +790,7 @@ class SL1StartToAfterGargoylesInFirelink(Segment):
                 "Undead Parish",
                 detail=(
                     ""
-                    if options.kill_black_knight
+                    if self.options.darkroot_basin.kill_black_knight
                     else "no need to kill Black Knight"
                 ),
             ),
@@ -748,10 +799,10 @@ class SL1StartToAfterGargoylesInFirelink(Segment):
                 "Battle Axe",
                 souls=1000,
                 detail=andre,
-                condition=self.variation.uses_battle_axe,
+                condition=self.options.uses_battle_axe,
             ),
             conditional(
-                options.initial_upgrade > 0,
+                self.options.initial_upgrade > 0,
                 Buy(
                     Item.TITANITE_SHARD,
                     count=early_weapon_shards,
@@ -760,10 +811,10 @@ class SL1StartToAfterGargoylesInFirelink(Segment):
                 ),
                 UpgradeCost(
                     (
-                        f"{options.early_weapon}"
-                        f" +0-{options.initial_upgrade}"
+                        f"{self.options.early_weapon}"
+                        f" +0-{self.options.initial_upgrade}"
                     ),
-                    souls=200 * options.initial_upgrade,
+                    souls=200 * self.options.initial_upgrade,
                     items=Counter({Item.TITANITE_SHARD: early_weapon_shards}),
                     detail=andre,
                 ),
@@ -771,14 +822,14 @@ class SL1StartToAfterGargoylesInFirelink(Segment):
                     "Battle Axe",
                     "Right Hand",
                     detail=andre,
-                    condition=self.variation.uses_battle_axe,
+                    condition=self.options.uses_battle_axe,
                 ),
             ),
             Loot(
                 "Fire Keeper Soul",
                 humanities=5,
                 detail="on altar behind Berenike Knight",
-                condition=options.loot_undead_parish_fire_keeper_soul,
+                condition=self.options.undead_parish.loot_fire_keeper_soul,
             ),
             Activate(
                 "Elevator to Firelink Shrine",
@@ -793,32 +844,33 @@ class SL1StartToAfterGargoylesInFirelink(Segment):
                 oswald,
                 detail="TODO: RTSR setup: heal, fall down both ladders",
                 condition=(
-                    options.kill_oswald or not options.loot_firelink_bones
+                    self.options.npc.kill_oswald
+                    or not self.options.firelink.loot_homeward_bones
                 ),
             ),
             Buy(
                 Item.BONE,
-                count=options.bone_count_if_from_oswald,
+                count=self.options.bone_count_if_from_oswald,
                 souls=500,
                 detail=oswald,
-                condition=not options.loot_firelink_bones,
+                condition=not self.options.firelink.loot_homeward_bones,
                 notes=[
                     f"{oswald} <b>MUST</b> be visited to buy {Item.BONE}s."
                 ],
             ),
-            Kill(oswald, souls=2000, condition=options.kill_oswald),
+            Kill(oswald, souls=2000, condition=self.options.npc.kill_oswald),
             Loot(
                 Item.TWIN_HUMANITIES,
                 count=2,
                 humanities=2,
                 detail=oswald,
-                condition=options.kill_oswald,
+                condition=self.options.npc.kill_oswald,
             ),
             Equip(
                 Item.BONE,
                 "Item 5",
                 detail="immediately",
-                condition=not options.loot_firelink_bones,
+                condition=not self.options.firelink.loot_homeward_bones,
             ),
             Use(Item.BONE),
         )
@@ -826,19 +878,20 @@ class SL1StartToAfterGargoylesInFirelink(Segment):
 
 @dataclass(kw_only=True)
 class StartToBlacksmithGiantHammer(Segment):
-    variation: Variation
+    options: Options
 
     def __post_init__(self) -> None:
-        options = self.variation.options
         super().__post_init__()
         if not self.name:
-            self.name = f"SL1 Melee Only Glitchless ({options.display_name})"
+            self.name = (
+                f"SL1 Melee Only Glitchless ({self.options.display_name})"
+            )
         self.notes.extend(["TODO: fix RTSR setup for Gargoyles"])
-        self.notes.extend(options.notes)
+        self.notes.extend(self.options.notes)
         self.add_steps(
-            SL1StartToAfterGargoylesInFirelink(variation=self.variation),
+            SL1StartToAfterGargoylesInFirelink(options=self.options),
             FirelinkToQuelaag(),
-            FirelinkToSensFortress(variation=self.variation),
+            FirelinkToSensFortress(options=self.options),
             SensFortressToDarkmoonTomb(),
             DarkmoonTombToGiantBlacksmith(),
             GetBlacksmithGiantHammerAndUpgradeMaterials(),
@@ -855,18 +908,18 @@ class StartToBlacksmithGiantHammer(Segment):
                 "Soul of Smough",
                 souls=12000,
                 detail=O_and_S,
-                condition=not options.kill_smough_first,
+                condition=not self.options.boss.kill_smough_first,
             ),
             Receive(
                 "Soul of Ornstein",
                 souls=12000,
                 detail=O_and_S,
-                condition=options.kill_smough_first,
+                condition=self.options.boss.kill_smough_first,
             ),
             # Loot(
             #    "Leo Ring",
             #    detail=O_and_S,
-            #    condition=options.kill_smough_first,
+            #    condition=self.options.boss.kill_smough_first,
             # ),
             Receive(Item.HUMANITY, humanities=1, detail=O_and_S),
             Kill("Pinwheel", souls=15000),
@@ -876,11 +929,11 @@ class StartToBlacksmithGiantHammer(Segment):
             Kill(nito, souls=60000),
             Receive("Lord Soul", detail=nito),
             conditional(
-                not options.wait_for_nito_drops,
+                not self.options.boss.wait_for_nito_drops,
                 notes=[f"1 slow {Item.HUMANITY} skipped from {nito}."],
             ),
             conditional(
-                options.wait_for_nito_drops,
+                self.options.boss.wait_for_nito_drops,
                 Receive(
                     Item.HUMANITY,
                     humanities=1,
@@ -892,14 +945,14 @@ class StartToBlacksmithGiantHammer(Segment):
             Receive("Covenant of Artorias", detail=sif),
             Receive("Soul of Sif", souls=16000, detail=sif),
             conditional(
-                not options.wait_for_sif_drops,
+                not self.options.boss.wait_for_sif_drops,
                 notes=[
                     f"1 slow {Item.HUMANITY} and {Item.BONE}"
                     f" skipped from {sif}."
                 ],
             ),
             conditional(
-                options.wait_for_sif_drops,
+                self.options.boss.wait_for_sif_drops,
                 Receive(
                     Item.HUMANITY,
                     humanities=1,
@@ -911,13 +964,11 @@ class StartToBlacksmithGiantHammer(Segment):
             Kill(four_kings, souls=60000),
             Receive("Bequeathed Lord Soul Shard", detail=four_kings),
             conditional(
-                not options.wait_for_four_kings_drops,
-                notes=[
-                    f"4 slow {Item.HUMANITY}" " skipped from {four_kings}."
-                ],
+                not self.options.boss.wait_for_four_kings_drops,
+                notes=[f"4 slow {Item.HUMANITY} skipped from {four_kings}."],
             ),
             conditional(
-                options.wait_for_four_kings_drops,
+                self.options.boss.wait_for_four_kings_drops,
                 Receive(
                     Item.HUMANITY,
                     count=4,
@@ -932,16 +983,21 @@ class StartToBlacksmithGiantHammer(Segment):
                 "Darkmoon Knightess",
                 souls=1000,
                 detail="Anor Londo fire keeper",
+                condition=self.options.npc.kill_darkmoon_knightess,
             ),
-            Loot("Fire Keeper Soul", detail="Darkmoon Knightess"),
+            Loot(
+                "Fire Keeper Soul",
+                detail="Darkmoon Knightess",
+                condition=self.options.npc.kill_darkmoon_knightess,
+            ),
             Kill(seath, souls=60000),
             Receive("Bequeathed Lord Soul Shard", detail=seath),
             conditional(
-                not options.wait_for_seath_drops,
+                not self.options.boss.wait_for_seath_drops,
                 notes=[f"1 slow {Item.HUMANITY} skipped from {seath}."],
             ),
             conditional(
-                options.wait_for_seath_drops,
+                self.options.boss.wait_for_seath_drops,
                 Receive(
                     Item.HUMANITY,
                     humanities=1,
@@ -953,30 +1009,30 @@ class StartToBlacksmithGiantHammer(Segment):
                 "Patches",
                 souls=2000,
                 detail="Tomb of the Giants",
-                condition=options.kill_patches,
+                condition=self.options.npc.kill_patches,
             ),
             Loot(
                 Item.HUMANITY,
                 count=4,
                 humanities=1,
                 detail="Patches",
-                condition=options.kill_patches,
+                condition=self.options.npc.kill_patches,
             ),
-            Kill(petrus, souls=1000, condition=options.kill_petrus),
+            Kill(petrus, souls=1000, condition=self.options.npc.kill_petrus),
             Loot(
                 Item.HUMANITY,
                 count=2,
                 humanities=1,
                 detail=petrus,
-                condition=options.kill_petrus,
+                condition=self.options.npc.kill_petrus,
             ),
-            Kill(andre, souls=1000, condition=options.kill_andre),
+            Kill(andre, souls=1000, condition=self.options.npc.kill_andre),
             Loot(
                 Item.HUMANITY,
                 count=3,
                 humanities=1,
                 detail=andre,
-                condition=options.kill_andre,
+                condition=self.options.npc.kill_andre,
             ),
             UseMenu(
                 "Fire Keeper Soul",
@@ -1000,23 +1056,20 @@ class StartToBlacksmithGiantHammer(Segment):
 
 
 class SL1RangelessGlitchless(Route):
-    def __init__(self, variation: Variation):
+    def __init__(self, options: Options):
         super().__init__(
-            name=(
-                "SL1 Rangeless Glitchless"
-                f" ({variation.options.display_name})"
-            ),
-            segment=StartToBlacksmithGiantHammer(variation=variation),
-            damage_tables=variation.options.damage_tables,
+            name=("SL1 Rangeless Glitchless" f" ({options.display_name})"),
+            segment=StartToBlacksmithGiantHammer(options=options),
+            damage_tables=options.damage_tables,
             hit_lookup=SL1_HIT_LOOKUP,
         )
 
 
 EXPORTED_ROUTES: list[Route] = [
-    SL1RangelessGlitchless(variation=Variation.REINFORCED_CLUB),
-    SL1RangelessGlitchless(variation=Variation.BATTLE_AXE_PLUS_4_OR_3),
+    SL1RangelessGlitchless(options=Variation.REINFORCED_CLUB.options),
+    SL1RangelessGlitchless(options=Variation.BATTLE_AXE_PLUS_4_OR_3.options),
     SL1RangelessGlitchless(
-        variation=Variation.BATTLE_AXE_PLUS_4_SKIPPING_BLACK_KNIGHT
+        options=Variation.BATTLE_AXE_PLUS_4_SKIPPING_BLACK_KNIGHT.options
     ),
 ]
 
