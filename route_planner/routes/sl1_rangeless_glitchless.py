@@ -43,7 +43,10 @@ O_and_S = "Dragon Slayer Ornstein & Executioner Smough"
 sif = "Sif, the Great Grey Wolf"
 nito = "Gravelord Nito"
 seath = "Seath the Scaleless"
+gwyndolin = "Dark Sun Gwyndolin"
 four_kings = "The Four Kings"
+priscilla = "Crossbreed Priscilla"
+slumbering = "Slumbering Dragoncrest Ring"
 
 HUMANOID_HIT_TYPES = list(HitType)
 STANDARD_HIT_TYPES = [
@@ -122,6 +125,12 @@ class BossOptions:
 
 
 @dataclass(kw_only=True)
+class RingOptions:
+    ring_of_fog: bool = False
+    slumbering_dragoncrest_ring: bool = False
+
+
+@dataclass(kw_only=True)
 class Options:
     display_name: str
     early_weapon: str
@@ -133,6 +142,8 @@ class Options:
     undead_asylum: UndeadAsylumOptions
     boss: BossOptions
     npc: NpcOptions
+    ring: RingOptions
+    all_bosses: bool = False
     bone_count_if_from_oswald: int = 5
     notes: list[str] = field(default_factory=list)
     damage_tables: list[DamageTable] = field(default_factory=list)
@@ -186,6 +197,7 @@ class Variation(Enum):
         undead_asylum=UndeadAsylumOptions(),
         boss=BossOptions(wait_for_four_kings_drops=True),
         npc=NpcOptions(kill_darkmoon_knightess=True),
+        ring=RingOptions(),
         notes=[],
         damage_tables=[
             DamageTable(
@@ -231,6 +243,7 @@ class Variation(Enum):
         undead_asylum=UndeadAsylumOptions(),
         boss=BossOptions(wait_for_four_kings_drops=True),
         npc=NpcOptions(kill_darkmoon_knightess=True),
+        ring=RingOptions(),
         notes=[],
         damage_tables=[
             DamageTable(
@@ -295,6 +308,7 @@ class Variation(Enum):
         undead_asylum=UndeadAsylumOptions(),
         boss=BossOptions(wait_for_four_kings_drops=True),
         npc=NpcOptions(kill_darkmoon_knightess=True),
+        ring=RingOptions(),
         notes=[],
         damage_tables=[
             DamageTable(
@@ -358,7 +372,7 @@ class InitialState(Segment):
 
 
 @dataclass
-class PyromancerInitialState(Segment):
+class PyromancerStartingEquipment(Segment):
     def __post_init__(self) -> None:
         detail = "Pyromancer starting equipment"
         super().__post_init__()
@@ -471,27 +485,48 @@ class FirelinkToSensFortress(Segment):
             RunTo(parish_elevator),
             UseMenu("Soul of Quelaag", detail=parish_elevator),
             Region("Undead Parish"),
-            BonfireSit("Undead Parish"),
+            BonfireSit(
+                "Undead Parish",
+                detail="safety for Sen's Fortress",
+                optional=True,
+            ),
             Region("Sen's Fortress"),
             RunTo("room before 2nd boulder"),
             WaitFor("boulder to pass", detail="hitting enemy in room 5 times"),
             RunTo("top of ramp", detail="must go IMMEDIATELY after boulder"),
-            BonfireSit("Sen's Fortress"),
+            RunTo("fog gate at top of Sen's Fortress"),
+            conditional(
+                self.options.ring.slumbering_dragoncrest_ring,
+                BonfireSit(
+                    "Sen's Fortress",
+                    detail=f"to bone back after getting {slumbering}",
+                ),
+                RunTo(
+                    "hole at dead end below bonfire and to the right",
+                    detail="fall down it",
+                ),
+                Loot(slumbering),
+                Use(Item.BONE),
+            ),
+            conditional(
+                not self.options.ring.slumbering_dragoncrest_ring,
+                BonfireSit(
+                    "Sen's Fortress",
+                    detail="safety for Iron Golem",
+                    optional=True,
+                ),
+            ),
         )
 
 
 @dataclass
-class SensFortressToDarkmoonTomb(Segment):
+class SensFortressToAnorLondoResidence(Segment):
+    options: Options
+
     def __post_init__(self) -> None:
         super().__post_init__()
         self.add_steps(
             Region("Sen's Fortress"),
-            RunTo(
-                "hole at dead end below bonfire and to the right",
-                detail="fall down it",
-            ),
-            Loot("Slumbering Dragoncrest Ring"),
-            Use(Item.BONE),
             FallDamage("off right side of bridge, twice", detail="RTSR setup"),
             Kill(
                 "Undead Knight Archer",
@@ -506,36 +541,51 @@ class SensFortressToDarkmoonTomb(Segment):
             Receive("Core of an Iron Golem", souls=12000, detail="Iron Golem"),
             Receive(Item.HUMANITY, humanities=1, detail="Iron Golem"),
             Region("Anor Londo"),
+            conditional(
+                self.options.all_bosses,
+                BonfireSit(
+                    "Anor Londo", detail="safety for rafters", optional=True
+                ),
+            ),
+            conditional(
+                not self.options.all_bosses,
+                BonfireSit(
+                    "Anor Londo", detail=f"so you can warp back for {seath}"
+                ),
+            ),
             BonfireSit(
                 "Anor Londo", detail="safety for rafters", optional=True
             ),
             RunTo("elevator"),
             UseMenu("Core of an Iron Golem", detail="elevator"),
-            Activate("Bridge lever (2x)"),
+            RunTo("other end of rafters"),
+            Activate("Bridge lever (1st time to level)"),
             Equip(
-                "Slumbering Dragoncrest Ring",
+                slumbering,
                 slot="Ring 1",
                 detail="while pushing bridge lever",
+                condition=self.options.ring.slumbering_dragoncrest_ring,
             ),
-            BonfireSit("Darkmoon Tomb"),
-        )
-
-
-@dataclass
-class DarkmoonTombToGiantBlacksmith(Segment):
-    def __post_init__(self) -> None:
-        super().__post_init__()
-        self.add_steps(
-            Region("Anor Londo"),
-            Activate("Bridge lever"),
+            conditional(
+                self.options.all_bosses,
+                Activate("Bridge lever (2nd time for Darkmoon Tomb)"),
+                RunTo("bottom of the stairs"),
+                BonfireSit(
+                    "Darkmoon Tomb",
+                    detail=(
+                        f"so you can warp back for {gwyndolin} and {priscilla}"
+                    ),
+                ),
+                RunTo("top of the stairs"),
+                Activate("Bridge lever (3rd time to re-level)"),
+            ),
             RunTo("sniper ledge"),
             Kill(
                 "Silver Knight",
                 souls=1300,
                 detail="bait melee then run to make him fall",
             ),
-            BonfireSit("Post-Sniper Bonfire"),
-            RunTo("Giant Blacksmith"),
+            BonfireSit("Anor Londo Residence"),
         )
 
 
@@ -545,6 +595,7 @@ class GetBlacksmithGiantHammerAndUpgradeMaterials(Segment):
         super().__post_init__()
         self.add_steps(
             Region("Anor Londo"),
+            RunTo("Giant Blacksmith"),
             Buy("Weapon Smithbox", souls=2000, detail="Giant Blacksmith"),
             Buy(
                 Item.TWINKLING_TITANITE,
@@ -578,7 +629,7 @@ class EquipBlacksmithGiantHammerAndDarksign(Segment):
 
 
 @dataclass(kw_only=True)
-class SL1StartToAfterGargoylesInFirelink(Segment):
+class StartToAfterGargoylesInFirelink(Segment):
     options: Options
 
     def __post_init__(self) -> None:
@@ -590,7 +641,7 @@ class SL1StartToAfterGargoylesInFirelink(Segment):
         super().__post_init__()
         self.add_steps(
             InitialState(),
-            PyromancerInitialState(),
+            PyromancerStartingEquipment(),
             StartOfGame(),
             AsylumCellToFirelink(),
             Region("Firelink Shrine"),
@@ -889,11 +940,10 @@ class StartToBlacksmithGiantHammer(Segment):
         self.notes.extend(["TODO: fix RTSR setup for Gargoyles"])
         self.notes.extend(self.options.notes)
         self.add_steps(
-            SL1StartToAfterGargoylesInFirelink(options=self.options),
+            StartToAfterGargoylesInFirelink(options=self.options),
             FirelinkToQuelaag(),
             FirelinkToSensFortress(options=self.options),
-            SensFortressToDarkmoonTomb(),
-            DarkmoonTombToGiantBlacksmith(),
+            SensFortressToAnorLondoResidence(options=self.options),
             GetBlacksmithGiantHammerAndUpgradeMaterials(),
             UpgradeCost(
                 "Blacksmith Giant Hammer +0-5",
@@ -902,8 +952,15 @@ class StartToBlacksmithGiantHammer(Segment):
                 detail="(Bonfire) Blacksmith Giant Hammer +0-5",
             ),
             EquipBlacksmithGiantHammerAndDarksign(),
-            Region("TODO"),
-            Kill(O_and_S, souls=50000),
+            Kill(
+                O_and_S,
+                souls=50000,
+                detail=(
+                    "Kill Smough first"
+                    if self.options.boss.kill_smough_first
+                    else "Kill Ornstein first"
+                ),
+            ),
             Receive(
                 "Soul of Smough",
                 souls=12000,
@@ -921,6 +978,8 @@ class StartToBlacksmithGiantHammer(Segment):
             #    detail=O_and_S,
             #    condition=self.options.boss.kill_smough_first,
             # ),
+            #####################################
+            Region("TODO"),
             Receive(Item.HUMANITY, humanities=1, detail=O_and_S),
             Kill("Pinwheel", souls=15000),
             Receive("Rite of Kindling", detail="Pinwheel"),
@@ -1058,7 +1117,7 @@ class StartToBlacksmithGiantHammer(Segment):
 class SL1RangelessGlitchless(Route):
     def __init__(self, options: Options):
         super().__init__(
-            name=("SL1 Rangeless Glitchless" f" ({options.display_name})"),
+            name=(f"SL1 Rangeless Glitchless ({options.display_name})"),
             segment=StartToBlacksmithGiantHammer(options=options),
             damage_tables=options.damage_tables,
             hit_lookup=SL1_HIT_LOOKUP,
