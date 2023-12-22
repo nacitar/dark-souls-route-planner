@@ -851,7 +851,7 @@ class SensFortressToAnorLondoResidence(Segment):
 
 
 @dataclass
-class GetBlacksmithGiantHammerAndUpgradeMaterials(Segment):
+class GetAndUpgradeBlacksmithGiantHammer(Segment):
     def __post_init__(self) -> None:
         super().__post_init__()
         self.add_steps(
@@ -867,14 +867,12 @@ class GetBlacksmithGiantHammerAndUpgradeMaterials(Segment):
             Kill("Giant Blacksmith", souls=3000),
             Loot("Blacksmith Giant Hammer", detail="Giant Blacksmith"),
             Use(Item.BONE),
-        )
-
-
-@dataclass
-class EquipBlacksmithGiantHammerAndDarksign(Segment):
-    def __post_init__(self) -> None:
-        super().__post_init__()
-        self.add_steps(
+            UpgradeCost(
+                "Blacksmith Giant Hammer +0-5",
+                souls=10000,
+                items=Counter({Item.TWINKLING_TITANITE: 10}),
+                detail="(Bonfire) Blacksmith Giant Hammer +0-5",
+            ),
             Equip(
                 "Blacksmith Giant Hammer",
                 "Right Hand",
@@ -889,31 +887,13 @@ class EquipBlacksmithGiantHammerAndDarksign(Segment):
         )
 
 
-@dataclass(kw_only=True)
-class StartToBlacksmithGiantHammer(Segment):
+@dataclass
+class AnorLondoResidenceToSif(Segment):
     options: Options
 
     def __post_init__(self) -> None:
         super().__post_init__()
-        if not self.name:
-            self.name = (
-                f"SL1 Melee Only Glitchless ({self.options.display_name})"
-            )
-        self.notes.extend(["TODO: fix RTSR setup for Gargoyles"])
-        self.notes.extend(self.options.notes)
         self.add_steps(
-            StartToAfterGargoylesInFirelink(options=self.options),
-            FirelinkToQuelaag(),
-            FirelinkToSensFortress(options=self.options),
-            SensFortressToAnorLondoResidence(options=self.options),
-            GetBlacksmithGiantHammerAndUpgradeMaterials(),
-            UpgradeCost(
-                "Blacksmith Giant Hammer +0-5",
-                souls=10000,
-                items=Counter({Item.TWINKLING_TITANITE: 10}),
-                detail="(Bonfire) Blacksmith Giant Hammer +0-5",
-            ),
-            EquipBlacksmithGiantHammerAndDarksign(),
             Kill(
                 O_and_S,
                 souls=50000,
@@ -940,7 +920,16 @@ class StartToBlacksmithGiantHammer(Segment):
             #    detail=O_and_S,
             #    condition=self.options.boss.kill_smough_first,
             # ),
-            #####################################
+        )
+
+
+@dataclass(kw_only=True)
+class ToDoSegment(Segment):
+    options: Options
+
+    def __post_init__(self) -> None:
+        super().__post_init__()
+        self.add_steps(
             Region("TODO"),
             Receive(Item.HUMANITY, humanities=1, detail=O_and_S),
             Kill("Pinwheel", souls=15000),
@@ -1080,9 +1069,22 @@ class SL1RangelessGlitchless(Route):
     def __init__(self, options: Options):
         super().__init__(
             name=(f"SL1 Rangeless Glitchless ({options.display_name})"),
-            segment=StartToBlacksmithGiantHammer(options=options),
+            segment=Segment(
+                notes=(["TODO: fix RTSR setup for Gargoyles"] + options.notes)
+            ),
             damage_tables=options.damage_tables,
             hit_lookup=SL1_HIT_LOOKUP,
+        )
+
+        self.segment.add_steps(
+            StartToAfterGargoylesInFirelink(options=options),
+            FirelinkToQuelaag(),
+            FirelinkToSensFortress(options=options),
+            SensFortressToAnorLondoResidence(options=options),
+            GetAndUpgradeBlacksmithGiantHammer(),
+            AnorLondoResidenceToSif(options=options),
+            ####################
+            ToDoSegment(options=options),
         )
 
 

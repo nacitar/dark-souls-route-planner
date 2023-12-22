@@ -99,7 +99,6 @@ class Step(Protocol):
 
 @dataclass(kw_only=True)
 class Segment:  # is a 'Step'
-    name: str = ""
     notes: list[str] = field(default_factory=list)
     condition: bool = True
     actions: list[Action] = field(default_factory=list, init=False)
