@@ -260,7 +260,7 @@ class UseMenu(__ItemCommon):
         if actual_count < self.count:
             if self.allow_partial:
                 self.count = actual_count
-            # NOTE: this error is covered by 'State' overdraft checks
+            # NOTE: unneeded; this error is covered by 'State' overdraft checks
             # else:
             #    state.new_errors.append(
             #        f"Cannot use {self.count} of {self.target}, only have"
@@ -268,11 +268,7 @@ class UseMenu(__ItemCommon):
             #    )
         super().__call__(state)
         if self.target in (Item.BONE, Item.DARKSIGN):
-            try:
-                state.region = state.bonfire_to_region[state.bonfire]
-            except KeyError:
-                raise RuntimeError("Can't warp; bonfire region is unknown.")
-
+            WarpTo(state.bonfire)(state)
         stored_souls = state.souls_lookup.get(self.target, 0)
         if stored_souls:
             delta = stored_souls * self.count
