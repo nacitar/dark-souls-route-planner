@@ -76,9 +76,9 @@ class Action:  # is a 'segment.Step'
     target: str
     detail: str = field(default="", kw_only=True)
     optional: bool = field(default=False, kw_only=True)
-    output: bool = field(default=True, kw_only=True)
     condition: bool = field(default=True, kw_only=True)
     notes: list[str] = field(default_factory=list, kw_only=True)
+    output: bool = field(default=True, init=False)
 
     @property
     def actions(self) -> list[Action]:  # so this is a 'segment.Step'
@@ -106,7 +106,7 @@ class FallDamage(Action):
 
 @dataclass
 class Region(Action):
-    detail: str = field(init=False)  # TODO: why is this here?
+    detail: str = field(init=False)
 
     def __post_init__(self) -> None:
         super().__post_init__()
@@ -283,8 +283,14 @@ class UseMenu(__ItemCommon):
             delta = stored_humanities * self.count
             state.humanity += delta
             state.item_humanities -= delta
-        if self.target != Item.DARKSIGN:
+        if self.target != Item.DARKSIGN:  # darksign isn't consumed
             state.inventory[self.target] -= self.count
+        # unequip it if you used the last one
+        if not state.inventory[self.target]:
+            for slot, piece in state.equipment.items():
+                if piece == self.target:
+                    del state.equipment[slot]
+                    break
 
 
 @dataclass
@@ -295,11 +301,6 @@ class Use(UseMenu):
                 f"Cannot use unequipped item: {self.target}"
             )
         super().__call__(state)
-        if not state.inventory[self.target]:
-            for slot, piece in state.equipment.items():
-                if piece == self.target:
-                    del state.equipment[slot]
-                    break
 
 
 @dataclass(kw_only=True)

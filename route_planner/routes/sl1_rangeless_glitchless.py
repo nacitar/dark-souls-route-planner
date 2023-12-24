@@ -1097,8 +1097,6 @@ class SL1RangelessGlitchless(Route):
                         "TODO: best path past boulders in Sen's Fortress",
                         "TODO: when to swap darksign for bones",
                         "TODO: Crest of Artorias cost.",
-                        "TODO: figure out why Region redefines detail.",
-                        "TODO: make UseMenu remove equipped items if hits 0.",
                     ]
                     + options.notes
                 )
