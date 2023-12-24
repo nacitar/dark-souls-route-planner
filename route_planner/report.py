@@ -5,7 +5,7 @@ from math import ceil
 from typing import Optional
 
 from . import styles
-from .action import Error, Region, State
+from .action import Error, State
 from .route import DamageTable, Enemy, Hit, HitType, Route, Segment
 
 
@@ -115,17 +115,7 @@ def segment_steps_table(
     )
     html.append("</tr></thead><tbody>")
     for state, action in segment.process(last_state):
-        if isinstance(action, Region):
-            if action.target != region:
-                region_count += 1
-                html.append(
-                    "</tbody><tbody><tr>"
-                    f'<td colspan="{len(columns)}" class="region">'
-                    f"{region_count:02}. {action.target}</td></tr>"
-                    "</tbody><tbody>"
-                )
-                region = action.target
-        elif action.output:
+        if action.output:
             rowclass = ""
             if isinstance(action, Error):
                 rowclass = "error"
@@ -159,6 +149,15 @@ def segment_steps_table(
                 f' <span class="display">{action.display}</span>'
                 f'<br/><span class="detail">{action.detail}'
                 "</span></td></tr>"
+            )
+        if state.region != region:
+            region = state.region
+            region_count += 1
+            html.append(
+                "</tbody><tbody><tr>"
+                f'<td colspan="{len(columns)}" class="region">'
+                f"{region_count:02}. {region}</td></tr>"
+                "</tbody><tbody>"
             )
         last_state = state
     html.append("</tbody></table>")

@@ -106,7 +106,11 @@ class FallDamage(Action):
 
 @dataclass
 class Region(Action):
-    detail: str = field(init=False)
+    detail: str = field(init=False)  # TODO: why is this here?
+
+    def __post_init__(self) -> None:
+        super().__post_init__()
+        self.output = False  # this is just for changing the state
 
     def __call__(self, state: State) -> None:
         state.region = self.target
@@ -236,6 +240,15 @@ class Loot(__ItemCommon):
 @dataclass
 class Receive(Loot):
     ...
+
+
+@dataclass
+class WarpTo(Action):
+    def __call__(self, state: State) -> None:
+        try:
+            state.region = state.bonfire_to_region[self.target]
+        except KeyError:
+            raise RuntimeError("Can't warp; bonfire region is unknown.")
 
 
 @dataclass(kw_only=True)
@@ -369,5 +382,5 @@ class Activate(Action):
 
 
 @dataclass
-class Talk(Action):
+class TalkTo(Action):
     ...

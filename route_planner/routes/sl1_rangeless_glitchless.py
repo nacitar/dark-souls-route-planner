@@ -22,12 +22,13 @@ from ..action import (
     Receive,
     Region,
     RunTo,
-    Talk,
+    TalkTo,
     UnEquip,
     UpgradeCost,
     Use,
     UseMenu,
     WaitFor,
+    WarpTo,
 )
 from ..route import DamageTable, Enemy, HitType, Route, Segment, conditional
 from ..sl1 import SL1_HIT_LOOKUP
@@ -381,7 +382,7 @@ class StartToAfterGargoylesInFirelink(Segment):
             UnEquip("Arms", detail="First ladder or big door."),
             Loot("Hand Axe"),
             Equip("Hand Axe", "Right Hand", detail="Fog gate before Oscar"),
-            Talk("Oscar of Astora", detail="Behind wall boulder breaks"),
+            TalkTo("Oscar of Astora", detail="Behind wall boulder breaks"),
             Receive("Estus Flask", detail="Oscar of Astora"),
             AutoEquip("Estus Flask", "Item 0"),
             Receive("Undead Asylum F2 East Key", detail="Oscar of Astora"),
@@ -878,12 +879,6 @@ class GetAndUpgradeBlacksmithGiantHammer(Segment):
                 "Right Hand",
                 detail="could wait until O&S fog gate",
             ),
-            Equip(
-                Item.DARKSIGN,
-                "Item 5",
-                detail="no need for bones anymore",
-                expected_to_replace=Item.BONE,
-            ),
         )
 
 
@@ -894,6 +889,18 @@ class AnorLondoResidenceToSif(Segment):
     def __post_init__(self) -> None:
         super().__post_init__()
         self.add_steps(
+            RunTo("Spiral Stairs and jump out for shortcut"),
+            FallDamage(
+                "Jumping from upper stairs over the rail of the flat section"
+                "Landing on the ground, rolling immediately.",
+                detail="RTSR setup (1/2)",
+            ),
+            RunTo("Top of stairs by where you entered the room"),
+            FallDamage(
+                "Jumping from top of stairs toward boss fog gate"
+                "rolling immediately.",
+                detail="RTSR setup (2/2)",
+            ),
             Kill(
                 O_and_S,
                 souls=50000,
@@ -917,9 +924,23 @@ class AnorLondoResidenceToSif(Segment):
             ),
             # Loot(
             #    "Leo Ring",
-            #    detail=O_and_S,
+            #    detail=f"({O_and_S}) on the ground",
             #    condition=self.options.boss.kill_smough_first,
             # ),
+            TalkTo("Gwynevere"),
+            Receive("Lordvessel", detail="Gwynevere"),
+            Use(Item.BONE),
+            WarpTo("Undead Parish"),
+            Buy("Crest of Artorias", souls=20000, detail=andre),
+            RunTo("Darkroot Garden door"),
+            Region("Darkroot Garden"),
+            Activate("Darkroot Garden door", detail="using Crest of Artorias"),
+            Equip(
+                Item.DARKSIGN,
+                "Item 5",
+                detail="while door is opening (no need for bones anymore)",
+                expected_to_replace=Item.BONE,
+            ),
         )
 
 
@@ -1070,7 +1091,17 @@ class SL1RangelessGlitchless(Route):
         super().__init__(
             name=(f"SL1 Rangeless Glitchless ({options.display_name})"),
             segment=Segment(
-                notes=(["TODO: fix RTSR setup for Gargoyles"] + options.notes)
+                notes=(
+                    [
+                        "TODO: fix RTSR setup for Gargoyles",
+                        "TODO: best path past boulders in Sen's Fortress",
+                        "TODO: when to swap darksign for bones",
+                        "TODO: Crest of Artorias cost.",
+                        "TODO: figure out why Region redefines detail.",
+                        "TODO: make UseMenu remove equipped items if hits 0.",
+                    ]
+                    + options.notes
+                )
             ),
             damage_tables=options.damage_tables,
             hit_lookup=SL1_HIT_LOOKUP,
