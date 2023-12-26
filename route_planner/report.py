@@ -3,6 +3,7 @@ from __future__ import annotations
 from html.parser import HTMLParser
 from importlib.resources import open_text as open_text_resource
 from math import ceil
+from os import linesep
 from typing import Optional
 
 from . import styles
@@ -35,7 +36,7 @@ class ConvertMinifiedToPrettyHtmlParser(HTMLParser):
             self._pretty_html_parts.append(f"<{tag}{attrs_str}")
         else:
             self._pretty_html_parts.append(
-                "\n" + self.__indent_str() + f"<{tag}{attrs_str}"
+                linesep + self.__indent_str() + f"<{tag}{attrs_str}"
             )
         if tag in ConvertMinifiedToPrettyHtmlParser.SINGLE_LINE_TAGS:
             self.inside_single_line_tag.append(tag)
@@ -55,7 +56,7 @@ class ConvertMinifiedToPrettyHtmlParser(HTMLParser):
                 self.inside_single_line_tag.pop()
         else:
             self._pretty_html_parts.append(
-                "\n" + self.__indent_str() + f"</{tag}>"
+                linesep + self.__indent_str() + f"</{tag}>"
             )
 
     def handle_data(self, data: str) -> None:
@@ -64,7 +65,7 @@ class ConvertMinifiedToPrettyHtmlParser(HTMLParser):
         else:
             for line in data.splitlines():
                 self._pretty_html_parts.append(
-                    "\n" + self.__indent_str() + line
+                    linesep + self.__indent_str() + line
                 )
 
     def pretty_html(self) -> str:
