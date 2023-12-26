@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from html.parser import HTMLParser
 from importlib.resources import open_text as open_text_resource
 from math import ceil
 from typing import Optional
@@ -9,13 +10,81 @@ from .action import Error, State
 from .route import DamageTable, Enemy, Hit, HitType, Route, Segment
 
 
+# TODO: something better than string appending for the pretty html
+class ConvertMinifiedToPrettyHtmlParser(HTMLParser):
+    SINGLE_LINE_TAGS = ["tr", "li", "span", "title"]
+    EMPTY_TAGS = ["br"]
+
+    def __init__(self) -> None:
+        super().__init__()
+        self.indent_level: int = 0
+        self.inside_single_line_tag: list[str] = []
+        self._pretty_html_parts: list[str] = []
+
+    def __indent_str(self) -> str:
+        return "    " * self.indent_level
+
+    def handle_starttag(
+        self, tag: str, attrs: list[tuple[str, Optional[str]]]
+    ) -> None:
+        attrs_str = "".join(
+            f' {name}="{value}"' if value is not None else f" {name}"
+            for name, value in attrs
+        )
+        if self.inside_single_line_tag:
+            self._pretty_html_parts.append(f"<{tag}{attrs_str}")
+        else:
+            self._pretty_html_parts.append(
+                "\n" + self.__indent_str() + f"<{tag}{attrs_str}"
+            )
+        if tag in ConvertMinifiedToPrettyHtmlParser.SINGLE_LINE_TAGS:
+            self.inside_single_line_tag.append(tag)
+        if tag not in ConvertMinifiedToPrettyHtmlParser.EMPTY_TAGS:
+            self._pretty_html_parts.append(">")  # terminate normally
+            self.indent_level += 1
+        else:
+            self._pretty_html_parts.append("/>")  # self-close empty tags
+
+    def handle_endtag(self, tag: str) -> None:
+        if tag in ConvertMinifiedToPrettyHtmlParser.EMPTY_TAGS:
+            return  # empty tags self-close in handle_starttag
+        self.indent_level -= 1
+        if self.inside_single_line_tag:
+            self._pretty_html_parts.append(f"</{tag}>")
+            if tag == self.inside_single_line_tag[-1]:
+                self.inside_single_line_tag.pop()
+        else:
+            self._pretty_html_parts.append(
+                "\n" + self.__indent_str() + f"</{tag}>"
+            )
+
+    def handle_data(self, data: str) -> None:
+        if self.inside_single_line_tag:
+            self._pretty_html_parts.append(data)
+        else:
+            for line in data.splitlines():
+                self._pretty_html_parts.append(
+                    "\n" + self.__indent_str() + line
+                )
+
+    def pretty_html(self) -> str:
+        return "".join(self._pretty_html_parts)
+
+
+def convert_minified_to_pretty_html(content: str) -> str:
+    parser = ConvertMinifiedToPrettyHtmlParser()
+    parser.feed(content)
+    return parser.pretty_html()
+
+
 def page(body: str, *, title: str = "", style: str = "light") -> str:
     if title:
         title = f"<title>{title}</title>"
     if style:
         with open_text_resource(styles, f"{style}.css") as css:
             style = f"<style>{css.read()}</style>"
-    return f"<html><head>{title}{style}</head><body>{body}</body></html>"
+    content = f"<html><head>{title}{style}</head><body>{body}</body></html>"
+    return convert_minified_to_pretty_html(content)
 
 
 def damage_table(
