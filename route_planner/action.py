@@ -158,7 +158,7 @@ class Equip(__EquipCommon):
     @property
     def display(self) -> str:
         output = self.target
-        if self.replaces:
+        if self.replaces and self.replaces != self.target:
             output += f" replacing {self.replaces}"
         return output
 
@@ -254,6 +254,7 @@ class WarpTo(Action):
 @dataclass(kw_only=True)
 class UseMenu(__ItemCommon):
     allow_partial: bool = False
+    no_warp: bool = False
 
     def __call__(self, state: State) -> None:
         actual_count = state.inventory[self.target]
@@ -267,7 +268,7 @@ class UseMenu(__ItemCommon):
             #        f" {actual_count}"
             #    )
         super().__call__(state)
-        if self.target in (Item.BONE, Item.DARKSIGN):
+        if not self.no_warp and self.target in (Item.BONE, Item.DARKSIGN):
             WarpTo(state.bonfire)(state)
         stored_souls = state.souls_lookup.get(self.target, 0)
         if stored_souls:
@@ -330,8 +331,13 @@ class Buy(Kill):
 
 
 @dataclass
-class UpgradeCost(Kill):
+class UpgradeItem(Kill):
+    new_item: str
     items: Counter[str] = field(default_factory=Counter, repr=False)
+
+    @property
+    def display(self) -> str:
+        return f"{super().display} to {self.new_item}"
 
     def __post_init__(self) -> None:
         super().__post_init__()
@@ -340,7 +346,15 @@ class UpgradeCost(Kill):
     def __call__(self, state: State) -> None:
         super().__call__(state)
         for item, count in self.items.items():
-            UseMenu(item, count=(count * self.count))(state)  # call it
+            # call it
+            UseMenu(item, count=(count * self.count), no_warp=True)(state)
+        state.inventory[self.target] -= 1
+        state.inventory[self.new_item] += 1
+
+
+@dataclass
+class DowngradeItem(UpgradeItem):
+    ...
 
 
 @dataclass

@@ -11,6 +11,7 @@ from ..action import (
     AutoKill,
     BonfireSit,
     Buy,
+    DowngradeItem,
     Equip,
     FallDamage,
     Heal,
@@ -24,13 +25,13 @@ from ..action import (
     RunTo,
     TalkTo,
     UnEquip,
-    UpgradeCost,
+    UpgradeItem,
     Use,
     UseMenu,
     WaitFor,
     WarpTo,
 )
-from ..route import DamageTable, Enemy, HitType, Route, Segment, conditional
+from ..route import DamageTable, Enemy, HitType, Route, Segment
 from ..sl1 import SL1_HIT_LOOKUP
 
 rtsr_ladder = "climbing ladder to RTSR"
@@ -132,6 +133,11 @@ class RingOptions:
 
 
 @dataclass(kw_only=True)
+class WeaponOptions:
+    occult_club: bool = False
+
+
+@dataclass(kw_only=True)
 class Options:
     display_name: str
     early_weapon: str
@@ -141,6 +147,7 @@ class Options:
     darkroot_basin: DarkrootBasinOptions
     undead_parish: UndeadParishOptions
     undead_asylum: UndeadAsylumOptions
+    weapon: WeaponOptions
     boss: BossOptions
     npc: NpcOptions
     ring: RingOptions
@@ -155,6 +162,13 @@ class Options:
                 f"initial_upgrade must be in range [0,5]"
                 f" but is {self.initial_upgrade}"
             )
+
+    @property
+    def early_upgraded_weapon(self) -> str:
+        name = self.early_weapon
+        if self.initial_upgrade:
+            name += f" +{self.initial_upgrade}"
+        return name
 
     @property
     def loots_firelink_at_start(self) -> bool:
@@ -196,9 +210,10 @@ class Variation(Enum):
         darkroot_basin=DarkrootBasinOptions(kill_black_knight=True),
         undead_parish=UndeadParishOptions(loot_fire_keeper_soul=True),
         undead_asylum=UndeadAsylumOptions(),
+        weapon=WeaponOptions(occult_club=True),
         boss=BossOptions(wait_for_four_kings_drops=True),
         npc=NpcOptions(kill_darkmoon_knightess=True),
-        ring=RingOptions(),
+        ring=RingOptions(slumbering_dragoncrest_ring=False),
         notes=[],
         damage_tables=[
             DamageTable(
@@ -242,9 +257,10 @@ class Variation(Enum):
         darkroot_basin=DarkrootBasinOptions(kill_black_knight=True),
         undead_parish=UndeadParishOptions(loot_fire_keeper_soul=True),
         undead_asylum=UndeadAsylumOptions(),
+        weapon=WeaponOptions(occult_club=True),
         boss=BossOptions(wait_for_four_kings_drops=True),
         npc=NpcOptions(kill_darkmoon_knightess=True),
-        ring=RingOptions(),
+        ring=RingOptions(slumbering_dragoncrest_ring=False),
         notes=[],
         damage_tables=[
             DamageTable(
@@ -307,9 +323,10 @@ class Variation(Enum):
         darkroot_basin=DarkrootBasinOptions(),
         undead_parish=UndeadParishOptions(loot_fire_keeper_soul=True),
         undead_asylum=UndeadAsylumOptions(),
+        weapon=WeaponOptions(occult_club=True),
         boss=BossOptions(wait_for_four_kings_drops=True),
         npc=NpcOptions(kill_darkmoon_knightess=True),
-        ring=RingOptions(),
+        ring=RingOptions(slumbering_dragoncrest_ring=False),
         notes=[],
         damage_tables=[
             DamageTable(
@@ -366,7 +383,7 @@ class StartToAfterGargoylesInFirelink(Segment):
         self.add_steps(
             Receive(Item.DARKSIGN, detail=starting),
             Receive("Straight Sword Hilt", detail=starting),
-            AutoEquip("Straight Sword Hilt", "Right Hand", detail=starting),
+            AutoEquip("Straight Sword Hilt", "Right Hand 1", detail=starting),
             Receive("Tattered Cloth Hood", detail=pyromancer),
             Receive("Tattered Cloth Robe", detail=pyromancer),
             Receive("Tattered Cloth Manchette", detail=pyromancer),
@@ -381,7 +398,7 @@ class StartToAfterGargoylesInFirelink(Segment):
             UnEquip("Torso", detail="First ladder or big door."),
             UnEquip("Arms", detail="First ladder or big door."),
             Loot("Hand Axe"),
-            Equip("Hand Axe", "Right Hand", detail="Fog gate before Oscar"),
+            Equip("Hand Axe", "Right Hand 1", detail="Fog gate before Oscar"),
             TalkTo("Oscar of Astora", detail="Behind wall boulder breaks"),
             Receive("Estus Flask", detail="Oscar of Astora"),
             AutoEquip("Estus Flask", "Item 0"),
@@ -394,15 +411,17 @@ class StartToAfterGargoylesInFirelink(Segment):
             Activate("Ledge warp trigger to Firelink Shrine"),
             Region("Firelink Shrine"),
             AutoBonfire("Firelink Shrine"),
-            conditional(
-                not self.options.loots_firelink_at_start,
+            Segment(
+                condition=not self.options.loots_firelink_at_start,
                 notes=[
                     "Firelink <b>IS NOT</b> looted at start;"
                     f" goes straight to {andre}."
                 ],
             ),
-            conditional(
-                self.options.loots_firelink_at_start,
+            Segment(
+                condition=self.options.loots_firelink_at_start,
+                notes=["Firelink is looted upon arrival."],
+            ).add_steps(
                 Loot(
                     Item.HUMANITY,
                     count=3,
@@ -454,10 +473,8 @@ class StartToAfterGargoylesInFirelink(Segment):
                     Item.BONE,
                     condition=self.options.firelink.loot_graveyard_souls,
                 ),
-                notes=["Firelink is looted upon arrival."],
             ),
-            conditional(
-                self.options.uses_reinforced_club,
+            Segment(condition=self.options.uses_reinforced_club).add_steps(
                 Region("Firelink Shrine"),
                 Loot(
                     Item.HUMANITY,
@@ -512,7 +529,7 @@ class StartToAfterGargoylesInFirelink(Segment):
             ),
             Equip(
                 "Reinforced Club",
-                "Right Hand",
+                "Right Hand 1",
                 detail=rtsr_ladder,
                 condition=self.options.uses_reinforced_club,
             ),
@@ -577,8 +594,8 @@ class StartToAfterGargoylesInFirelink(Segment):
                     ]
                 ),
             ),
-            conditional(
-                not self.options.darkroot_basin.kill_black_knight,
+            Segment(
+                condition=not self.options.darkroot_basin.kill_black_knight,
                 notes=[
                     (
                         "Black Knight in Darkroot Basin"
@@ -601,26 +618,23 @@ class StartToAfterGargoylesInFirelink(Segment):
                 detail=andre,
                 condition=self.options.uses_battle_axe,
             ),
-            conditional(
-                self.options.initial_upgrade > 0,
+            Segment(condition=self.options.initial_upgrade > 0).add_steps(
                 Buy(
                     Item.TITANITE_SHARD,
                     count=early_weapon_shards,
                     souls=800,
                     detail=andre,
                 ),
-                UpgradeCost(
-                    (
-                        f"{self.options.early_weapon}"
-                        f" +0-{self.options.initial_upgrade}"
-                    ),
+                UpgradeItem(
+                    self.options.early_weapon,
+                    new_item=self.options.early_upgraded_weapon,
                     souls=200 * self.options.initial_upgrade,
                     items=Counter({Item.TITANITE_SHARD: early_weapon_shards}),
                     detail=andre,
                 ),
                 Equip(
-                    "Battle Axe",
-                    "Right Hand",
+                    self.options.early_upgraded_weapon,
+                    "Right Hand 1",
                     detail=andre,
                     condition=self.options.uses_battle_axe,
                 ),
@@ -757,8 +771,9 @@ class FirelinkToSensFortress(Segment):
             WaitFor("boulder to pass", detail="hitting enemy in room 5 times"),
             RunTo("top of ramp", detail="must go IMMEDIATELY after boulder"),
             RunTo("fog gate at top of Sen's Fortress"),
-            conditional(
-                self.options.ring.slumbering_dragoncrest_ring,
+            Segment(
+                condition=self.options.ring.slumbering_dragoncrest_ring
+            ).add_steps(
                 BonfireSit(
                     "Sen's Fortress",
                     detail=f"to bone back after getting {slumbering}",
@@ -770,13 +785,14 @@ class FirelinkToSensFortress(Segment):
                 Loot(slumbering),
                 Use(Item.BONE),
             ),
-            conditional(
-                not self.options.ring.slumbering_dragoncrest_ring,
+            Segment(
+                condition=not self.options.ring.slumbering_dragoncrest_ring
+            ).add_steps(
                 BonfireSit(
                     "Sen's Fortress",
                     detail="safety for Iron Golem",
                     optional=True,
-                ),
+                )
             ),
         )
 
@@ -803,20 +819,15 @@ class SensFortressToAnorLondoResidence(Segment):
             Receive("Core of an Iron Golem", souls=12000, detail="Iron Golem"),
             Receive(Item.HUMANITY, humanities=1, detail="Iron Golem"),
             Region("Anor Londo"),
-            conditional(
-                self.options.all_bosses,
+            Segment(condition=self.options.all_bosses).add_steps(
                 BonfireSit(
                     "Anor Londo", detail="safety for rafters", optional=True
-                ),
+                )
             ),
-            conditional(
-                not self.options.all_bosses,
+            Segment(condition=not self.options.all_bosses).add_steps(
                 BonfireSit(
                     "Anor Londo", detail=f"so you can warp back for {seath}"
-                ),
-            ),
-            BonfireSit(
-                "Anor Londo", detail="safety for rafters", optional=True
+                )
             ),
             RunTo("elevator"),
             UseMenu("Core of an Iron Golem", detail="elevator"),
@@ -828,8 +839,7 @@ class SensFortressToAnorLondoResidence(Segment):
                 detail="while pushing bridge lever",
                 condition=self.options.ring.slumbering_dragoncrest_ring,
             ),
-            conditional(
-                self.options.all_bosses,
+            Segment(condition=self.options.all_bosses).add_steps(
                 Activate("Bridge lever (2nd time for Darkmoon Tomb)"),
                 RunTo("bottom of the stairs"),
                 BonfireSit(
@@ -868,15 +878,16 @@ class GetAndUpgradeBlacksmithGiantHammer(Segment):
             Kill("Giant Blacksmith", souls=3000),
             Loot("Blacksmith Giant Hammer", detail="Giant Blacksmith"),
             Use(Item.BONE),
-            UpgradeCost(
-                "Blacksmith Giant Hammer +0-5",
+            UpgradeItem(
+                "Blacksmith Giant Hammer",
+                new_item="Blacksmith Giant Hammer +5",
                 souls=10000,
                 items=Counter({Item.TWINKLING_TITANITE: 10}),
-                detail="(Bonfire) Blacksmith Giant Hammer +0-5",
+                detail="Bonfire",
             ),
             Equip(
-                "Blacksmith Giant Hammer",
-                "Right Hand",
+                "Blacksmith Giant Hammer +5",
+                "Right Hand 1",
                 detail="could wait until O&S fog gate",
             ),
         )
@@ -889,16 +900,31 @@ class AnorLondoResidenceToSif(Segment):
     def __post_init__(self) -> None:
         super().__post_init__()
         self.add_steps(
+            RunTo("door past Silver Knight, through fireplace, down stairs"),
+            Segment(condition=self.options.weapon.occult_club).add_steps(
+                Kill("Mimic", souls=2000),
+                Loot("Occult Club", detail="Mimic"),
+                Use(
+                    Item.BONE,
+                    detail="could darksign too, O&S gives plenty of souls",
+                    notes=[
+                        (
+                            f"Could save 1 {Item.BONE} by using"
+                            f" {Item.DARKSIGN} at Mimic with Occult Club"
+                        )
+                    ],
+                ),
+            ),
             RunTo("Spiral Stairs and jump out for shortcut"),
             FallDamage(
-                "Jumping from upper stairs over the rail of the flat section"
-                "Landing on the ground, rolling immediately.",
+                "Jumping from upper stairs over the rail of the flat section,"
+                " landing on the ground, rolling immediately.",
                 detail="RTSR setup (1/2)",
             ),
             RunTo("Top of stairs by where you entered the room"),
             FallDamage(
                 "Jumping from top of stairs toward boss fog gate"
-                "rolling immediately.",
+                " rolling immediately.",
                 detail="RTSR setup (2/2)",
             ),
             Kill(
@@ -932,15 +958,64 @@ class AnorLondoResidenceToSif(Segment):
             Use(Item.BONE),
             WarpTo("Undead Parish"),
             Buy("Crest of Artorias", souls=20000, detail=andre),
+            Segment(condition=self.options.weapon.occult_club).add_steps(
+                DowngradeItem(
+                    "Occult Club",
+                    souls=200,
+                    new_item="Divine Club +5",
+                    detail=andre,
+                )
+            ),
             RunTo("Darkroot Garden door"),
             Region("Darkroot Garden"),
             Activate("Darkroot Garden door", detail="using Crest of Artorias"),
+            Equip(Item.DARKSIGN, "Item 5", detail="while door is opening"),
+            Segment(condition=self.options.weapon.occult_club).add_steps(
+                Equip(
+                    "Divine Club +5",
+                    "Right Hand 2",
+                    detail="(2nd slot) while door is opening",
+                )
+            ),
+            RunTo(f"Door to {sif}"),
+            Activate(f"Door to {sif}"),
             Equip(
                 Item.DARKSIGN,
                 "Item 5",
-                detail="while door is opening (no need for bones anymore)",
-                expected_to_replace=Item.BONE,
+                detail="while door is opening (if missed)",
+                optional=True,
             ),
+            Segment(condition=self.options.weapon.occult_club).add_steps(
+                Equip(
+                    "Divine Club +5",
+                    "Right Hand 2",
+                    detail="(2nd slot) while door is opening (if missed)",
+                    optional=True,
+                )
+            ),
+            Loot("Hornet Ring", detail=f"Behind grave guarded by {sif}"),
+            Kill(sif, souls=40000),
+            Receive("Covenant of Artorias", detail=sif),
+            Receive("Soul of Sif", souls=16000, detail=sif),
+            Segment(
+                condition=not self.options.boss.wait_for_sif_drops,
+                notes=[
+                    f"1 slow {Item.HUMANITY} and {Item.BONE}"
+                    f" skipped from {sif}."
+                ],
+            ),
+            Segment(
+                condition=self.options.boss.wait_for_sif_drops,
+                notes=[f"wait for 1 slow {Item.HUMANITY} from {sif}."],
+            ).add_steps(
+                Receive(
+                    Item.HUMANITY,
+                    humanities=1,
+                    detail=f"{sif} (slow to receive it)",
+                ),
+                Receive(Item.BONE, detail=f"{sif} (slow to receive it)"),
+            ),
+            Use(Item.DARKSIGN),
         )
 
 
@@ -959,56 +1034,38 @@ class ToDoSegment(Segment):
             Receive(Item.BONE, detail="Pinwheel"),
             Kill(nito, souls=60000),
             Receive("Lord Soul", detail=nito),
-            conditional(
-                not self.options.boss.wait_for_nito_drops,
+            Segment(
+                condition=not self.options.boss.wait_for_nito_drops,
                 notes=[f"1 slow {Item.HUMANITY} skipped from {nito}."],
             ),
-            conditional(
-                self.options.boss.wait_for_nito_drops,
+            Segment(
+                condition=self.options.boss.wait_for_nito_drops,
+                notes=[f"wait for 1 slow {Item.HUMANITY} from {nito}."],
+            ).add_steps(
                 Receive(
                     Item.HUMANITY,
                     humanities=1,
                     detail=f"{nito} (slow to receive it)",
-                ),
-                notes=[f"wait for 1 slow {Item.HUMANITY} from {nito}."],
-            ),
-            Kill(sif, souls=40000),
-            Receive("Covenant of Artorias", detail=sif),
-            Receive("Soul of Sif", souls=16000, detail=sif),
-            conditional(
-                not self.options.boss.wait_for_sif_drops,
-                notes=[
-                    f"1 slow {Item.HUMANITY} and {Item.BONE}"
-                    f" skipped from {sif}."
-                ],
-            ),
-            conditional(
-                self.options.boss.wait_for_sif_drops,
-                Receive(
-                    Item.HUMANITY,
-                    humanities=1,
-                    detail=f"{sif} (slow to receive it)",
-                ),
-                Receive(Item.BONE, detail=f"{sif} (slow to receive it)"),
-                notes=[f"wait for 1 slow {Item.HUMANITY} from {sif}."],
+                )
             ),
             Kill(four_kings, souls=60000),
             Receive("Bequeathed Lord Soul Shard", detail=four_kings),
-            conditional(
-                not self.options.boss.wait_for_four_kings_drops,
+            Segment(
+                condition=not self.options.boss.wait_for_four_kings_drops,
                 notes=[f"4 slow {Item.HUMANITY} skipped from {four_kings}."],
             ),
-            conditional(
-                self.options.boss.wait_for_four_kings_drops,
+            Segment(
+                condition=self.options.boss.wait_for_four_kings_drops,
+                notes=[
+                    f"wait for 4 slow {Item.HUMANITY}" f" from {four_kings}."
+                ],
+            ).add_steps(
                 Receive(
                     Item.HUMANITY,
                     count=4,
                     humanities=1,
                     detail=f"{four_kings} (slow to receive it)",
-                ),
-                notes=[
-                    f"wait for 4 slow {Item.HUMANITY}" f" from {four_kings}."
-                ],
+                )
             ),
             Kill(
                 "Darkmoon Knightess",
@@ -1023,18 +1080,19 @@ class ToDoSegment(Segment):
             ),
             Kill(seath, souls=60000),
             Receive("Bequeathed Lord Soul Shard", detail=seath),
-            conditional(
-                not self.options.boss.wait_for_seath_drops,
+            Segment(
+                condition=not self.options.boss.wait_for_seath_drops,
                 notes=[f"1 slow {Item.HUMANITY} skipped from {seath}."],
             ),
-            conditional(
-                self.options.boss.wait_for_seath_drops,
+            Segment(
+                condition=self.options.boss.wait_for_seath_drops,
+                notes=[f"wait for 1 slow humanity from {seath}."],
+            ).add_steps(
                 Receive(
                     Item.HUMANITY,
                     humanities=1,
                     detail=f"{seath} (slow to receive it)",
-                ),
-                notes=[f"wait for 1 slow humanity from {seath}."],
+                )
             ),
             Kill(
                 "Patches",

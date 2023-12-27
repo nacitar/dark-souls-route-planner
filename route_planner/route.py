@@ -101,6 +101,7 @@ class Step(Protocol):
 class Segment:  # is a 'Step'
     notes: list[str] = field(default_factory=list)
     condition: bool = True
+    # actions not available in init so add_steps can check step.condition
     actions: list[Action] = field(default_factory=list, init=False)
 
     def __post_init__(self) -> None:
@@ -125,14 +126,6 @@ class Segment:  # is a 'Step'
             yield (deepcopy(state), action)
             for error in state.errors():
                 yield (deepcopy(state), Error(error))
-
-
-def conditional(
-    condition: bool, *steps: Step, notes: Optional[list[str]] = None
-) -> Segment:
-    if not condition:
-        return Segment()
-    return Segment(notes=notes if notes else []).add_steps(*steps)
 
 
 @dataclass
