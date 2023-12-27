@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from collections import Counter
 from dataclasses import dataclass, field
-from enum import Enum, unique
+from enum import Enum, StrEnum, unique
 
 from ..action import (
     Activate,
@@ -79,79 +79,54 @@ ENEMIES_MAYBE_WITH_FINAL_WEAPON = [Enemy.MIMIC_OCCULT_CLUB]
 HUMANOID_ENEMIES_MAYBE_WITH_FINAL_WEAPON = [Enemy.DARKMOON_KNIGHTESS]
 
 
-@dataclass(kw_only=True)
-class FirelinkOptions:
-    loot_well_humanity: bool = False
-    loot_elevator_soul: bool = False
-    loot_homeward_bones: bool = False
-    loot_graveyard_souls: bool = False
+@unique
+class RunType(StrEnum):
+    ANY_PERCENT = "Any%"
+    ALL_BOSSES = "All Bosses"
 
 
 @dataclass(kw_only=True)
-class NewLondoRuinsOptions:
-    loot_elevator_soul: bool = False
+class EquipmentOptions:
+    ring_of_fog: bool = False
+    slumbering_dragoncrest_ring: bool = False
+    occult_club: bool = False
 
 
 @dataclass(kw_only=True)
-class DarkrootBasinOptions:
-    kill_black_knight: bool = False
-
-
-@dataclass(kw_only=True)
-class UndeadParishOptions:
-    loot_fire_keeper_soul: bool = False
-
-
-@dataclass(kw_only=True)
-class UndeadAsylumOptions:
-    trade_for_ring_of_fog: bool = False
-
-
-@dataclass(kw_only=True)
-class NpcOptions:
+class HumanityOptions:
+    loot_undead_parish_fire_keeper_soul: bool = False
     kill_darkmoon_knightess: bool = False
     kill_oswald: bool = False
     kill_andre: bool = False
     kill_petrus: bool = False
     kill_patches: bool = False
-
-
-@dataclass(kw_only=True)
-class BossOptions:
     wait_for_four_kings_drops: bool = False
     wait_for_sif_drops: bool = False
     wait_for_nito_drops: bool = False
     wait_for_seath_drops: bool = False
     kill_smough_first: bool = False
-    kill_stray_demon: bool = True
 
 
 @dataclass(kw_only=True)
-class RingOptions:
-    ring_of_fog: bool = False
-    slumbering_dragoncrest_ring: bool = False
+class RunOptions:
+    run_type: RunType
+    equipment: EquipmentOptions
+    humanity: HumanityOptions
+    notes: list[str] = field(default_factory=list)
+    damage_tables: list[DamageTable] = field(default_factory=list)
 
 
-@dataclass(kw_only=True)
-class WeaponOptions:
-    occult_club: bool = False
-
-
-@dataclass(kw_only=True)
+@dataclass
 class Options:
-    display_name: str
     early_weapon: str
     initial_upgrade: int
-    firelink: FirelinkOptions
-    new_londo_ruins: NewLondoRuinsOptions
-    darkroot_basin: DarkrootBasinOptions
-    undead_parish: UndeadParishOptions
-    undead_asylum: UndeadAsylumOptions
-    weapon: WeaponOptions
-    boss: BossOptions
-    npc: NpcOptions
-    ring: RingOptions
-    all_bosses: bool = False
+    runs: dict[str, RunOptions]  # the key is the run name
+    loot_firelink_well_humanity: bool = False
+    loot_firelink_elevator_soul: bool = False
+    loot_firelink_homeward_bones: bool = False
+    loot_firelink_graveyard_souls: bool = False
+    loot_new_londo_ruins_elevator_soul: bool = False
+    kill_darkroot_basin_black_knight: bool = False
     bone_count_if_from_oswald: int = 5
     notes: list[str] = field(default_factory=list)
     damage_tables: list[DamageTable] = field(default_factory=list)
@@ -171,14 +146,6 @@ class Options:
         return name
 
     @property
-    def loots_firelink_at_start(self) -> bool:
-        return (
-            self.firelink.loot_elevator_soul
-            or self.firelink.loot_homeward_bones
-            or self.firelink.loot_graveyard_souls
-        )
-
-    @property
     def uses_reinforced_club(self) -> bool:
         return self.early_weapon == "Reinforced Club"
 
@@ -187,33 +154,36 @@ class Options:
         return self.early_weapon == "Battle Axe"
 
     @property
-    def revisits_undead_asylum(self) -> bool:
+    def loots_firelink_at_start(self) -> bool:
         return (
-            self.boss.kill_stray_demon
-            or self.undead_asylum.trade_for_ring_of_fog
+            self.loot_firelink_elevator_soul
+            or self.loot_firelink_homeward_bones
+            or self.loot_firelink_graveyard_souls
         )
 
 
 @unique
 class Variation(Enum):
     REINFORCED_CLUB = Options(
-        display_name="Reinforced Club +5",
         early_weapon="Reinforced Club",
         initial_upgrade=5,
-        firelink=FirelinkOptions(
-            loot_well_humanity=True,
-            loot_elevator_soul=True,
-            loot_homeward_bones=True,
-            loot_graveyard_souls=True,
-        ),
-        new_londo_ruins=NewLondoRuinsOptions(loot_elevator_soul=True),
-        darkroot_basin=DarkrootBasinOptions(kill_black_knight=True),
-        undead_parish=UndeadParishOptions(loot_fire_keeper_soul=True),
-        undead_asylum=UndeadAsylumOptions(),
-        weapon=WeaponOptions(occult_club=True),
-        boss=BossOptions(wait_for_four_kings_drops=True),
-        npc=NpcOptions(kill_darkmoon_knightess=True),
-        ring=RingOptions(slumbering_dragoncrest_ring=False),
+        loot_firelink_well_humanity=True,
+        loot_firelink_elevator_soul=True,
+        loot_firelink_homeward_bones=True,
+        loot_firelink_graveyard_souls=True,
+        loot_new_londo_ruins_elevator_soul=True,
+        kill_darkroot_basin_black_knight=True,
+        runs={
+            "Any%": RunOptions(
+                run_type=RunType.ANY_PERCENT,
+                equipment=EquipmentOptions(occult_club=True),
+                humanity=HumanityOptions(
+                    loot_undead_parish_fire_keeper_soul=True,
+                    kill_darkmoon_knightess=True,
+                    wait_for_four_kings_drops=True,
+                ),
+            )
+        },
         notes=[],
         damage_tables=[
             DamageTable(
@@ -249,18 +219,21 @@ class Variation(Enum):
         ],
     )
     BATTLE_AXE_PLUS_4_OR_3 = Options(
-        display_name="Battle Axe +4 or +3",
         early_weapon="Battle Axe",
         initial_upgrade=4,
-        firelink=FirelinkOptions(loot_well_humanity=True),
-        new_londo_ruins=NewLondoRuinsOptions(),
-        darkroot_basin=DarkrootBasinOptions(kill_black_knight=True),
-        undead_parish=UndeadParishOptions(loot_fire_keeper_soul=True),
-        undead_asylum=UndeadAsylumOptions(),
-        weapon=WeaponOptions(occult_club=True),
-        boss=BossOptions(wait_for_four_kings_drops=True),
-        npc=NpcOptions(kill_darkmoon_knightess=True),
-        ring=RingOptions(slumbering_dragoncrest_ring=False),
+        loot_firelink_well_humanity=True,
+        kill_darkroot_basin_black_knight=True,
+        runs={
+            "Any%": RunOptions(
+                run_type=RunType.ANY_PERCENT,
+                equipment=EquipmentOptions(occult_club=True),
+                humanity=HumanityOptions(
+                    loot_undead_parish_fire_keeper_soul=True,
+                    kill_darkmoon_knightess=True,
+                    wait_for_four_kings_drops=True,
+                ),
+            )
+        },
         notes=[],
         damage_tables=[
             DamageTable(
@@ -311,22 +284,23 @@ class Variation(Enum):
         ],
     )
     BATTLE_AXE_PLUS_4_SKIPPING_BLACK_KNIGHT = Options(
-        display_name="Battle Axe +4 skipping Black Knight",
         early_weapon="Battle Axe",
         initial_upgrade=4,
-        firelink=FirelinkOptions(
-            loot_well_humanity=True,
-            loot_homeward_bones=True,
-            loot_graveyard_souls=True,
-        ),
-        new_londo_ruins=NewLondoRuinsOptions(loot_elevator_soul=True),
-        darkroot_basin=DarkrootBasinOptions(),
-        undead_parish=UndeadParishOptions(loot_fire_keeper_soul=True),
-        undead_asylum=UndeadAsylumOptions(),
-        weapon=WeaponOptions(occult_club=True),
-        boss=BossOptions(wait_for_four_kings_drops=True),
-        npc=NpcOptions(kill_darkmoon_knightess=True),
-        ring=RingOptions(slumbering_dragoncrest_ring=False),
+        loot_firelink_well_humanity=True,
+        loot_firelink_homeward_bones=True,
+        loot_firelink_graveyard_souls=True,
+        loot_new_londo_ruins_elevator_soul=True,
+        runs={
+            "Any% without Black Knight": RunOptions(
+                run_type=RunType.ANY_PERCENT,
+                equipment=EquipmentOptions(occult_club=True),
+                humanity=HumanityOptions(
+                    loot_undead_parish_fire_keeper_soul=True,
+                    kill_darkmoon_knightess=True,
+                    wait_for_four_kings_drops=True,
+                ),
+            )
+        },
         notes=[],
         damage_tables=[
             DamageTable(
@@ -368,9 +342,61 @@ class Variation(Enum):
 
 
 @dataclass(kw_only=True)
-class StartToAfterGargoylesInFirelink(Segment):
+class SegmentOptions:
     options: Options
+    run_name: str
 
+    @property
+    def run_options(self) -> RunOptions:
+        return self.options.runs[self.run_name]
+
+    @property
+    def display_name(self) -> str:
+        return f"{self.run_name} with {self.options.early_upgraded_weapon}"
+
+    @property
+    def notes(self) -> list[str]:
+        return self.options.notes + self.run_options.notes
+
+    @property
+    def damage_tables(self) -> list[DamageTable]:
+        return self.options.damage_tables + self.run_options.damage_tables
+
+
+@dataclass(kw_only=True)
+class TunableSegment(Segment):
+    segment_options: SegmentOptions
+
+    @property
+    def options(self) -> Options:
+        return self.segment_options.options
+
+    @property
+    def run_options(self) -> RunOptions:
+        return self.segment_options.run_options
+
+    @property
+    def humanity(self) -> HumanityOptions:
+        return self.run_options.humanity
+
+    @property
+    def equipment(self) -> EquipmentOptions:
+        return self.run_options.equipment
+
+    @property
+    def all_bosses(self) -> bool:
+        return self.run_options.run_type == RunType.ALL_BOSSES
+
+    @property
+    def revisits_undead_asylum(self) -> bool:
+        return (
+            self.run_options.run_type == RunType.ALL_BOSSES
+            or self.equipment.ring_of_fog
+        )
+
+
+@dataclass(kw_only=True)
+class StartToAfterGargoylesInFirelink(TunableSegment):
     def __post_init__(self) -> None:
         SHARDS_PER_LEVEL = [1, 1, 2, 2, 3]
         early_weapon_shards = sum(
@@ -428,7 +454,7 @@ class StartToAfterGargoylesInFirelink(Segment):
                     humanities=1,
                     detail="side of well, get during Firelink loot route.",
                     condition=(
-                        self.options.firelink.loot_well_humanity
+                        self.options.loot_firelink_well_humanity
                         and not self.options.uses_reinforced_club
                     ),
                     notes=[
@@ -439,39 +465,39 @@ class StartToAfterGargoylesInFirelink(Segment):
                     "Soul of a Lost Undead",
                     souls=200,
                     detail="upper elevator",
-                    condition=self.options.firelink.loot_elevator_soul,
+                    condition=self.options.loot_firelink_elevator_soul,
                 ),
                 Jump(
                     "off ledge to hidden chests",
-                    condition=self.options.firelink.loot_homeward_bones,
+                    condition=self.options.loot_firelink_homeward_bones,
                 ),
                 Loot(
                     Item.BONE,
                     count=6,
                     detail="hidden chest",
-                    condition=self.options.firelink.loot_homeward_bones,
+                    condition=self.options.loot_firelink_homeward_bones,
                 ),
                 Equip(
                     Item.BONE,
                     "Item 5",
                     detail="immediately",
-                    condition=self.options.firelink.loot_homeward_bones,
+                    condition=self.options.loot_firelink_homeward_bones,
                 ),
                 Loot(
                     "Large Soul of a Lost Undead",
                     souls=400,
                     detail="middle of graveyard",
-                    condition=self.options.firelink.loot_graveyard_souls,
+                    condition=self.options.loot_firelink_graveyard_souls,
                 ),
                 Loot(
                     "Large Soul of a Lost Undead",
                     souls=400,
                     detail="start of graveyard",
-                    condition=self.options.firelink.loot_graveyard_souls,
+                    condition=self.options.loot_firelink_graveyard_souls,
                 ),
                 Use(
                     Item.BONE,
-                    condition=self.options.firelink.loot_graveyard_souls,
+                    condition=self.options.loot_firelink_graveyard_souls,
                 ),
             ),
             Segment(condition=self.options.uses_reinforced_club).add_steps(
@@ -481,7 +507,7 @@ class StartToAfterGargoylesInFirelink(Segment):
                     count=3,
                     humanities=1,
                     detail=("side of well, get on way to get Reinforced Club"),
-                    condition=self.options.firelink.loot_well_humanity,
+                    condition=self.options.loot_firelink_well_humanity,
                     notes=[
                         (
                             "3 humanities at Firelink well looted on way to"
@@ -512,7 +538,7 @@ class StartToAfterGargoylesInFirelink(Segment):
                 "Soul of a Nameless Soldier",
                 souls=800,
                 detail=f"by bottom of {new_londo_elevator}",
-                condition=self.options.new_londo_ruins.loot_elevator_soul,
+                condition=self.options.loot_new_londo_ruins_elevator_soul,
             ),
             RunTo("Master Key door to Valley of the Drakes"),
             Region("Valley of Drakes"),
@@ -537,7 +563,7 @@ class StartToAfterGargoylesInFirelink(Segment):
                 "Soul of a Nameless Soldier",
                 "Item 2",
                 detail=rtsr_ladder,
-                condition=self.options.new_londo_ruins.loot_elevator_soul,
+                condition=self.options.loot_new_londo_ruins_elevator_soul,
             ),
             Equip(
                 "Large Soul of a Nameless Soldier",
@@ -555,7 +581,7 @@ class StartToAfterGargoylesInFirelink(Segment):
             Use(
                 "Soul of a Nameless Soldier",
                 detail=basin_elevator,
-                condition=self.options.new_londo_ruins.loot_elevator_soul,
+                condition=self.options.loot_new_londo_ruins_elevator_soul,
             ),
             Equip("Red Tearstone Ring", "Ring 2", detail=basin_elevator),
             Region("Darkroot Basin"),
@@ -575,7 +601,7 @@ class StartToAfterGargoylesInFirelink(Segment):
                         else ""
                     )
                 ),
-                condition=self.options.darkroot_basin.kill_black_knight,
+                condition=self.options.kill_darkroot_basin_black_knight,
                 optional=self.options.initial_upgrade == 4,
                 notes=(
                     [
@@ -595,7 +621,7 @@ class StartToAfterGargoylesInFirelink(Segment):
                 ),
             ),
             Segment(
-                condition=not self.options.darkroot_basin.kill_black_knight,
+                condition=not self.options.kill_darkroot_basin_black_knight,
                 notes=[
                     (
                         "Black Knight in Darkroot Basin"
@@ -607,7 +633,7 @@ class StartToAfterGargoylesInFirelink(Segment):
                 "Undead Parish",
                 detail=(
                     ""
-                    if self.options.darkroot_basin.kill_black_knight
+                    if self.options.kill_darkroot_basin_black_knight
                     else "no need to kill Black Knight"
                 ),
             ),
@@ -643,7 +669,7 @@ class StartToAfterGargoylesInFirelink(Segment):
                 "Fire Keeper Soul",
                 humanities=5,
                 detail="on altar behind Berenike Knight",
-                condition=self.options.undead_parish.loot_fire_keeper_soul,
+                condition=self.humanity.loot_undead_parish_fire_keeper_soul,
             ),
             Activate(
                 "Elevator to Firelink Shrine",
@@ -658,8 +684,8 @@ class StartToAfterGargoylesInFirelink(Segment):
                 oswald,
                 detail="TODO: RTSR setup: heal, fall down both ladders",
                 condition=(
-                    self.options.npc.kill_oswald
-                    or not self.options.firelink.loot_homeward_bones
+                    self.humanity.kill_oswald
+                    or not self.options.loot_firelink_homeward_bones
                 ),
             ),
             Buy(
@@ -667,31 +693,31 @@ class StartToAfterGargoylesInFirelink(Segment):
                 count=self.options.bone_count_if_from_oswald,
                 souls=500,
                 detail=oswald,
-                condition=not self.options.firelink.loot_homeward_bones,
+                condition=not self.options.loot_firelink_homeward_bones,
                 notes=[
                     f"{oswald} <b>MUST</b> be visited to buy {Item.BONE}s."
                 ],
             ),
-            Kill(oswald, souls=2000, condition=self.options.npc.kill_oswald),
+            Kill(oswald, souls=2000, condition=self.humanity.kill_oswald),
             Loot(
                 Item.TWIN_HUMANITIES,
                 count=2,
                 humanities=2,
                 detail=oswald,
-                condition=self.options.npc.kill_oswald,
+                condition=self.humanity.kill_oswald,
             ),
             Equip(
                 Item.BONE,
                 "Item 5",
                 detail="immediately",
-                condition=not self.options.firelink.loot_homeward_bones,
+                condition=not self.options.loot_firelink_homeward_bones,
             ),
             Use(Item.BONE),
         )
 
 
 @dataclass
-class FirelinkToQuelaag(Segment):
+class FirelinkToQuelaag(TunableSegment):
     def __post_init__(self) -> None:
         super().__post_init__()
         self.add_steps(
@@ -734,9 +760,7 @@ class FirelinkToQuelaag(Segment):
 
 
 @dataclass(kw_only=True)
-class FirelinkToSensFortress(Segment):
-    options: Options
-
+class FirelinkToSensFortress(TunableSegment):
     def __post_init__(self) -> None:
         super().__post_init__()
         self.add_steps(
@@ -747,7 +771,7 @@ class FirelinkToSensFortress(Segment):
                 humanities=1,
                 detail=f"side of well, get on way to {parish_elevator}.",
                 condition=(
-                    self.options.firelink.loot_well_humanity
+                    self.options.loot_firelink_well_humanity
                     and not self.options.loots_firelink_at_start
                     and not self.options.uses_reinforced_club
                 ),
@@ -772,7 +796,7 @@ class FirelinkToSensFortress(Segment):
             RunTo("top of ramp", detail="must go IMMEDIATELY after boulder"),
             RunTo("fog gate at top of Sen's Fortress"),
             Segment(
-                condition=self.options.ring.slumbering_dragoncrest_ring
+                condition=self.equipment.slumbering_dragoncrest_ring
             ).add_steps(
                 BonfireSit(
                     "Sen's Fortress",
@@ -786,7 +810,7 @@ class FirelinkToSensFortress(Segment):
                 Use(Item.BONE),
             ),
             Segment(
-                condition=not self.options.ring.slumbering_dragoncrest_ring
+                condition=not self.equipment.slumbering_dragoncrest_ring
             ).add_steps(
                 BonfireSit(
                     "Sen's Fortress",
@@ -798,9 +822,7 @@ class FirelinkToSensFortress(Segment):
 
 
 @dataclass
-class SensFortressToAnorLondoResidence(Segment):
-    options: Options
-
+class SensFortressToAnorLondoResidence(TunableSegment):
     def __post_init__(self) -> None:
         super().__post_init__()
         self.add_steps(
@@ -819,12 +841,12 @@ class SensFortressToAnorLondoResidence(Segment):
             Receive("Core of an Iron Golem", souls=12000, detail="Iron Golem"),
             Receive(Item.HUMANITY, humanities=1, detail="Iron Golem"),
             Region("Anor Londo"),
-            Segment(condition=self.options.all_bosses).add_steps(
+            Segment(condition=self.all_bosses).add_steps(
                 BonfireSit(
                     "Anor Londo", detail="safety for rafters", optional=True
                 )
             ),
-            Segment(condition=not self.options.all_bosses).add_steps(
+            Segment(condition=not self.all_bosses).add_steps(
                 BonfireSit(
                     "Anor Londo", detail=f"so you can warp back for {seath}"
                 )
@@ -837,9 +859,9 @@ class SensFortressToAnorLondoResidence(Segment):
                 slumbering,
                 slot="Ring 1",
                 detail="while pushing bridge lever",
-                condition=self.options.ring.slumbering_dragoncrest_ring,
+                condition=self.equipment.slumbering_dragoncrest_ring,
             ),
-            Segment(condition=self.options.all_bosses).add_steps(
+            Segment(condition=self.all_bosses).add_steps(
                 Activate("Bridge lever (2nd time for Darkmoon Tomb)"),
                 RunTo("bottom of the stairs"),
                 BonfireSit(
@@ -862,7 +884,7 @@ class SensFortressToAnorLondoResidence(Segment):
 
 
 @dataclass
-class GetAndUpgradeBlacksmithGiantHammer(Segment):
+class GetAndUpgradeBlacksmithGiantHammer(TunableSegment):
     def __post_init__(self) -> None:
         super().__post_init__()
         self.add_steps(
@@ -894,14 +916,12 @@ class GetAndUpgradeBlacksmithGiantHammer(Segment):
 
 
 @dataclass
-class AnorLondoResidenceToSif(Segment):
-    options: Options
-
+class AnorLondoResidenceToSif(TunableSegment):
     def __post_init__(self) -> None:
         super().__post_init__()
         self.add_steps(
             RunTo("door past Silver Knight, through fireplace, down stairs"),
-            Segment(condition=self.options.weapon.occult_club).add_steps(
+            Segment(condition=self.equipment.occult_club).add_steps(
                 Kill("Mimic", souls=2000),
                 Loot("Occult Club", detail="Mimic"),
                 Use(
@@ -932,7 +952,7 @@ class AnorLondoResidenceToSif(Segment):
                 souls=50000,
                 detail=(
                     "Kill Smough first"
-                    if self.options.boss.kill_smough_first
+                    if self.humanity.kill_smough_first
                     else "Kill Ornstein first"
                 ),
             ),
@@ -940,25 +960,25 @@ class AnorLondoResidenceToSif(Segment):
                 "Soul of Smough",
                 souls=12000,
                 detail=O_and_S,
-                condition=not self.options.boss.kill_smough_first,
+                condition=not self.humanity.kill_smough_first,
             ),
             Receive(
                 "Soul of Ornstein",
                 souls=12000,
                 detail=O_and_S,
-                condition=self.options.boss.kill_smough_first,
+                condition=self.humanity.kill_smough_first,
             ),
             # Loot(
             #    "Leo Ring",
             #    detail=f"({O_and_S}) on the ground",
-            #    condition=self.options.boss.kill_smough_first,
+            #    condition=self.humanity.kill_smough_first,
             # ),
             TalkTo("Gwynevere"),
             Receive("Lordvessel", detail="Gwynevere"),
             Use(Item.BONE),
             WarpTo("Undead Parish"),
             Buy("Crest of Artorias", souls=20000, detail=andre),
-            Segment(condition=self.options.weapon.occult_club).add_steps(
+            Segment(condition=self.equipment.occult_club).add_steps(
                 DowngradeItem(
                     "Occult Club",
                     souls=200,
@@ -970,7 +990,7 @@ class AnorLondoResidenceToSif(Segment):
             Region("Darkroot Garden"),
             Activate("Darkroot Garden door", detail="using Crest of Artorias"),
             Equip(Item.DARKSIGN, "Item 5", detail="while door is opening"),
-            Segment(condition=self.options.weapon.occult_club).add_steps(
+            Segment(condition=self.equipment.occult_club).add_steps(
                 Equip(
                     "Divine Club +5",
                     "Right Hand 2",
@@ -985,7 +1005,7 @@ class AnorLondoResidenceToSif(Segment):
                 detail="while door is opening (if missed)",
                 optional=True,
             ),
-            Segment(condition=self.options.weapon.occult_club).add_steps(
+            Segment(condition=self.equipment.occult_club).add_steps(
                 Equip(
                     "Divine Club +5",
                     "Right Hand 2",
@@ -998,14 +1018,14 @@ class AnorLondoResidenceToSif(Segment):
             Receive("Covenant of Artorias", detail=sif),
             Receive("Soul of Sif", souls=16000, detail=sif),
             Segment(
-                condition=not self.options.boss.wait_for_sif_drops,
+                condition=not self.humanity.wait_for_sif_drops,
                 notes=[
                     f"1 slow {Item.HUMANITY} and {Item.BONE}"
                     f" skipped from {sif}."
                 ],
             ),
             Segment(
-                condition=self.options.boss.wait_for_sif_drops,
+                condition=self.humanity.wait_for_sif_drops,
                 notes=[f"wait for 1 slow {Item.HUMANITY} from {sif}."],
             ).add_steps(
                 Receive(
@@ -1020,9 +1040,7 @@ class AnorLondoResidenceToSif(Segment):
 
 
 @dataclass(kw_only=True)
-class ToDoSegment(Segment):
-    options: Options
-
+class ToDoSegment(TunableSegment):
     def __post_init__(self) -> None:
         super().__post_init__()
         self.add_steps(
@@ -1035,11 +1053,11 @@ class ToDoSegment(Segment):
             Kill(nito, souls=60000),
             Receive("Lord Soul", detail=nito),
             Segment(
-                condition=not self.options.boss.wait_for_nito_drops,
+                condition=not self.humanity.wait_for_nito_drops,
                 notes=[f"1 slow {Item.HUMANITY} skipped from {nito}."],
             ),
             Segment(
-                condition=self.options.boss.wait_for_nito_drops,
+                condition=self.humanity.wait_for_nito_drops,
                 notes=[f"wait for 1 slow {Item.HUMANITY} from {nito}."],
             ).add_steps(
                 Receive(
@@ -1051,11 +1069,11 @@ class ToDoSegment(Segment):
             Kill(four_kings, souls=60000),
             Receive("Bequeathed Lord Soul Shard", detail=four_kings),
             Segment(
-                condition=not self.options.boss.wait_for_four_kings_drops,
+                condition=not self.humanity.wait_for_four_kings_drops,
                 notes=[f"4 slow {Item.HUMANITY} skipped from {four_kings}."],
             ),
             Segment(
-                condition=self.options.boss.wait_for_four_kings_drops,
+                condition=self.humanity.wait_for_four_kings_drops,
                 notes=[
                     f"wait for 4 slow {Item.HUMANITY}" f" from {four_kings}."
                 ],
@@ -1071,21 +1089,21 @@ class ToDoSegment(Segment):
                 "Darkmoon Knightess",
                 souls=1000,
                 detail="Anor Londo fire keeper",
-                condition=self.options.npc.kill_darkmoon_knightess,
+                condition=self.humanity.kill_darkmoon_knightess,
             ),
             Loot(
                 "Fire Keeper Soul",
                 detail="Darkmoon Knightess",
-                condition=self.options.npc.kill_darkmoon_knightess,
+                condition=self.humanity.kill_darkmoon_knightess,
             ),
             Kill(seath, souls=60000),
             Receive("Bequeathed Lord Soul Shard", detail=seath),
             Segment(
-                condition=not self.options.boss.wait_for_seath_drops,
+                condition=not self.humanity.wait_for_seath_drops,
                 notes=[f"1 slow {Item.HUMANITY} skipped from {seath}."],
             ),
             Segment(
-                condition=self.options.boss.wait_for_seath_drops,
+                condition=self.humanity.wait_for_seath_drops,
                 notes=[f"wait for 1 slow humanity from {seath}."],
             ).add_steps(
                 Receive(
@@ -1098,30 +1116,30 @@ class ToDoSegment(Segment):
                 "Patches",
                 souls=2000,
                 detail="Tomb of the Giants",
-                condition=self.options.npc.kill_patches,
+                condition=self.humanity.kill_patches,
             ),
             Loot(
                 Item.HUMANITY,
                 count=4,
                 humanities=1,
                 detail="Patches",
-                condition=self.options.npc.kill_patches,
+                condition=self.humanity.kill_patches,
             ),
-            Kill(petrus, souls=1000, condition=self.options.npc.kill_petrus),
+            Kill(petrus, souls=1000, condition=self.humanity.kill_petrus),
             Loot(
                 Item.HUMANITY,
                 count=2,
                 humanities=1,
                 detail=petrus,
-                condition=self.options.npc.kill_petrus,
+                condition=self.humanity.kill_petrus,
             ),
-            Kill(andre, souls=1000, condition=self.options.npc.kill_andre),
+            Kill(andre, souls=1000, condition=self.humanity.kill_andre),
             Loot(
                 Item.HUMANITY,
                 count=3,
                 humanities=1,
                 detail=andre,
-                condition=self.options.npc.kill_andre,
+                condition=self.humanity.kill_andre,
             ),
             UseMenu(
                 "Fire Keeper Soul",
@@ -1144,10 +1162,10 @@ class ToDoSegment(Segment):
         )
 
 
-class SL1RangelessGlitchless(Route):
-    def __init__(self, options: Options):
+class SL1RangelessHitless(Route):
+    def __init__(self, segment_options: SegmentOptions):
         super().__init__(
-            name=(f"SL1 Rangeless Glitchless ({options.display_name})"),
+            name=f"SL1 Rangeless Hitless ({segment_options.display_name})",
             segment=Segment(
                 notes=(
                     [
@@ -1156,32 +1174,40 @@ class SL1RangelessGlitchless(Route):
                         "TODO: when to swap darksign for bones",
                         "TODO: Crest of Artorias cost.",
                     ]
-                    + options.notes
+                    + segment_options.notes
                 )
             ),
-            damage_tables=options.damage_tables,
+            damage_tables=segment_options.damage_tables,
             hit_lookup=SL1_HIT_LOOKUP,
         )
 
         self.segment.add_steps(
-            StartToAfterGargoylesInFirelink(options=options),
-            FirelinkToQuelaag(),
-            FirelinkToSensFortress(options=options),
-            SensFortressToAnorLondoResidence(options=options),
-            GetAndUpgradeBlacksmithGiantHammer(),
-            AnorLondoResidenceToSif(options=options),
+            StartToAfterGargoylesInFirelink(segment_options=segment_options),
+            FirelinkToQuelaag(segment_options=segment_options),
+            FirelinkToSensFortress(segment_options=segment_options),
+            SensFortressToAnorLondoResidence(segment_options=segment_options),
+            GetAndUpgradeBlacksmithGiantHammer(
+                segment_options=segment_options
+            ),
+            AnorLondoResidenceToSif(segment_options=segment_options),
             ####################
-            ToDoSegment(options=options),
+            ToDoSegment(segment_options=segment_options),
         )
 
 
-EXPORTED_ROUTES: list[Route] = [
-    SL1RangelessGlitchless(options=Variation.REINFORCED_CLUB.options),
-    SL1RangelessGlitchless(options=Variation.BATTLE_AXE_PLUS_4_OR_3.options),
-    SL1RangelessGlitchless(
-        options=Variation.BATTLE_AXE_PLUS_4_SKIPPING_BLACK_KNIGHT.options
-    ),
-]
+def exported_routes() -> list[Route]:
+    routes: list[Route] = []
+    for variation in Variation:
+        for run_name in variation.options.runs:
+            routes.append(
+                SL1RangelessHitless(
+                    segment_options=SegmentOptions(
+                        options=variation.options, run_name=run_name
+                    )
+                )
+            )
+    return routes
+
 
 # MISPLACED NOTES:
 # "Getting the Reinforced Club takes just under a minute.",

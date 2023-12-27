@@ -14,8 +14,7 @@ CURRENT_FILE_DIRECTORY = Path(__file__).resolve().parent
 
 @runtime_checkable
 class RouteExporter(Protocol):
-    @property
-    def EXPORTED_ROUTES(self) -> list[Route]:
+    def exported_routes(self) -> list[Route]:
         ...
 
 
@@ -51,7 +50,7 @@ def load_routes() -> list[Route]:
             raise RuntimeError(
                 f"Module does not contain any exported routes: {file}"
             )
-        routes.extend(cast(RouteExporter, module).EXPORTED_ROUTES)
+        routes.extend(cast(RouteExporter, module).exported_routes())
     route_names: set[str] = set()
     for route in routes:
         if route.name in route_names:
