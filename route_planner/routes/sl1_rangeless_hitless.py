@@ -84,6 +84,10 @@ class RunType(StrEnum):
     ANY_PERCENT = "Any%"
     ALL_BOSSES = "All Bosses"
 
+    @property
+    def is_all_bosses(self) -> bool:
+        return self in [RunType.ALL_BOSSES]  # to allow for further variants
+
 
 @dataclass(kw_only=True)
 class EquipmentOptions:
@@ -144,22 +148,6 @@ class Options:
         if self.initial_upgrade:
             name += f" +{self.initial_upgrade}"
         return name
-
-    @property
-    def uses_reinforced_club(self) -> bool:
-        return self.early_weapon == "Reinforced Club"
-
-    @property
-    def uses_battle_axe(self) -> bool:
-        return self.early_weapon == "Battle Axe"
-
-    @property
-    def loots_firelink_at_start(self) -> bool:
-        return (
-            self.loot_firelink_elevator_soul
-            or self.loot_firelink_homeward_bones
-            or self.loot_firelink_graveyard_souls
-        )
 
 
 @unique
@@ -384,15 +372,28 @@ class TunableSegment(Segment):
         return self.run_options.equipment
 
     @property
-    def all_bosses(self) -> bool:
-        return self.run_options.run_type == RunType.ALL_BOSSES
+    def run_type(self) -> RunType:
+        return self.run_options.run_type
+
+    @property
+    def uses_reinforced_club(self) -> bool:
+        return self.options.early_weapon == "Reinforced Club"
+
+    @property
+    def uses_battle_axe(self) -> bool:
+        return self.options.early_weapon == "Battle Axe"
+
+    @property
+    def loots_firelink_at_start(self) -> bool:
+        return (
+            self.options.loot_firelink_elevator_soul
+            or self.options.loot_firelink_homeward_bones
+            or self.options.loot_firelink_graveyard_souls
+        )
 
     @property
     def revisits_undead_asylum(self) -> bool:
-        return (
-            self.run_options.run_type == RunType.ALL_BOSSES
-            or self.equipment.ring_of_fog
-        )
+        return self.run_type.is_all_bosses or self.equipment.ring_of_fog
 
 
 @dataclass(kw_only=True)
@@ -438,14 +439,14 @@ class StartToAfterGargoylesInFirelink(TunableSegment):
             Region("Firelink Shrine"),
             AutoBonfire("Firelink Shrine"),
             Segment(
-                condition=not self.options.loots_firelink_at_start,
+                condition=not self.loots_firelink_at_start,
                 notes=[
                     "Firelink <b>IS NOT</b> looted at start;"
                     f" goes straight to {andre}."
                 ],
             ),
             Segment(
-                condition=self.options.loots_firelink_at_start,
+                condition=self.loots_firelink_at_start,
                 notes=["Firelink is looted upon arrival."],
             ).add_steps(
                 Loot(
@@ -455,7 +456,7 @@ class StartToAfterGargoylesInFirelink(TunableSegment):
                     detail="side of well, get during Firelink loot route.",
                     condition=(
                         self.options.loot_firelink_well_humanity
-                        and not self.options.uses_reinforced_club
+                        and not self.uses_reinforced_club
                     ),
                     notes=[
                         "3 humanities at Firelink well looted immediately."
@@ -500,7 +501,7 @@ class StartToAfterGargoylesInFirelink(TunableSegment):
                     condition=self.options.loot_firelink_graveyard_souls,
                 ),
             ),
-            Segment(condition=self.options.uses_reinforced_club).add_steps(
+            Segment(condition=self.uses_reinforced_club).add_steps(
                 Region("Firelink Shrine"),
                 Loot(
                     Item.HUMANITY,
@@ -557,7 +558,7 @@ class StartToAfterGargoylesInFirelink(TunableSegment):
                 "Reinforced Club",
                 "Right Hand 1",
                 detail=rtsr_ladder,
-                condition=self.options.uses_reinforced_club,
+                condition=self.uses_reinforced_club,
             ),
             Equip(
                 "Soul of a Nameless Soldier",
@@ -642,7 +643,7 @@ class StartToAfterGargoylesInFirelink(TunableSegment):
                 "Battle Axe",
                 souls=1000,
                 detail=andre,
-                condition=self.options.uses_battle_axe,
+                condition=self.uses_battle_axe,
             ),
             Segment(condition=self.options.initial_upgrade > 0).add_steps(
                 Buy(
@@ -662,7 +663,7 @@ class StartToAfterGargoylesInFirelink(TunableSegment):
                     self.options.early_upgraded_weapon,
                     "Right Hand 1",
                     detail=andre,
-                    condition=self.options.uses_battle_axe,
+                    condition=self.uses_battle_axe,
                 ),
             ),
             Loot(
@@ -772,8 +773,8 @@ class FirelinkToSensFortress(TunableSegment):
                 detail=f"side of well, get on way to {parish_elevator}.",
                 condition=(
                     self.options.loot_firelink_well_humanity
-                    and not self.options.loots_firelink_at_start
-                    and not self.options.uses_reinforced_club
+                    and not self.loots_firelink_at_start
+                    and not self.uses_reinforced_club
                 ),
                 notes=[
                     (
@@ -841,12 +842,12 @@ class SensFortressToAnorLondoResidence(TunableSegment):
             Receive("Core of an Iron Golem", souls=12000, detail="Iron Golem"),
             Receive(Item.HUMANITY, humanities=1, detail="Iron Golem"),
             Region("Anor Londo"),
-            Segment(condition=self.all_bosses).add_steps(
+            Segment(condition=self.run_type.is_all_bosses).add_steps(
                 BonfireSit(
                     "Anor Londo", detail="safety for rafters", optional=True
                 )
             ),
-            Segment(condition=not self.all_bosses).add_steps(
+            Segment(condition=not self.run_type.is_all_bosses).add_steps(
                 BonfireSit(
                     "Anor Londo", detail=f"so you can warp back for {seath}"
                 )
@@ -861,7 +862,7 @@ class SensFortressToAnorLondoResidence(TunableSegment):
                 detail="while pushing bridge lever",
                 condition=self.equipment.slumbering_dragoncrest_ring,
             ),
-            Segment(condition=self.all_bosses).add_steps(
+            Segment(condition=self.run_type.is_all_bosses).add_steps(
                 Activate("Bridge lever (2nd time for Darkmoon Tomb)"),
                 RunTo("bottom of the stairs"),
                 BonfireSit(
