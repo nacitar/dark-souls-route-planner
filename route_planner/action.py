@@ -36,6 +36,17 @@ class State:
     last_overdrafts: set[str] = field(default_factory=set, repr=False)
     error_count: int = 0
 
+    def remove_equipment(self, item: str) -> str:
+        """returns the slot the item was removed from, or an empty string."""
+        for slot, piece in self.equipment.items():
+            if piece == item:
+                del self.equipment[slot]
+                break
+
+    def clear_equipment_slot(self, slot: str):
+        if slot in self.equipment:
+            del self.equipment[slot]
+
     @property
     def bones(self) -> int:
         return self.inventory[Item.BONE]
@@ -168,6 +179,7 @@ class Equip(__EquipCommon):
             state.new_errors.append(
                 f"Cannot equip item not in inventory: {self.target}"
             )
+        state.remove_equipment(self.target)
         state.equipment[self.slot] = self.target
 
 
@@ -178,7 +190,7 @@ class UnEquip(__EquipCommon):
     def __call__(self, state: State) -> None:
         self.target = state.equipment.get(self.slot, "")
         super().__call__(state)
-        state.equipment[self.slot] = ""
+        state.clear_equipment_slot(self.slot)
 
 
 @dataclass
@@ -284,10 +296,7 @@ class UseMenu(__ItemCommon):
             state.inventory[self.target] -= self.count
         # unequip it if you used the last one
         if not state.inventory[self.target]:
-            for slot, piece in state.equipment.items():
-                if piece == self.target:
-                    del state.equipment[slot]
-                    break
+            state.remove_equipment(self.target)
 
 
 @dataclass
@@ -350,6 +359,10 @@ class UpgradeItem(Kill):
             UseMenu(item, count=(count * self.count), no_warp=True)(state)
         state.inventory[self.target] -= 1
         state.inventory[self.new_item] += 1
+        # replace equipped item
+        slot = state.remove_equipment(self.target)
+        if slot:
+            state.equipment[slot] = self.new_item
 
 
 @dataclass

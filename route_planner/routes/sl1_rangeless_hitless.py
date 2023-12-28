@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from collections import Counter
 from dataclasses import dataclass, field
-from enum import Enum, StrEnum, unique
+from enum import StrEnum, unique
 
 from ..action import (
     Activate,
@@ -150,186 +150,7 @@ class Options:
         return name
 
 
-@unique
-class Variation(Enum):
-    REINFORCED_CLUB = Options(
-        early_weapon="Reinforced Club",
-        initial_upgrade=5,
-        loot_firelink_well_humanity=True,
-        loot_firelink_elevator_soul=True,
-        loot_firelink_homeward_bones=True,
-        loot_firelink_graveyard_souls=True,
-        loot_new_londo_ruins_elevator_soul=True,
-        kill_darkroot_basin_black_knight=True,
-        runs={
-            "Any%": RunOptions(
-                run_type=RunType.ANY_PERCENT,
-                equipment=EquipmentOptions(occult_club=True),
-                humanity=HumanityOptions(
-                    loot_undead_parish_fire_keeper_soul=True,
-                    kill_darkmoon_knightess=True,
-                    wait_for_four_kings_drops=True,
-                ),
-            )
-        },
-        notes=[],
-        damage_tables=[
-            DamageTable(
-                weapon="Reinforced Club +0",
-                enemies=HUMANOID_ENEMIES_WITHOUT_UPGRADES,
-                hit_types=HUMANOID_HIT_TYPES,
-            ),
-            DamageTable(
-                weapon="Reinforced Club +5",
-                enemies=(
-                    ENEMIES_WITH_UPGRADES + ENEMIES_MAYBE_WITH_FINAL_WEAPON
-                ),
-                hit_types=STANDARD_HIT_TYPES,
-            ),
-            DamageTable(
-                weapon="Reinforced Club +5",
-                enemies=(
-                    HUMANOID_ENEMIES_WITH_UPGRADES
-                    + HUMANOID_ENEMIES_MAYBE_WITH_FINAL_WEAPON
-                ),
-                hit_types=HUMANOID_HIT_TYPES,
-            ),
-            DamageTable(
-                weapon="Blacksmith Giant Hammer +5",
-                enemies=ENEMIES_MAYBE_WITH_FINAL_WEAPON,
-                hit_types=STANDARD_HIT_TYPES_2H,
-            ),
-            DamageTable(
-                weapon="Blacksmith Giant Hammer +5",
-                enemies=HUMANOID_ENEMIES_MAYBE_WITH_FINAL_WEAPON,
-                hit_types=HUMANOID_HIT_TYPES_2H,
-            ),
-        ],
-    )
-    BATTLE_AXE_PLUS_4_OR_3 = Options(
-        early_weapon="Battle Axe",
-        initial_upgrade=4,
-        loot_firelink_well_humanity=True,
-        kill_darkroot_basin_black_knight=True,
-        runs={
-            "Any%": RunOptions(
-                run_type=RunType.ANY_PERCENT,
-                equipment=EquipmentOptions(occult_club=True),
-                humanity=HumanityOptions(
-                    loot_undead_parish_fire_keeper_soul=True,
-                    kill_darkmoon_knightess=True,
-                    wait_for_four_kings_drops=True,
-                ),
-            )
-        },
-        notes=[],
-        damage_tables=[
-            DamageTable(
-                weapon="Hand Axe +0",
-                enemies=HUMANOID_ENEMIES_WITHOUT_UPGRADES,
-                hit_types=HUMANOID_HIT_TYPES,
-            ),
-            DamageTable(
-                weapon="Battle Axe +4",
-                enemies=(
-                    ENEMIES_WITH_UPGRADES + ENEMIES_MAYBE_WITH_FINAL_WEAPON
-                ),
-                hit_types=STANDARD_HIT_TYPES,
-            ),
-            DamageTable(
-                weapon="Battle Axe +4",
-                enemies=(
-                    HUMANOID_ENEMIES_WITH_UPGRADES
-                    + HUMANOID_ENEMIES_MAYBE_WITH_FINAL_WEAPON
-                ),
-                hit_types=HUMANOID_HIT_TYPES,
-            ),
-            DamageTable(
-                weapon="Battle Axe +3",
-                enemies=(
-                    ENEMIES_WITH_UPGRADES + ENEMIES_MAYBE_WITH_FINAL_WEAPON
-                ),
-                hit_types=STANDARD_HIT_TYPES,
-            ),
-            DamageTable(
-                weapon="Battle Axe +3",
-                enemies=(
-                    HUMANOID_ENEMIES_WITH_UPGRADES
-                    + HUMANOID_ENEMIES_MAYBE_WITH_FINAL_WEAPON
-                ),
-                hit_types=HUMANOID_HIT_TYPES,
-            ),
-            DamageTable(
-                weapon="Blacksmith Giant Hammer +5",
-                enemies=ENEMIES_MAYBE_WITH_FINAL_WEAPON,
-                hit_types=STANDARD_HIT_TYPES_2H,
-            ),
-            DamageTable(
-                weapon="Blacksmith Giant Hammer +5",
-                enemies=HUMANOID_ENEMIES_MAYBE_WITH_FINAL_WEAPON,
-                hit_types=HUMANOID_HIT_TYPES_2H,
-            ),
-        ],
-    )
-    BATTLE_AXE_PLUS_4_SKIPPING_BLACK_KNIGHT = Options(
-        early_weapon="Battle Axe",
-        initial_upgrade=4,
-        loot_firelink_well_humanity=True,
-        loot_firelink_homeward_bones=True,
-        loot_firelink_graveyard_souls=True,
-        loot_new_londo_ruins_elevator_soul=True,
-        runs={
-            "Any% without Black Knight": RunOptions(
-                run_type=RunType.ANY_PERCENT,
-                equipment=EquipmentOptions(occult_club=True),
-                humanity=HumanityOptions(
-                    loot_undead_parish_fire_keeper_soul=True,
-                    kill_darkmoon_knightess=True,
-                    wait_for_four_kings_drops=True,
-                ),
-            )
-        },
-        notes=[],
-        damage_tables=[
-            DamageTable(
-                weapon="Hand Axe +0",
-                enemies=HUMANOID_ENEMIES_WITHOUT_UPGRADES,
-                hit_types=HUMANOID_HIT_TYPES,
-            ),
-            DamageTable(
-                weapon="Battle Axe +4",
-                enemies=(
-                    ENEMIES_WITH_UPGRADES + ENEMIES_MAYBE_WITH_FINAL_WEAPON
-                ),
-                hit_types=STANDARD_HIT_TYPES,
-            ),
-            DamageTable(
-                weapon="Battle Axe +4",
-                enemies=(
-                    HUMANOID_ENEMIES_WITH_UPGRADES
-                    + HUMANOID_ENEMIES_MAYBE_WITH_FINAL_WEAPON
-                ),
-                hit_types=HUMANOID_HIT_TYPES,
-            ),
-            DamageTable(
-                weapon="Blacksmith Giant Hammer +5",
-                enemies=ENEMIES_MAYBE_WITH_FINAL_WEAPON,
-                hit_types=STANDARD_HIT_TYPES_2H,
-            ),
-            DamageTable(
-                weapon="Blacksmith Giant Hammer +5",
-                enemies=HUMANOID_ENEMIES_MAYBE_WITH_FINAL_WEAPON,
-                hit_types=HUMANOID_HIT_TYPES_2H,
-            ),
-        ],
-    )
-
-    @property  # not needed, but reads better in the code
-    def options(self) -> Options:
-        return self.value
-
-
-@dataclass(kw_only=True)
+@dataclass
 class SegmentOptions:
     options: Options
     run_name: str
@@ -396,7 +217,7 @@ class TunableSegment(Segment):
         return self.run_type.is_all_bosses or self.equipment.ring_of_fog
 
 
-@dataclass(kw_only=True)
+@dataclass
 class StartToAfterGargoylesInFirelink(TunableSegment):
     def __post_init__(self) -> None:
         SHARDS_PER_LEVEL = [1, 1, 2, 2, 3]
@@ -760,7 +581,7 @@ class FirelinkToQuelaag(TunableSegment):
         )
 
 
-@dataclass(kw_only=True)
+@dataclass
 class FirelinkToSensFortress(TunableSegment):
     def __post_init__(self) -> None:
         super().__post_init__()
@@ -974,6 +795,14 @@ class AnorLondoResidenceToSif(TunableSegment):
             #    detail=f"({O_and_S}) on the ground",
             #    condition=self.humanity.kill_smough_first,
             # ),
+            Activate("Door to Gwynevere"),
+            Segment(condition=self.equipment.occult_club).add_steps(
+                Equip(
+                    "Occult Club",
+                    "Right Hand 2",
+                    detail="(2nd slot) while door is opening",
+                )
+            ),
             TalkTo("Gwynevere"),
             Receive("Lordvessel", detail="Gwynevere"),
             Use(Item.BONE),
@@ -991,13 +820,6 @@ class AnorLondoResidenceToSif(TunableSegment):
             Region("Darkroot Garden"),
             Activate("Darkroot Garden door", detail="using Crest of Artorias"),
             Equip(Item.DARKSIGN, "Item 5", detail="while door is opening"),
-            Segment(condition=self.equipment.occult_club).add_steps(
-                Equip(
-                    "Divine Club +5",
-                    "Right Hand 2",
-                    detail="(2nd slot) while door is opening",
-                )
-            ),
             RunTo(f"Door to {sif}"),
             Activate(f"Door to {sif}"),
             Equip(
@@ -1005,14 +827,6 @@ class AnorLondoResidenceToSif(TunableSegment):
                 "Item 5",
                 detail="while door is opening (if missed)",
                 optional=True,
-            ),
-            Segment(condition=self.equipment.occult_club).add_steps(
-                Equip(
-                    "Divine Club +5",
-                    "Right Hand 2",
-                    detail="(2nd slot) while door is opening (if missed)",
-                    optional=True,
-                )
             ),
             Loot("Hornet Ring", detail=f"Behind grave guarded by {sif}"),
             Kill(sif, souls=40000),
@@ -1040,7 +854,7 @@ class AnorLondoResidenceToSif(TunableSegment):
         )
 
 
-@dataclass(kw_only=True)
+@dataclass
 class ToDoSegment(TunableSegment):
     def __post_init__(self) -> None:
         super().__post_init__()
@@ -1197,17 +1011,185 @@ class SL1RangelessHitless(Route):
 
 
 def exported_routes() -> list[Route]:
-    routes: list[Route] = []
-    for variation in Variation:
-        for run_name in variation.options.runs:
-            routes.append(
-                SL1RangelessHitless(
-                    segment_options=SegmentOptions(
-                        options=variation.options, run_name=run_name
-                    )
+    route_option_sets: list[Options] = [
+        Options(
+            early_weapon="Reinforced Club",
+            initial_upgrade=5,
+            loot_firelink_well_humanity=True,
+            loot_firelink_elevator_soul=True,
+            loot_firelink_homeward_bones=True,
+            loot_firelink_graveyard_souls=True,
+            loot_new_londo_ruins_elevator_soul=True,
+            kill_darkroot_basin_black_knight=True,
+            runs={
+                "Any%": RunOptions(
+                    run_type=RunType.ANY_PERCENT,
+                    equipment=EquipmentOptions(occult_club=True),
+                    humanity=HumanityOptions(
+                        loot_undead_parish_fire_keeper_soul=True,
+                        kill_darkmoon_knightess=True,
+                        wait_for_four_kings_drops=True,
+                    ),
                 )
-            )
-    return routes
+            },
+            notes=[],
+            damage_tables=[
+                DamageTable(
+                    weapon="Reinforced Club +0",
+                    enemies=HUMANOID_ENEMIES_WITHOUT_UPGRADES,
+                    hit_types=HUMANOID_HIT_TYPES,
+                ),
+                DamageTable(
+                    weapon="Reinforced Club +5",
+                    enemies=(
+                        ENEMIES_WITH_UPGRADES + ENEMIES_MAYBE_WITH_FINAL_WEAPON
+                    ),
+                    hit_types=STANDARD_HIT_TYPES,
+                ),
+                DamageTable(
+                    weapon="Reinforced Club +5",
+                    enemies=(
+                        HUMANOID_ENEMIES_WITH_UPGRADES
+                        + HUMANOID_ENEMIES_MAYBE_WITH_FINAL_WEAPON
+                    ),
+                    hit_types=HUMANOID_HIT_TYPES,
+                ),
+                DamageTable(
+                    weapon="Blacksmith Giant Hammer +5",
+                    enemies=ENEMIES_MAYBE_WITH_FINAL_WEAPON,
+                    hit_types=STANDARD_HIT_TYPES_2H,
+                ),
+                DamageTable(
+                    weapon="Blacksmith Giant Hammer +5",
+                    enemies=HUMANOID_ENEMIES_MAYBE_WITH_FINAL_WEAPON,
+                    hit_types=HUMANOID_HIT_TYPES_2H,
+                ),
+            ],
+        ),
+        Options(
+            early_weapon="Battle Axe",
+            initial_upgrade=4,
+            loot_firelink_well_humanity=True,
+            kill_darkroot_basin_black_knight=True,
+            runs={
+                "Any%": RunOptions(
+                    run_type=RunType.ANY_PERCENT,
+                    equipment=EquipmentOptions(occult_club=True),
+                    humanity=HumanityOptions(
+                        loot_undead_parish_fire_keeper_soul=True,
+                        kill_darkmoon_knightess=True,
+                        wait_for_four_kings_drops=True,
+                    ),
+                )
+            },
+            notes=[],
+            damage_tables=[
+                DamageTable(
+                    weapon="Hand Axe +0",
+                    enemies=HUMANOID_ENEMIES_WITHOUT_UPGRADES,
+                    hit_types=HUMANOID_HIT_TYPES,
+                ),
+                DamageTable(
+                    weapon="Battle Axe +4",
+                    enemies=(
+                        ENEMIES_WITH_UPGRADES + ENEMIES_MAYBE_WITH_FINAL_WEAPON
+                    ),
+                    hit_types=STANDARD_HIT_TYPES,
+                ),
+                DamageTable(
+                    weapon="Battle Axe +4",
+                    enemies=(
+                        HUMANOID_ENEMIES_WITH_UPGRADES
+                        + HUMANOID_ENEMIES_MAYBE_WITH_FINAL_WEAPON
+                    ),
+                    hit_types=HUMANOID_HIT_TYPES,
+                ),
+                DamageTable(
+                    weapon="Battle Axe +3",
+                    enemies=(
+                        ENEMIES_WITH_UPGRADES + ENEMIES_MAYBE_WITH_FINAL_WEAPON
+                    ),
+                    hit_types=STANDARD_HIT_TYPES,
+                ),
+                DamageTable(
+                    weapon="Battle Axe +3",
+                    enemies=(
+                        HUMANOID_ENEMIES_WITH_UPGRADES
+                        + HUMANOID_ENEMIES_MAYBE_WITH_FINAL_WEAPON
+                    ),
+                    hit_types=HUMANOID_HIT_TYPES,
+                ),
+                DamageTable(
+                    weapon="Blacksmith Giant Hammer +5",
+                    enemies=ENEMIES_MAYBE_WITH_FINAL_WEAPON,
+                    hit_types=STANDARD_HIT_TYPES_2H,
+                ),
+                DamageTable(
+                    weapon="Blacksmith Giant Hammer +5",
+                    enemies=HUMANOID_ENEMIES_MAYBE_WITH_FINAL_WEAPON,
+                    hit_types=HUMANOID_HIT_TYPES_2H,
+                ),
+            ],
+        ),
+        Options(
+            early_weapon="Battle Axe",
+            initial_upgrade=4,
+            loot_firelink_well_humanity=True,
+            loot_firelink_homeward_bones=True,
+            loot_firelink_graveyard_souls=True,
+            loot_new_londo_ruins_elevator_soul=True,
+            runs={
+                "Any% without Black Knight": RunOptions(
+                    run_type=RunType.ANY_PERCENT,
+                    equipment=EquipmentOptions(occult_club=True),
+                    humanity=HumanityOptions(
+                        loot_undead_parish_fire_keeper_soul=True,
+                        kill_darkmoon_knightess=True,
+                        wait_for_four_kings_drops=True,
+                    ),
+                )
+            },
+            notes=[],
+            damage_tables=[
+                DamageTable(
+                    weapon="Hand Axe +0",
+                    enemies=HUMANOID_ENEMIES_WITHOUT_UPGRADES,
+                    hit_types=HUMANOID_HIT_TYPES,
+                ),
+                DamageTable(
+                    weapon="Battle Axe +4",
+                    enemies=(
+                        ENEMIES_WITH_UPGRADES + ENEMIES_MAYBE_WITH_FINAL_WEAPON
+                    ),
+                    hit_types=STANDARD_HIT_TYPES,
+                ),
+                DamageTable(
+                    weapon="Battle Axe +4",
+                    enemies=(
+                        HUMANOID_ENEMIES_WITH_UPGRADES
+                        + HUMANOID_ENEMIES_MAYBE_WITH_FINAL_WEAPON
+                    ),
+                    hit_types=HUMANOID_HIT_TYPES,
+                ),
+                DamageTable(
+                    weapon="Blacksmith Giant Hammer +5",
+                    enemies=ENEMIES_MAYBE_WITH_FINAL_WEAPON,
+                    hit_types=STANDARD_HIT_TYPES_2H,
+                ),
+                DamageTable(
+                    weapon="Blacksmith Giant Hammer +5",
+                    enemies=HUMANOID_ENEMIES_MAYBE_WITH_FINAL_WEAPON,
+                    hit_types=HUMANOID_HIT_TYPES_2H,
+                ),
+            ],
+        ),
+    ]
+
+    return [
+        SL1RangelessHitless(SegmentOptions(options, run_name))
+        for options in route_option_sets
+        for run_name in options.runs
+    ]
 
 
 # MISPLACED NOTES:
