@@ -42,7 +42,9 @@ class ConvertMinifiedToPrettyHtmlParser(HTMLParser):
             self._pretty_html_parts.append(f"<{tag}{attrs_str}")
         else:
             self._pretty_html_parts.append(
-                linesep + self._indent_str() + f"<{tag}{attrs_str}"
+                (linesep if self._pretty_html_parts else "")
+                + self._indent_str()
+                + f"<{tag}{attrs_str}"
             )
         if tag in ConvertMinifiedToPrettyHtmlParser.SINGLE_LINE_TAGS:
             self._single_line_tag_stack.append(tag)

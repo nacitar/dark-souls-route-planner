@@ -41,7 +41,8 @@ class State:
         for slot, piece in self.equipment.items():
             if piece == item:
                 del self.equipment[slot]
-                break
+                return slot
+        return ""
 
     def clear_equipment_slot(self, slot: str):
         if slot in self.equipment:
