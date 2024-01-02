@@ -45,6 +45,7 @@ O_and_S = "Dragon Slayer Ornstein & Executioner Smough"
 sif = "Sif, the Great Grey Wolf"
 nito = "Gravelord Nito"
 seath = "Seath the Scaleless"
+kaathe = "Darkstalker Kaathe"
 gwyndolin = "Dark Sun Gwyndolin"
 four_kings = "The Four Kings"
 priscilla = "Crossbreed Priscilla"
@@ -119,6 +120,13 @@ class RunOptions:
     notes: list[str] = field(default_factory=list)
     damage_tables: list[DamageTable] = field(default_factory=list)
 
+    @property
+    def bone_count_if_from_oswald(self) -> int:
+        if self.equipment.slumbering_dragoncrest_ring:
+            return 5
+        else:
+            return 4
+
 
 @dataclass
 class Options:
@@ -131,7 +139,6 @@ class Options:
     loot_firelink_graveyard_souls: bool = False
     loot_new_londo_ruins_elevator_soul: bool = False
     kill_darkroot_basin_black_knight: bool = False
-    bone_count_if_from_oswald: int = 5
     notes: list[str] = field(default_factory=list)
     damage_tables: list[DamageTable] = field(default_factory=list)
 
@@ -215,6 +222,14 @@ class TunableSegment(Segment):
     @property
     def revisits_undead_asylum(self) -> bool:
         return self.run_type.is_all_bosses or self.equipment.ring_of_fog
+
+    @property
+    def needs_to_save_bone_at_occult_club(self) -> bool:
+        return (
+            self.equipment.occult_club
+            and self.equipment.slumbering_dragoncrest_ring
+            and not self.uses_battle_axe
+        )
 
 
 @dataclass
@@ -512,7 +527,7 @@ class StartToAfterGargoylesInFirelink(TunableSegment):
             ),
             Buy(
                 Item.BONE,
-                count=self.options.bone_count_if_from_oswald,
+                count=self.run_options.bone_count_if_from_oswald,
                 souls=500,
                 detail=oswald,
                 condition=not self.options.loot_firelink_homeward_bones,
@@ -606,6 +621,24 @@ class FirelinkToSensFortress(TunableSegment):
             ),
             RunTo(parish_elevator),
             UseMenu("Soul of Quelaag", detail=parish_elevator),
+            Segment(
+                condition=self.needs_to_save_bone_at_occult_club
+            ).add_steps(
+                Equip(
+                    Item.DARKSIGN,
+                    "Item 4",
+                    detail=(
+                        f"{parish_elevator}, to save a bone later"
+                        " when getting Occult Club"
+                    ),
+                    notes=[
+                        (
+                            f"{Item.DARKSIGN} equipped early to save a bone"
+                            " at the Occult Club"
+                        )
+                    ],
+                )
+            ),
             Region("Undead Parish"),
             BonfireSit(
                 "Undead Parish",
@@ -729,32 +762,30 @@ class GetAndUpgradeBlacksmithGiantHammer(TunableSegment):
                 items=Counter({Item.TWINKLING_TITANITE: 10}),
                 detail="Bonfire",
             ),
-            Equip(
-                "Blacksmith Giant Hammer +5",
-                "Right Hand 1",
-                detail="could wait until O&S fog gate",
-            ),
+            Equip("Blacksmith Giant Hammer +5", "Right Hand 1"),
         )
 
 
 @dataclass
-class AnorLondoResidenceToSif(TunableSegment):
+class AnorLondoResidenceToLordvessel(TunableSegment):
     def __post_init__(self) -> None:
         super().__post_init__()
         self.add_steps(
-            RunTo("door past Silver Knight, through fireplace, down stairs"),
             Segment(condition=self.equipment.occult_club).add_steps(
+                RunTo(
+                    "door past Silver Knight, through fireplace",
+                    detail="through illusory wall",
+                ),
                 Kill("Mimic", souls=2000),
                 Loot("Occult Club", detail="Mimic"),
                 Use(
+                    Item.DARKSIGN,
+                    condition=self.needs_to_save_bone_at_occult_club,
+                    detail=f"BE CAREFUL: using {Item.DARKSIGN} to save a bone",
+                ),
+                Use(
                     Item.BONE,
-                    detail="could darksign too, O&S gives plenty of souls",
-                    notes=[
-                        (
-                            f"Could save 1 {Item.BONE} by using"
-                            f" {Item.DARKSIGN} at Mimic with Occult Club"
-                        )
-                    ],
+                    condition=not self.needs_to_save_bone_at_occult_club,
                 ),
             ),
             RunTo("Spiral Stairs and jump out for shortcut"),
@@ -806,6 +837,41 @@ class AnorLondoResidenceToSif(TunableSegment):
             TalkTo("Gwynevere"),
             Receive("Lordvessel", detail="Gwynevere"),
             Use(Item.BONE),
+        )
+
+
+@dataclass
+class KillNito(TunableSegment):
+    def __post_init__(self) -> None:
+        super().__post_init__()
+        self.add_steps(
+            WarpTo("Firelink Shrine"),
+            RunTo("TODO: lots"),
+            Kill(nito, souls=60000),
+            Receive("Lord Soul", detail=nito),
+            Segment(
+                condition=not self.humanity.wait_for_nito_drops,
+                notes=[f"1 slow {Item.HUMANITY} skipped from {nito}."],
+            ),
+            Segment(
+                condition=self.humanity.wait_for_nito_drops,
+                notes=[f"wait for 1 slow {Item.HUMANITY} from {nito}."],
+            ).add_steps(
+                Receive(
+                    Item.HUMANITY,
+                    humanities=1,
+                    detail=f"{nito} (slow to receive it)",
+                )
+            ),
+            UseMenu(Item.DARKSIGN),
+        )
+
+
+@dataclass
+class KillSif(TunableSegment):
+    def __post_init__(self) -> None:
+        super().__post_init__()
+        self.add_steps(
             WarpTo("Undead Parish"),
             Buy("Crest of Artorias", souls=20000, detail=andre),
             Segment(condition=self.equipment.occult_club).add_steps(
@@ -819,15 +885,14 @@ class AnorLondoResidenceToSif(TunableSegment):
             RunTo("Darkroot Garden door"),
             Region("Darkroot Garden"),
             Activate("Darkroot Garden door", detail="using Crest of Artorias"),
-            Equip(Item.DARKSIGN, "Item 5", detail="while door is opening"),
-            RunTo(f"Door to {sif}"),
-            Activate(f"Door to {sif}"),
             Equip(
                 Item.DARKSIGN,
                 "Item 5",
-                detail="while door is opening (if missed)",
-                optional=True,
+                detail="while door is opening",
+                condition=not self.needs_to_save_bone_at_occult_club,
             ),
+            RunTo(f"Door to {sif}"),
+            Activate(f"Door to {sif}"),
             Loot("Hornet Ring", detail=f"Behind grave guarded by {sif}"),
             Kill(sif, souls=40000),
             Receive("Covenant of Artorias", detail=sif),
@@ -855,6 +920,26 @@ class AnorLondoResidenceToSif(TunableSegment):
 
 
 @dataclass
+class KillFourKings(TunableSegment):
+    def __post_init__(self) -> None:
+        super().__post_init__()
+        self.add_steps(
+            RunTo("TODO: lots"),
+            Kill(four_kings, souls=60000),
+            Receive("Bequeathed Lord Soul Shard", detail=four_kings),
+            Receive(
+                Item.HUMANITY,
+                count=4,
+                humanities=1,
+                detail=f"{four_kings} (slow to receive it)",
+            ),
+            TalkTo(kaathe, detail="say yes to warp to Firelink Altar"),
+            Region("Firelink Altar"),
+            Activate("Lordvessel"),
+        )
+
+
+@dataclass
 class ToDoSegment(TunableSegment):
     def __post_init__(self) -> None:
         super().__post_init__()
@@ -865,41 +950,6 @@ class ToDoSegment(TunableSegment):
             Receive("Rite of Kindling", detail="Pinwheel"),
             Receive(Item.HUMANITY, humanities=1, detail="Pinwheel"),
             Receive(Item.BONE, detail="Pinwheel"),
-            Kill(nito, souls=60000),
-            Receive("Lord Soul", detail=nito),
-            Segment(
-                condition=not self.humanity.wait_for_nito_drops,
-                notes=[f"1 slow {Item.HUMANITY} skipped from {nito}."],
-            ),
-            Segment(
-                condition=self.humanity.wait_for_nito_drops,
-                notes=[f"wait for 1 slow {Item.HUMANITY} from {nito}."],
-            ).add_steps(
-                Receive(
-                    Item.HUMANITY,
-                    humanities=1,
-                    detail=f"{nito} (slow to receive it)",
-                )
-            ),
-            Kill(four_kings, souls=60000),
-            Receive("Bequeathed Lord Soul Shard", detail=four_kings),
-            Segment(
-                condition=not self.humanity.wait_for_four_kings_drops,
-                notes=[f"4 slow {Item.HUMANITY} skipped from {four_kings}."],
-            ),
-            Segment(
-                condition=self.humanity.wait_for_four_kings_drops,
-                notes=[
-                    f"wait for 4 slow {Item.HUMANITY}" f" from {four_kings}."
-                ],
-            ).add_steps(
-                Receive(
-                    Item.HUMANITY,
-                    count=4,
-                    humanities=1,
-                    detail=f"{four_kings} (slow to receive it)",
-                )
-            ),
             Kill(
                 "Darkmoon Knightess",
                 souls=1000,
@@ -986,8 +1036,7 @@ class SL1RangelessHitless(Route):
                     [
                         "TODO: fix RTSR setup for Gargoyles",
                         "TODO: best path past boulders in Sen's Fortress",
-                        "TODO: when to swap darksign for bones",
-                        "TODO: Crest of Artorias cost.",
+                        "TODO: all bosses order changes w/ ring of fog",
                     ]
                     + segment_options.notes
                 )
@@ -1004,7 +1053,10 @@ class SL1RangelessHitless(Route):
             GetAndUpgradeBlacksmithGiantHammer(
                 segment_options=segment_options
             ),
-            AnorLondoResidenceToSif(segment_options=segment_options),
+            AnorLondoResidenceToLordvessel(segment_options=segment_options),
+            KillSif(segment_options=segment_options),
+            KillFourKings(segment_options=segment_options),
+            KillNito(segment_options=segment_options),
             ####################
             ToDoSegment(segment_options=segment_options),
         )

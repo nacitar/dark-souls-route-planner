@@ -282,7 +282,7 @@ class UseMenu(__ItemCommon):
             #    )
         super().__call__(state)
         if not self.no_warp and self.target in (Item.BONE, Item.DARKSIGN):
-            WarpTo(state.bonfire)(state)
+            WarpTo(state.bonfire)(state)  # call it
         stored_souls = state.souls_lookup.get(self.target, 0)
         if stored_souls:
             delta = stored_souls * self.count
