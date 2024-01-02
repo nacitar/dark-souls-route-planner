@@ -293,8 +293,12 @@ class UseMenu(__ItemCommon):
             delta = stored_humanities * self.count
             state.humanity += delta
             state.item_humanities -= delta
-        if self.target != Item.DARKSIGN:  # darksign isn't consumed
-            state.inventory[self.target] -= self.count
+        if self.target == Item.DARKSIGN:
+            # loses souls and humanity, but the item isn't consumed
+            state.souls = 0
+            state.humanity = 0
+        else:
+            state.inventory[self.target] -= self.count  # consume the item
         # unequip it if you used the last one
         if not state.inventory[self.target]:
             state.remove_equipment(self.target)
