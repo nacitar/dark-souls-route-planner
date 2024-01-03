@@ -8,7 +8,7 @@ from typing import Optional
 
 from . import styles
 from .action import Error, State
-from .route import DamageTable, Enemy, Hit, HitType, Route, Segment
+from .route import DamageTable, Enemy, Hit, HitType, Route, RouteData
 
 
 class ConvertMinifiedToPrettyHtmlParser(HTMLParser):
@@ -147,12 +147,12 @@ def damage_table(
     return "".join(html)
 
 
-def segment_notes(segment: Segment) -> str:
-    if not segment.notes:
+def notes_list(route_data: RouteData) -> str:
+    if not route_data.notes:
         return ""
     return (
         '<ul class="route notes">'
-        + "".join([f"<li>{note}</li>" for note in segment.notes])
+        + "".join([f"<li>{note}</li>" for note in route_data.notes])
         + "</ul>"
     )
 
@@ -169,11 +169,9 @@ def _value_cell(name: str, old_value: int, new_value: int) -> str:
     return html
 
 
-def segment_steps_table(
-    segment: Segment, *, initial_state: Optional[State] = None
-) -> str:
+def steps_table(route_data: RouteData) -> str:
     region_count = 0
-    last_state = initial_state if initial_state is not None else State()
+    last_state = State()
     region = ""
     columns = [
         ("Souls", "Souls"),
@@ -192,44 +190,48 @@ def segment_steps_table(
         [f'<th title="{column[0]}">{column[1]}</th>' for column in columns]
     )
     html.append("</tr></thead><tbody>")
-    for state, action in segment.process(last_state):
-        if action.output:
+    for event in route_data.events:
+        if event.action.output:  # only output rows that should be
             rowclass = ""
-            if isinstance(action, Error):
+            if isinstance(event.action, Error):
                 rowclass = "error"
-            elif action.optional:
+            elif event.action.optional:
                 rowclass = "optional"
             html.append(
                 (f'<tr class="{rowclass}">' if rowclass else "<tr>")
-                + _value_cell("Souls", last_state.souls, state.souls)
+                + _value_cell("Souls", last_state.souls, event.state.souls)
                 + _value_cell(
-                    "Item Souls", last_state.item_souls, state.item_souls
+                    "Item Souls", last_state.item_souls, event.state.item_souls
                 )
-                + _value_cell("Homeward Bones", last_state.bones, state.bones)
+                + _value_cell(
+                    "Homeward Bones", last_state.bones, event.state.bones
+                )
                 + _value_cell(
                     "Titanite Shards",
                     last_state.titanite_shards,
-                    state.titanite_shards,
+                    event.state.titanite_shards,
                 )
                 + _value_cell(
                     "Twinkling Titanite",
                     last_state.twinkling_titanite,
-                    state.twinkling_titanite,
+                    event.state.twinkling_titanite,
                 )
                 + _value_cell(
                     "Item Humanities",
                     last_state.item_humanities,
-                    state.item_humanities,
+                    event.state.item_humanities,
                 )
-                + _value_cell("Humanity", last_state.humanity, state.humanity)
+                + _value_cell(
+                    "Humanity", last_state.humanity, event.state.humanity
+                )
                 + '<td class="action">'
-                f'<span class="name">{action.name}</span>'
-                f' <span class="display">{action.display}</span>'
-                f'<br/><span class="detail">{action.detail}'
+                f'<span class="name">{event.action.name}</span>'
+                f' <span class="display">{event.action.display}</span>'
+                f'<br/><span class="detail">{event.action.detail}'
                 "</span></td></tr>"
             )
-        if state.region != region:
-            region = state.region
+        if event.state.region != region:
+            region = event.state.region
             region_count += 1
             html.append(
                 "</tbody><tbody><tr>"
@@ -237,14 +239,14 @@ def segment_steps_table(
                 f"{region_count:02}. {region}</td></tr>"
                 "</tbody><tbody>"
             )
-        last_state = state
+        last_state = event.state
     html.append("</tbody></table>")
 
-    if state.error_count:
+    if event.state.error_count:
         html.insert(  # prepend
             0,
             (
-                f'<span class="warning">{state.error_count}'
+                f'<span class="warning">{event.state.error_count}'
                 " errors present.</span>"
             ),
         )
@@ -260,16 +262,19 @@ def route(
     html: list[str] = []
     if route.name:
         html.append(f'<span class="route display_name">{route.name}</span>')
-    notes = segment_notes(route.segment)
-    if notes:
-        html.append('<span class="route section">Notes</span>')
-        html.append(segment_notes(route.segment))
-    if route.damage_tables:
+    if not route.segment.condition:
+        html.append('<span class="warning">Route Segment is DISABLED</span>')
+    else:
+        route_data = route.run(State())
+        if route_data.notes:
+            html.append('<span class="route section">Notes</span>')
+            html.append(notes_list(route_data))
+
         for table in route.damage_tables:
             html.append(
                 f'<span class="route section">Hits ({table.weapon})</span>'
             )
             html.append(damage_table(table, hit_lookup=route.hit_lookup))
-    html.append('<span class="route section">Steps</span>')
-    html.append(segment_steps_table(route.segment))
+        html.append('<span class="route section">Steps</span>')
+        html.append(steps_table(route_data))
     return "".join(html)

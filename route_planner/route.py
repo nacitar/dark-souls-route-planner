@@ -1,11 +1,10 @@
 from __future__ import annotations
 
-from copy import deepcopy
 from dataclasses import dataclass, field
 from enum import Enum, unique
-from typing import Generator, Optional, Protocol, Tuple
+from typing import Callable, Generator, Optional, Protocol
 
-from .action import Action, Error, State
+from .action import Event, State
 
 
 @dataclass
@@ -84,16 +83,7 @@ class DamageTable:
 
 
 class Step(Protocol):
-    @property
-    def actions(self) -> list[Action]:
-        ...
-
-    @property
-    def notes(self) -> list[str]:
-        ...
-
-    @property
-    def condition(self) -> bool:
+    def generate_events(self, state: State) -> Generator[Event, None, None]:
         ...
 
 
@@ -101,31 +91,29 @@ class Step(Protocol):
 class Segment:  # is a 'Step'
     notes: list[str] = field(default_factory=list)
     condition: bool = True
-    # actions not available in init so add_steps can check step.condition
-    actions: list[Action] = field(default_factory=list, init=False)
+    condition_callback: Callable[[State], bool] = lambda state: True
+    # not in init to force using the varargs add_steps, so call sites are less
+    # indented by not having to specify the nested list.
+    steps: list[Step] = field(default_factory=list, init=False)
 
     def __post_init__(self) -> None:
-        if not self.condition:
-            self.notes = []
+        pass
 
     def add_steps(self, *steps: Step) -> Segment:
-        for step in steps:
-            if step.condition:
-                self.notes.extend(step.notes)
-                self.actions.extend(step.actions)
+        self.steps.extend(steps)
         return self
 
-    def process(
-        self, state: Optional[State] = None
-    ) -> Generator[Tuple[State, Action], None, None]:
-        if state is None:
-            state = State()
-        for action in self.actions:
-            action = deepcopy(action)  # so actions can modify themselves
-            action(state)
-            yield (deepcopy(state), action)
-            for error in state.errors():
-                yield (deepcopy(state), Error(error))
+    def generate_events(self, state: State) -> Generator[Event, None, None]:
+        if self.condition and self.condition_callback(state):
+            state.notes.extend(self.notes)
+            for step in self.steps:
+                yield from step.generate_events(state)
+
+
+@dataclass(kw_only=True)
+class RouteData:
+    events: list[Event] = field(default_factory=list)
+    notes: list[str] = field(default_factory=list)
 
 
 @dataclass
@@ -134,3 +122,10 @@ class Route:
     segment: Segment
     damage_tables: list[DamageTable] = field(default_factory=list)
     hit_lookup: Optional[dict[str, dict[Enemy, dict[HitType, Hit]]]] = None
+
+    def run(self, state: State) -> RouteData:
+        route_data = RouteData()
+        for event in self.segment.generate_events(state):
+            route_data.events.append(event)
+        route_data.notes = state.notes
+        return route_data

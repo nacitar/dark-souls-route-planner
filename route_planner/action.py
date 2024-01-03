@@ -1,9 +1,10 @@
 from __future__ import annotations
 
 from collections import Counter
+from copy import deepcopy
 from dataclasses import dataclass, field
 from itertools import chain
-from typing import Optional
+from typing import Generator, Optional
 
 # TODO:
 # add ability to estimate time for a segment
@@ -19,6 +20,8 @@ class Item:
     TWINKLING_TITANITE = "Twinkling Titanite"
 
 
+# TODO: consider how deepcopy affects fields like notes, which really is only
+# needed during execution and the final value... not every incremental copy.
 @dataclass(kw_only=True)
 class State:
     souls: int = 0
@@ -34,6 +37,7 @@ class State:
     humanities_lookup: dict[str, int] = field(default_factory=dict, repr=False)
     new_errors: list[str] = field(default_factory=list, repr=False)
     last_overdrafts: set[str] = field(default_factory=set, repr=False)
+    notes: list[str] = field(default_factory=list, repr=False)
     error_count: int = 0
 
     def remove_equipment(self, item: str) -> str:
@@ -92,10 +96,6 @@ class Action:  # is a 'segment.Step'
     notes: list[str] = field(default_factory=list, kw_only=True)
     output: bool = field(default=True, init=False)
 
-    @property
-    def actions(self) -> list[Action]:  # so this is a 'segment.Step'
-        return [self]
-
     def __post_init__(self) -> None:
         ...  # so code doesn't need changed if this is added later
 
@@ -107,8 +107,23 @@ class Action:  # is a 'segment.Step'
     def name(self) -> str:
         return f"{'Optional' if self.optional else ''}{type(self).__name__}"
 
-    def __call__(self, state: State) -> None:
+    def apply(self, state: State) -> None:
         ...
+
+    def generate_events(self, state: State) -> Generator[Event, None, None]:
+        if self.condition:
+            action = deepcopy(self)  # so actions can modify themselves
+            action.apply(state)
+            state.notes.extend(self.notes)
+            yield Event(state=deepcopy(state), action=action)
+            for error in state.errors():
+                yield Event(state=deepcopy(state), action=Error(error))
+
+
+@dataclass(kw_only=True)
+class Event:
+    state: State
+    action: Action
 
 
 @dataclass
@@ -124,13 +139,13 @@ class Region(Action):
         super().__post_init__()
         self.output = False  # this is just for changing the state
 
-    def __call__(self, state: State) -> None:
+    def apply(self, state: State) -> None:
         state.region = self.target
 
 
 @dataclass
 class BonfireSit(Action):
-    def __call__(self, state: State) -> None:
+    def apply(self, state: State) -> None:
         known_region = state.bonfire_to_region.get(self.target)
         if known_region is not None and known_region != state.region:
             state.new_errors.append(
@@ -153,7 +168,7 @@ class __EquipCommon(Action):
     replaces: str = field(default="", init=False)
     expected_to_replace: Optional[str] = field(default=None, kw_only=True)
 
-    def __call__(self, state: State) -> None:
+    def apply(self, state: State) -> None:
         self.replaces = state.equipment.get(self.slot, "")
         if (
             self.expected_to_replace is not None
@@ -174,8 +189,8 @@ class Equip(__EquipCommon):
             output += f" replacing {self.replaces}"
         return output
 
-    def __call__(self, state: State) -> None:
-        super().__call__(state)
+    def apply(self, state: State) -> None:
+        super().apply(state)
         if state.inventory[self.target] <= 0:
             state.new_errors.append(
                 f"Cannot equip item not in inventory: {self.target}"
@@ -188,9 +203,9 @@ class Equip(__EquipCommon):
 class UnEquip(__EquipCommon):
     target: str = field(default="", init=False)
 
-    def __call__(self, state: State) -> None:
+    def apply(self, state: State) -> None:
         self.target = state.equipment.get(self.slot, "")
-        super().__call__(state)
+        super().apply(state)
         state.clear_equipment_slot(self.slot)
 
 
@@ -210,7 +225,7 @@ class __ItemCommon(Action):
             output += f" (x{self.count})"
         return output
 
-    def __call__(self, state: State) -> None:
+    def apply(self, state: State) -> None:
         if not self.count:
             self.output = False
 
@@ -220,7 +235,7 @@ class Loot(__ItemCommon):
     souls: int = 0
     humanities: int = 0
 
-    def __call__(self, state: State) -> None:
+    def apply(self, state: State) -> None:
         if not self.souls:
             self.souls = state.souls_lookup.get(self.target, 0)
         else:
@@ -257,7 +272,7 @@ class Receive(Loot):
 
 @dataclass
 class WarpTo(Action):
-    def __call__(self, state: State) -> None:
+    def apply(self, state: State) -> None:
         try:
             state.region = state.bonfire_to_region[self.target]
         except KeyError:
@@ -269,7 +284,7 @@ class UseMenu(__ItemCommon):
     allow_partial: bool = False
     no_warp: bool = False
 
-    def __call__(self, state: State) -> None:
+    def apply(self, state: State) -> None:
         actual_count = state.inventory[self.target]
         if actual_count < self.count:
             if self.allow_partial:
@@ -280,9 +295,9 @@ class UseMenu(__ItemCommon):
             #        f"Cannot use {self.count} of {self.target}, only have"
             #        f" {actual_count}"
             #    )
-        super().__call__(state)
+        super().apply(state)
         if not self.no_warp and self.target in (Item.BONE, Item.DARKSIGN):
-            WarpTo(state.bonfire)(state)  # call it
+            WarpTo(state.bonfire).apply(state)
         stored_souls = state.souls_lookup.get(self.target, 0)
         if stored_souls:
             delta = stored_souls * self.count
@@ -306,19 +321,19 @@ class UseMenu(__ItemCommon):
 
 @dataclass
 class Use(UseMenu):
-    def __call__(self, state: State) -> None:
+    def apply(self, state: State) -> None:
         if self.target not in state.equipment.values():
             state.new_errors.append(
                 f"Cannot use unequipped item: {self.target}"
             )
-        super().__call__(state)
+        super().apply(state)
 
 
 @dataclass(kw_only=True)
 class Kill(__ItemCommon):
     souls: int
 
-    def __call__(self, state: State) -> None:
+    def apply(self, state: State) -> None:
         state.souls += self.souls * self.count
 
 
@@ -335,12 +350,12 @@ class Buy(Kill):
         super().__post_init__()
         self.souls *= -1
 
-    def __call__(self, state: State) -> None:
+    def apply(self, state: State) -> None:
         if not self.always:
             self.count = max(self.count - state.inventory[self.target], 0)
             if not self.count:
                 self.output = False  # no need to buy anything
-        super().__call__(state)
+        super().apply(state)
         state.inventory[self.target] += self.count
 
 
@@ -357,11 +372,12 @@ class UpgradeItem(Kill):
         super().__post_init__()
         self.souls *= -1
 
-    def __call__(self, state: State) -> None:
-        super().__call__(state)
+    def apply(self, state: State) -> None:
+        super().apply(state)
         for item, count in self.items.items():
-            # call it
-            UseMenu(item, count=(count * self.count), no_warp=True)(state)
+            UseMenu(item, count=(count * self.count), no_warp=True).apply(
+                state
+            )
         state.inventory[self.target] -= 1
         state.inventory[self.new_item] += 1
         # replace equipped item

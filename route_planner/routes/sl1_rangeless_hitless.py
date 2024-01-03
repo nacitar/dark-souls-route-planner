@@ -235,6 +235,7 @@ class TunableSegment(Segment):
 @dataclass
 class StartToAfterGargoylesInFirelink(TunableSegment):
     def __post_init__(self) -> None:
+        super().__post_init__()
         SHARDS_PER_LEVEL = [1, 1, 2, 2, 3]
         early_weapon_shards = sum(
             SHARDS_PER_LEVEL[0 : self.options.initial_upgrade]
@@ -242,7 +243,6 @@ class StartToAfterGargoylesInFirelink(TunableSegment):
 
         starting = "starting equipment"
         pyromancer = "Pyromancer starting equipment"
-        super().__post_init__()
         self.add_steps(
             Receive(Item.DARKSIGN, detail=starting),
             Receive("Straight Sword Hilt", detail=starting),
@@ -1024,6 +1024,12 @@ class ToDoSegment(TunableSegment):
                 allow_partial=True,
                 detail="use all that you have",
             ),
+            # Segment(
+            #    condition_callback=lambda state: state.humanity < 30
+            # ).add_steps(Region("UNDER30")),
+            # Segment(
+            #    condition_callback=lambda state: state.humanity >= 30
+            # ).add_steps(Region("OVER30")),
         )
 
 
