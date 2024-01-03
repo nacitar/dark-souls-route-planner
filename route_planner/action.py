@@ -4,7 +4,7 @@ from collections import Counter
 from copy import deepcopy
 from dataclasses import dataclass, field
 from itertools import chain
-from typing import Generator, Optional
+from typing import Generator, Optional, Protocol
 
 # TODO:
 # add ability to estimate time for a segment
@@ -87,8 +87,13 @@ class State:
         return errors
 
 
+class Step(Protocol):
+    def generate_events(self, state: State) -> Generator[Event, None, None]:
+        ...
+
+
 @dataclass
-class Action:  # is a 'segment.Step'
+class Action:  # is a 'Step'
     target: str
     detail: str = field(default="", kw_only=True)
     optional: bool = field(default=False, kw_only=True)

@@ -2,9 +2,9 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from enum import Enum, unique
-from typing import Callable, Generator, Optional, Protocol
+from typing import Callable, Generator, Optional
 
-from .action import Event, State
+from .action import Event, State, Step
 
 
 @dataclass
@@ -82,13 +82,8 @@ class DamageTable:
     hit_types: list[HitType] = field(default_factory=lambda: list(HitType))
 
 
-class Step(Protocol):
-    def generate_events(self, state: State) -> Generator[Event, None, None]:
-        ...
-
-
 @dataclass(kw_only=True)
-class Segment:  # is a 'Step'
+class Segment:  # is a 'action.Step'
     notes: list[str] = field(default_factory=list)
     condition: bool = True
     condition_callback: Callable[[State], bool] = lambda state: True
