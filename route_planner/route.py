@@ -118,7 +118,9 @@ class Route:
     damage_tables: list[DamageTable] = field(default_factory=list)
     hit_lookup: Optional[dict[str, dict[Enemy, dict[HitType, Hit]]]] = None
 
-    def run(self, state: State) -> RouteData:
+    def run(self, *, state: Optional[State] = None) -> RouteData:
+        if not state:
+            state = State()
         route_data = RouteData()
         for event in self.segment.generate_events(state):
             route_data.events.append(event)

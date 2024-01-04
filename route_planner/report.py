@@ -7,7 +7,7 @@ from os import linesep
 from typing import Optional
 
 from . import styles
-from .action import Error, Metrics, State
+from .action import Error, Metrics
 from .route import DamageTable, Enemy, Hit, HitType, Route, RouteData
 
 
@@ -269,7 +269,7 @@ def route(
     if not route.segment.condition:
         html.append('<span class="warning">Route Segment is DISABLED</span>')
     else:
-        route_data = route.run(State())
+        route_data = route.run()
         if route_data.notes:
             html.append('<span class="route section">Notes</span>')
             html.append(notes_list(route_data))
