@@ -20,8 +20,19 @@ class Item:
     TWINKLING_TITANITE = "Twinkling Titanite"
 
 
-# TODO: consider how deepcopy affects fields like notes, which really is only
-# needed during execution and the final value... not every incremental copy.
+@dataclass(kw_only=True)
+class Metrics:
+    souls: int = 0
+    item_souls: int = 0
+    humanity: int = 0
+    item_humanities: int = 0
+    region: str = ""
+    error_count: int = 0
+    homeward_bones: int = 0
+    titanite_shards: int = 0
+    twinkling_titanite: int = 0
+
+
 @dataclass(kw_only=True)
 class State:
     souls: int = 0
@@ -30,15 +41,28 @@ class State:
     item_humanities: int = 0
     bonfire: str = ""
     region: str = ""
+    error_count: int = 0
+    inventory: Counter[str] = field(default_factory=Counter)
+    equipment: dict[str, str] = field(default_factory=dict)
     bonfire_to_region: dict[str, str] = field(default_factory=dict, repr=False)
-    equipment: dict[str, str] = field(default_factory=dict, repr=False)
-    inventory: Counter[str] = field(default_factory=Counter, repr=False)
     souls_lookup: dict[str, int] = field(default_factory=dict, repr=False)
     humanities_lookup: dict[str, int] = field(default_factory=dict, repr=False)
     new_errors: list[str] = field(default_factory=list, repr=False)
     last_overdrafts: set[str] = field(default_factory=set, repr=False)
     notes: list[str] = field(default_factory=list, repr=False)
-    error_count: int = 0
+
+    def metrics(self) -> Metrics:
+        return Metrics(
+            souls=self.souls,
+            item_souls=self.item_souls,
+            humanity=self.humanity,
+            item_humanities=self.item_humanities,
+            region=self.region,
+            error_count=self.error_count,
+            homeward_bones=self.inventory[Item.BONE],
+            titanite_shards=self.inventory[Item.TITANITE_SHARD],
+            twinkling_titanite=self.inventory[Item.TWINKLING_TITANITE],
+        )
 
     def remove_equipment(self, item: str) -> str:
         """returns the slot the item was removed from, or an empty string."""
@@ -52,25 +76,18 @@ class State:
         if slot in self.equipment:
             del self.equipment[slot]
 
-    @property
-    def bones(self) -> int:
-        return self.inventory[Item.BONE]
-
-    @property
-    def titanite_shards(self) -> int:
-        return self.inventory[Item.TITANITE_SHARD]
-
-    @property
-    def twinkling_titanite(self) -> int:
-        return self.inventory[Item.TWINKLING_TITANITE]
-
     def errors(self) -> list[str]:
         overdrafts: set[str] = set(
             [
                 f"{key}({value})"
                 for key, value in chain(
                     self.inventory.items(),
-                    [("souls", self.souls), ("item_souls", self.item_souls)],
+                    [
+                        ("souls", self.souls),
+                        ("item_souls", self.item_souls),
+                        ("humanity", self.humanity),
+                        ("item_humanities", self.item_humanities),
+                    ],
                 )
                 if value < 0
             ]
@@ -120,14 +137,14 @@ class Action:  # is a 'Step'
             action = deepcopy(self)  # so actions can modify themselves
             action.apply(state)
             state.notes.extend(self.notes)
-            yield Event(state=deepcopy(state), action=action)
+            yield Event(metrics=state.metrics(), action=action)
             for error in state.errors():
-                yield Event(state=deepcopy(state), action=Error(error))
+                yield Event(metrics=state.metrics(), action=Error(error))
 
 
 @dataclass(kw_only=True)
 class Event:
-    state: State
+    metrics: Metrics
     action: Action
 
 

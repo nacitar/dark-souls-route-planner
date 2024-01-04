@@ -7,7 +7,7 @@ from os import linesep
 from typing import Optional
 
 from . import styles
-from .action import Error, State
+from .action import Error, Metrics, State
 from .route import DamageTable, Enemy, Hit, HitType, Route, RouteData
 
 
@@ -171,7 +171,7 @@ def _value_cell(name: str, old_value: int, new_value: int) -> str:
 
 def steps_table(route_data: RouteData) -> str:
     region_count = 0
-    last_state = State()
+    last_metrics = Metrics()
     region = ""
     columns = [
         ("Souls", "Souls"),
@@ -199,30 +199,34 @@ def steps_table(route_data: RouteData) -> str:
                 rowclass = "optional"
             html.append(
                 (f'<tr class="{rowclass}">' if rowclass else "<tr>")
-                + _value_cell("Souls", last_state.souls, event.state.souls)
+                + _value_cell("Souls", last_metrics.souls, event.metrics.souls)
                 + _value_cell(
-                    "Item Souls", last_state.item_souls, event.state.item_souls
+                    "Item Souls",
+                    last_metrics.item_souls,
+                    event.metrics.item_souls,
                 )
                 + _value_cell(
-                    "Homeward Bones", last_state.bones, event.state.bones
+                    "Homeward Bones",
+                    last_metrics.homeward_bones,
+                    event.metrics.homeward_bones,
                 )
                 + _value_cell(
                     "Titanite Shards",
-                    last_state.titanite_shards,
-                    event.state.titanite_shards,
+                    last_metrics.titanite_shards,
+                    event.metrics.titanite_shards,
                 )
                 + _value_cell(
                     "Twinkling Titanite",
-                    last_state.twinkling_titanite,
-                    event.state.twinkling_titanite,
+                    last_metrics.twinkling_titanite,
+                    event.metrics.twinkling_titanite,
                 )
                 + _value_cell(
                     "Item Humanities",
-                    last_state.item_humanities,
-                    event.state.item_humanities,
+                    last_metrics.item_humanities,
+                    event.metrics.item_humanities,
                 )
                 + _value_cell(
-                    "Humanity", last_state.humanity, event.state.humanity
+                    "Humanity", last_metrics.humanity, event.metrics.humanity
                 )
                 + '<td class="action">'
                 f'<span class="name">{event.action.name}</span>'
@@ -230,8 +234,8 @@ def steps_table(route_data: RouteData) -> str:
                 f'<br/><span class="detail">{event.action.detail}'
                 "</span></td></tr>"
             )
-        if event.state.region != region:
-            region = event.state.region
+        if event.metrics.region != region:
+            region = event.metrics.region
             region_count += 1
             html.append(
                 "</tbody><tbody><tr>"
@@ -239,14 +243,14 @@ def steps_table(route_data: RouteData) -> str:
                 f"{region_count:02}. {region}</td></tr>"
                 "</tbody><tbody>"
             )
-        last_state = event.state
+        last_metrics = event.metrics
     html.append("</tbody></table>")
 
-    if event.state.error_count:
+    if event.metrics.error_count:
         html.insert(  # prepend
             0,
             (
-                f'<span class="warning">{event.state.error_count}'
+                f'<span class="warning">{event.metrics.error_count}'
                 " errors present.</span>"
             ),
         )
