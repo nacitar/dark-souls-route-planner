@@ -103,7 +103,9 @@ SL1_HIT_LOOKUP: dict[str, dict[Enemy, dict[HitType, Hit]]] = {
             HitType.HEAVY_1H: Hit(57, with_rtsr=144),
             HitType.JUMPING_1H: Hit(94, with_rtsr=212),
             HitType.WEAK_2H: Hit(83, with_rtsr=194),
-            HitType.HEAVY_2H: Hit(64, with_rtsr=284),
+            HitType.HEAVY_2H: Hit(
+                64, with_rtsr=284
+            ),  # TODO: non-rtsr number is wrong
             HitType.JUMPING_2H: Hit(147, with_rtsr=299),
         },
         Enemy.DARKMOON_KNIGHTESS: {

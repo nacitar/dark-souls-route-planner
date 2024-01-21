@@ -275,16 +275,10 @@ class StartToAfterGargoylesInFirelink(TunableSegment):
             Region("Firelink Shrine"),
             AutoBonfire("Firelink Shrine"),
             Segment(
-                condition=not self.loots_firelink_at_start,
-                notes=[
-                    "Firelink <b>IS NOT</b> looted at start;"
-                    f" goes straight to {andre}."
-                ],
-            ),
-            Segment(
                 condition=self.loots_firelink_at_start,
                 notes=["Firelink is looted upon arrival."],
-            ).add_steps(
+            )
+            .add_steps(
                 Loot(
                     Item.HUMANITY,
                     count=3,
@@ -336,6 +330,14 @@ class StartToAfterGargoylesInFirelink(TunableSegment):
                     Item.BONE,
                     condition=self.options.loot_firelink_graveyard_souls,
                 ),
+            )
+            .else_add_steps(
+                Segment(
+                    notes=[
+                        "Firelink <b>IS NOT</b> looted at start;"
+                        f" goes straight to {andre}."
+                    ]
+                )
             ),
             Segment(condition=self.uses_reinforced_club).add_steps(
                 Region("Firelink Shrine"),
@@ -424,47 +426,49 @@ class StartToAfterGargoylesInFirelink(TunableSegment):
             Region("Darkroot Basin"),
             Loot("Grass Crest Shield"),
             Equip("Grass Crest Shield", "Left Hand", detail="immediately"),
-            Kill(
-                "Black Knight",
-                souls=1800,
-                detail=(
-                    "by Grass Crest Shield."
-                    + (
-                        (
-                            '<br/><span class="warning">SKIPPING THIS MEANS'
-                            " ONLY HAVING A +3 WEAPON</span>"
+            Segment(condition=self.options.kill_darkroot_basin_black_knight)
+            .add_steps(
+                Kill(
+                    "Black Knight",
+                    souls=1800,
+                    detail=(
+                        "by Grass Crest Shield."
+                        + (
+                            (
+                                '<br/><span class="warning">SKIPPING THIS'
+                                " MEANS ONLY HAVING A +3 WEAPON</span>"
+                            )
+                            if self.options.initial_upgrade == 4
+                            else ""
                         )
-                        if self.options.initial_upgrade == 4
-                        else ""
-                    )
-                ),
-                condition=self.options.kill_darkroot_basin_black_knight,
-                optional=self.options.initial_upgrade == 4,
-                notes=(
-                    [
-                        (
-                            "Black Knight in Darkroot Basin <b>PRECISELY</b>"
-                            " determines whether you can afford upgrading your"
-                            f" {self.options.early_weapon} to +3 or +4."
-                        )
-                    ]
-                    if self.options.initial_upgrade == 4
-                    else [
+                    ),
+                    optional=self.options.initial_upgrade == 4,
+                    notes=(
+                        [
+                            (
+                                "Black Knight in Darkroot Basin"
+                                " <b>PRECISELY</b> determines whether you can"
+                                " afford upgrading your"
+                                f" {self.options.early_weapon} to +3 or +4."
+                            )
+                            if self.options.initial_upgrade == 4
+                            else (
+                                "Black Knight in Darkroot Basin"
+                                " <b>MUST</b> be killed."
+                            )
+                        ]
+                    ),
+                )
+            )
+            .else_add_steps(
+                Segment(
+                    notes=[
                         (
                             "Black Knight in Darkroot Basin"
-                            " <b>MUST</b> be killed."
+                            " <b>DOES NOT</b> need killed."
                         )
                     ]
-                ),
-            ),
-            Segment(
-                condition=not self.options.kill_darkroot_basin_black_knight,
-                notes=[
-                    (
-                        "Black Knight in Darkroot Basin"
-                        " <b>DOES NOT</b> need killed."
-                    )
-                ],
+                )
             ),
             RunTo(
                 "Undead Parish",
@@ -650,9 +654,8 @@ class FirelinkToSensFortress(TunableSegment):
             WaitFor("boulder to pass", detail="hitting enemy in room 5 times"),
             RunTo("top of ramp", detail="must go IMMEDIATELY after boulder"),
             RunTo("fog gate at top of Sen's Fortress"),
-            Segment(
-                condition=self.equipment.slumbering_dragoncrest_ring
-            ).add_steps(
+            Segment(condition=self.equipment.slumbering_dragoncrest_ring)
+            .add_steps(
                 BonfireSit(
                     "Sen's Fortress",
                     detail=f"to bone back after getting {slumbering}",
@@ -663,10 +666,8 @@ class FirelinkToSensFortress(TunableSegment):
                 ),
                 Loot(slumbering),
                 Use(Item.BONE),
-            ),
-            Segment(
-                condition=not self.equipment.slumbering_dragoncrest_ring
-            ).add_steps(
+            )
+            .else_add_steps(
                 BonfireSit(
                     "Sen's Fortress",
                     detail="safety for Iron Golem",
@@ -696,12 +697,13 @@ class SensFortressToAnorLondoResidence(TunableSegment):
             Receive("Core of an Iron Golem", souls=12000, detail="Iron Golem"),
             Receive(Item.HUMANITY, humanities=1, detail="Iron Golem"),
             Region("Anor Londo"),
-            Segment(condition=self.run_type.is_all_bosses).add_steps(
+            Segment(condition=self.run_type.is_all_bosses)
+            .add_steps(
                 BonfireSit(
                     "Anor Londo", detail="safety for rafters", optional=True
                 )
-            ),
-            Segment(condition=not self.run_type.is_all_bosses).add_steps(
+            )
+            .else_add_steps(
                 BonfireSit(
                     "Anor Londo", detail=f"so you can warp back for {seath}"
                 )
@@ -770,6 +772,7 @@ class GetAndUpgradeBlacksmithGiantHammer(TunableSegment):
 class AnorLondoResidenceToLordvessel(TunableSegment):
     def __post_init__(self) -> None:
         super().__post_init__()
+
         self.add_steps(
             Segment(condition=self.equipment.occult_club).add_steps(
                 RunTo(
@@ -778,15 +781,24 @@ class AnorLondoResidenceToLordvessel(TunableSegment):
                 ),
                 Kill("Mimic", souls=2000),
                 Loot("Occult Club", detail="Mimic"),
-                Use(
-                    Item.DARKSIGN,
-                    condition=self.needs_to_save_bone_at_occult_club,
-                    detail=f"BE CAREFUL: using {Item.DARKSIGN} to save a bone",
-                ),
-                Use(
-                    Item.BONE,
-                    condition=not self.needs_to_save_bone_at_occult_club,
-                ),
+                Segment(
+                    condition_callback=lambda state: (
+                        state.metrics().homeward_bones < 2
+                    ),
+                    notes=[
+                        (
+                            f"{Item.DARKSIGN} MUST be used to save a"
+                            f" {Item.BONE} after looting the Occult Club."
+                        )
+                    ],
+                )
+                .add_steps(
+                    Use(
+                        Item.DARKSIGN,
+                        detail=f"CAREFUL: use {Item.DARKSIGN} to save a bone",
+                    )
+                )
+                .else_add_steps(Use(Item.BONE)),
             ),
             RunTo("Spiral Stairs and jump out for shortcut"),
             FallDamage(
@@ -850,18 +862,18 @@ class KillNito(TunableSegment):
             Kill(nito, souls=60000),
             Receive("Lord Soul", detail=nito),
             Segment(
-                condition=not self.humanity.wait_for_nito_drops,
-                notes=[f"1 slow {Item.HUMANITY} skipped from {nito}."],
-            ),
-            Segment(
                 condition=self.humanity.wait_for_nito_drops,
                 notes=[f"wait for 1 slow {Item.HUMANITY} from {nito}."],
-            ).add_steps(
+            )
+            .add_steps(
                 Receive(
                     Item.HUMANITY,
                     humanities=1,
                     detail=f"{nito} (slow to receive it)",
                 )
+            )
+            .else_add_steps(
+                Segment(notes=[f"1 slow {Item.HUMANITY} skipped from {nito}."])
             ),
             UseMenu(Item.DARKSIGN),
         )

@@ -6,10 +6,6 @@ from dataclasses import dataclass, field
 from itertools import chain
 from typing import Generator, Optional, Protocol
 
-# TODO:
-# add ability to estimate time for a segment
-# fix RTSR setup for gargoyles
-
 
 class Item:
     BONE = "Homeward Bone"
@@ -72,7 +68,7 @@ class State:
                 return slot
         return ""
 
-    def clear_equipment_slot(self, slot: str):
+    def clear_equipment_slot(self, slot: str) -> None:
         if slot in self.equipment:
             del self.equipment[slot]
 

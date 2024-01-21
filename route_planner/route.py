@@ -90,6 +90,7 @@ class Segment:  # is a 'action.Step'
     # not in init to force using the varargs add_steps, so call sites are less
     # indented by not having to specify the nested list.
     steps: list[Step] = field(default_factory=list, init=False)
+    else_steps: list[Step] = field(default_factory=list, init=False)
 
     def __post_init__(self) -> None:
         pass
@@ -98,11 +99,19 @@ class Segment:  # is a 'action.Step'
         self.steps.extend(steps)
         return self
 
+    def else_add_steps(self, *steps: Step) -> Segment:
+        self.else_steps.extend(steps)
+        return self
+
     def generate_events(self, state: State) -> Generator[Event, None, None]:
+        steps: list[Step] = []
         if self.condition and self.condition_callback(state):
             state.notes.extend(self.notes)
-            for step in self.steps:
-                yield from step.generate_events(state)
+            steps = self.steps
+        else:
+            steps = self.else_steps
+        for step in steps:
+            yield from step.generate_events(state)
 
 
 @dataclass(kw_only=True)
