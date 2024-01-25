@@ -34,7 +34,7 @@ SL1_HIT_LOOKUP: dict[str, dict[Enemy, dict[HitType, Hit]]] = {
             HitType.WEAK_1H: Hit(84, with_rtsr=170),
             HitType.HEAVY_1H: Hit(112, with_rtsr=232),
             HitType.JUMPING_1H: Hit(161, with_rtsr=275),
-            HitType.WEAK_2H: Hit(185, with_rtsr=259),
+            HitType.WEAK_2H: Hit(149, with_rtsr=259),
             HitType.HEAVY_2H: Hit(208, with_rtsr=343),
             HitType.JUMPING_2H: Hit(217, with_rtsr=358),
         },
@@ -103,9 +103,7 @@ SL1_HIT_LOOKUP: dict[str, dict[Enemy, dict[HitType, Hit]]] = {
             HitType.HEAVY_1H: Hit(57, with_rtsr=144),
             HitType.JUMPING_1H: Hit(94, with_rtsr=212),
             HitType.WEAK_2H: Hit(83, with_rtsr=194),
-            HitType.HEAVY_2H: Hit(
-                64, with_rtsr=284
-            ),  # TODO: non-rtsr number is wrong
+            HitType.HEAVY_2H: Hit(139, with_rtsr=284),
             HitType.JUMPING_2H: Hit(147, with_rtsr=299),
         },
         Enemy.DARKMOON_KNIGHTESS: {
@@ -138,7 +136,7 @@ SL1_HIT_LOOKUP: dict[str, dict[Enemy, dict[HitType, Hit]]] = {
             HitType.HEAVY_2H: Hit(169, with_rtsr=290),
             HitType.JUMPING_2H: Hit(178, with_rtsr=302),
             HitType.BACKSTAB_1H: Hit(16 + 182, with_rtsr=45 + 303),
-            HitType.BACKSTAB_2H: Hit(21 + 213, with_rtsr=60 + 468),
+            HitType.BACKSTAB_2H: Hit(21 + 213, with_rtsr=60 + 350),
             HitType.RIPOSTE_1H: Hit(16 + 243, with_rtsr=45 + 405),
             HitType.RIPOSTE_2H: Hit(22 + 279, with_rtsr=60 + 468),
         },
@@ -155,7 +153,7 @@ SL1_HIT_LOOKUP: dict[str, dict[Enemy, dict[HitType, Hit]]] = {
             HitType.RIPOSTE_2H: Hit(20 + 274, with_rtsr=54 + 459),
         },
         Enemy.LAUTREC: {
-            HitType.WEAK_1H: Hit(28, with_rtsr=149),
+            HitType.WEAK_1H: Hit(28, with_rtsr=74),
             HitType.HEAVY_1H: Hit(47, with_rtsr=129),
             HitType.JUMPING_1H: Hit(68, with_rtsr=171),
             HitType.WEAK_2H: Hit(50, with_rtsr=149),
@@ -259,7 +257,7 @@ SL1_HIT_LOOKUP: dict[str, dict[Enemy, dict[HitType, Hit]]] = {
         Enemy.QUELAAG: {
             HitType.WEAK_1H: Hit(22, with_rtsr=55),
             HitType.HEAVY_1H: Hit(40, with_rtsr=111),
-            HitType.JUMPING_1H: Hit(57, with_rtsr=106),
+            HitType.JUMPING_1H: Hit(57, with_rtsr=150),
             HitType.WEAK_2H: Hit(47, with_rtsr=129),
             HitType.HEAVY_2H: Hit(83, with_rtsr=197),
             HitType.JUMPING_2H: Hit(90, with_rtsr=209),
