@@ -1,6 +1,6 @@
 from route_planner import __version__
 from route_planner.route import HitType
-from route_planner.sl1 import SL1_HIT_LOOKUP
+from route_planner.sl1 import SL1_HIT_LOOKUP, ordered_by_sl1_damage
 
 
 def test_version() -> None:
@@ -9,11 +9,12 @@ def test_version() -> None:
 
 def test_sl1_damage_numbers_look_reasonable() -> None:
     errors: list[str] = []
+    HIT_TYPES = ordered_by_sl1_damage(list(HitType))
     for weapon, enemy_to_hittype_to_hit in SL1_HIT_LOOKUP.items():
         for enemy, hittype_to_hit in enemy_to_hittype_to_hit.items():
             last_damage = 0
             last_rtsr_damage = 0
-            for hittype in list(HitType):  # enum defined weakest to strongest
+            for hittype in HIT_TYPES:
                 hit = hittype_to_hit.get(hittype)
                 if hit is None:
                     continue

@@ -32,7 +32,7 @@ from ..action import (
     WarpTo,
 )
 from ..route import DamageTable, Enemy, HitType, Route, Segment
-from ..sl1 import SL1_HIT_LOOKUP
+from ..sl1 import SL1_HIT_LOOKUP, ordered_by_sl1_damage
 
 rtsr_ladder = "climbing ladder to RTSR"
 new_londo_elevator = "elevator to New Londo Ruins"
@@ -51,22 +51,14 @@ four_kings = "The Four Kings"
 priscilla = "Crossbreed Priscilla"
 slumbering = "Slumbering Dragoncrest Ring"
 
-HUMANOID_HIT_TYPES = list(HitType)
-STANDARD_HIT_TYPES = [
-    hit_type
-    for hit_type in HitType
-    if hit_type.name.split("_", 1)[0] not in ["BACKSTAB", "RIPOSTE"]
-]
-HUMANOID_HIT_TYPES_2H = [
-    hit_type
-    for hit_type in HUMANOID_HIT_TYPES
-    if not hit_type.name.endswith("_1H")
-]
-STANDARD_HIT_TYPES_2H = [
-    hit_type
-    for hit_type in STANDARD_HIT_TYPES
-    if not hit_type.name.endswith("_1H")
-]
+HUMANOID_HIT_TYPES = ordered_by_sl1_damage(HitType.humanoid_types())
+STANDARD_HIT_TYPES = ordered_by_sl1_damage(HitType.standard_types())
+HUMANOID_HIT_TYPES_2H = ordered_by_sl1_damage(
+    HitType.humanoid_two_handed_types()
+)
+STANDARD_HIT_TYPES_2H = ordered_by_sl1_damage(
+    HitType.standard_two_handed_types()
+)
 
 HUMANOID_ENEMIES_WITHOUT_UPGRADES = [Enemy.BLACK_KNIGHT_DARKROOT_BASIN]
 ENEMIES_WITH_UPGRADES = [

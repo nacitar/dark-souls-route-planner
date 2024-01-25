@@ -1,4 +1,41 @@
+from typing import Sequence
+
 from .route import Enemy, Hit, HitType
+
+
+def _sl1_hittype_damage_order() -> dict[HitType, int]:
+    entries = set(HitType)
+    ordered_by_damage = [
+        HitType.WEAK_1H,
+        HitType.HEAVY_1H,
+        HitType.WEAK_2H,
+        HitType.JUMPING_1H,  # order of entry may deviate from expectations
+        HitType.HEAVY_2H,
+        HitType.JUMPING_2H,
+        HitType.BACKSTAB_1H,
+        HitType.BACKSTAB_2H,
+        HitType.RIPOSTE_1H,
+        HitType.RIPOSTE_2H,
+    ]
+    entries.difference_update(ordered_by_damage)
+    if entries:
+        raise AssertionError(
+            "Enum entries are not listed: "
+            + ",".join([entry.name for entry in entries])
+        )
+    return {
+        hit_type: index for index, hit_type in enumerate(ordered_by_damage)
+    }
+
+
+_SL1_DAMAGE_ORDER_LOOKUP = _sl1_hittype_damage_order()
+
+
+def ordered_by_sl1_damage(hit_types: Sequence[HitType]) -> list[HitType]:
+    return sorted(
+        hit_types, key=lambda hit_type: _SL1_DAMAGE_ORDER_LOOKUP[hit_type]
+    )
+
 
 SL1_HIT_LOOKUP: dict[str, dict[Enemy, dict[HitType, Hit]]] = {
     "Hand Axe +0": {

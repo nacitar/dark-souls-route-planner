@@ -21,17 +21,44 @@ class HitTypeInfo:
 
 @unique
 class HitType(Enum):
-    # this is ordered from weakest to strongest
     WEAK_1H = HitTypeInfo("Weak(1H)", column_name="Wk1H")
     HEAVY_1H = HitTypeInfo("Heavy(1H)", column_name="Hvy1H")
-    WEAK_2H = HitTypeInfo("Weak(2H)", column_name="Wk2H")
     JUMPING_1H = HitTypeInfo("Jumping(1H)", column_name="Jmp1H")
+    WEAK_2H = HitTypeInfo("Weak(2H)", column_name="Wk2H")
     HEAVY_2H = HitTypeInfo("Heavy(2H)", column_name="Hvy2H")
     JUMPING_2H = HitTypeInfo("Jumping(2H)", column_name="Jmp2H")
     BACKSTAB_1H = HitTypeInfo("Backstab(1H)", column_name="Bs1H")
     BACKSTAB_2H = HitTypeInfo("Backstab(2H)", column_name="Bs2H")
     RIPOSTE_1H = HitTypeInfo("Riposte(1H)", column_name="Rip1H")
     RIPOSTE_2H = HitTypeInfo("Riposte(2H)", column_name="Rip2H")
+
+    @classmethod
+    def humanoid_types(cls) -> list[HitType]:
+        return list(cls)
+
+    @classmethod
+    def humanoid_two_handed_types(cls) -> list[HitType]:
+        return [
+            hit_type
+            for hit_type in cls.humanoid_types()
+            if not hit_type.name.endswith("_1H")
+        ]
+
+    @classmethod
+    def standard_types(cls) -> list[HitType]:
+        return [
+            hit_type
+            for hit_type in cls.humanoid_types()
+            if hit_type.name.split("_", 1)[0] not in ["BACKSTAB", "RIPOSTE"]
+        ]
+
+    @classmethod
+    def standard_two_handed_types(cls) -> list[HitType]:
+        return [
+            hit_type
+            for hit_type in cls.standard_types()
+            if not hit_type.name.endswith("_1H")
+        ]
 
     @property  # not needed, but reads better in the code
     def info(self) -> HitTypeInfo:
