@@ -31,38 +31,47 @@ class HitType(Enum):
     BACKSTAB_2H = HitTypeInfo("Backstab(2H)", column_name="Bs2H")
     RIPOSTE_1H = HitTypeInfo("Riposte(1H)", column_name="Rip1H")
     RIPOSTE_2H = HitTypeInfo("Riposte(2H)", column_name="Rip2H")
+    MAGIC = HitTypeInfo("Magic", column_name="Magic")
+
+    def __init__(self, info: HitTypeInfo):
+        self.info = info
+        self.two_handed: Optional[bool] = None
+        if self.name.endswith("_2H"):
+            self.two_handed = True
+        elif self.name.endswith("_1H"):
+            self.two_handed = False
 
     @classmethod
-    def humanoid_types(cls) -> list[HitType]:
-        return list(cls)
+    def melee_types(cls) -> list[HitType]:
+        return [entry for entry in cls if entry.two_handed is not None]
 
     @classmethod
-    def humanoid_two_handed_types(cls) -> list[HitType]:
+    def melee_two_handed_types(cls) -> list[HitType]:
         return [
-            hit_type
-            for hit_type in cls.humanoid_types()
-            if not hit_type.name.endswith("_1H")
+            hit_type for hit_type in cls.melee_types() if hit_type.two_handed
         ]
 
     @classmethod
-    def standard_types(cls) -> list[HitType]:
+    def base_melee_types(cls) -> list[HitType]:
         return [
             hit_type
-            for hit_type in cls.humanoid_types()
-            if hit_type.name.split("_", 1)[0] not in ["BACKSTAB", "RIPOSTE"]
+            for hit_type in cls.melee_types()
+            if hit_type
+            not in (
+                cls.BACKSTAB_1H,
+                cls.BACKSTAB_2H,
+                cls.RIPOSTE_1H,
+                cls.RIPOSTE_2H,
+            )
         ]
 
     @classmethod
-    def standard_two_handed_types(cls) -> list[HitType]:
+    def base_melee_two_handed_types(cls) -> list[HitType]:
         return [
             hit_type
-            for hit_type in cls.standard_types()
-            if not hit_type.name.endswith("_1H")
+            for hit_type in cls.base_melee_types()
+            if hit_type.two_handed
         ]
-
-    @property  # not needed, but reads better in the code
-    def info(self) -> HitTypeInfo:
-        return self.value
 
 
 @dataclass(kw_only=True)

@@ -1,15 +1,15 @@
 from route_planner import __version__
 from route_planner.route import HitType
-from route_planner.sl1 import SL1_HIT_LOOKUP, ordered_by_sl1_damage
+from route_planner.sl1 import SL1_HIT_LOOKUP, sl1_ordered_by_melee_damage
 
 
 def test_version() -> None:
-    assert __version__ == "0.1.0"
+    assert __version__ == "0.2.0"
 
 
 def test_sl1_damage_numbers_look_reasonable() -> None:
     errors: list[str] = []
-    HIT_TYPES = ordered_by_sl1_damage(list(HitType))
+    HIT_TYPES = sl1_ordered_by_melee_damage(HitType.melee_types())
     for weapon, enemy_to_hittype_to_hit in SL1_HIT_LOOKUP.items():
         for enemy, hittype_to_hit in enemy_to_hittype_to_hit.items():
             last_damage = 0

@@ -11,7 +11,7 @@ strict = true
 
 [tool.poetry]
 name = "route-planner"
-version = "0.1.0"
+version = "0.2.0"
 description = ""
 authors = ["Jacob McIntosh <nacitar.sevaht@gmail.com>"]
 
@@ -20,13 +20,14 @@ python = "^3.11"
 
 [tool.poetry.group.dev.dependencies]
 cssbeautifier = "^1.14.11"
-pytest = "^7.4.3"
-mypy = "^1.7.1"
+pytest = "^7.4.4"
+mypy = "^1.8.0"
 flake8 = "^6.1.0"
-black = {extras = ["jupyter"], version = "^23.11.0"}
-isort = "^5.12.0"
+black = {extras = ["jupyter"], version = "^23.12.1"}
+isort = "^5.13.2"
 
 [tool.poetry.scripts]
+checks = 'checks:main'
 route-planner = "route_planner.__main__:main"
 
 [build-system]

@@ -3,8 +3,8 @@ from typing import Sequence
 from .route import Enemy, Hit, HitType
 
 
-def _sl1_hittype_damage_order() -> dict[HitType, int]:
-    entries = set(HitType)
+def _sl1_hittype_by_melee_damage() -> dict[HitType, int]:
+    melee_types = set(HitType.melee_types())
     ordered_by_damage = [
         HitType.WEAK_1H,
         HitType.HEAVY_1H,
@@ -17,23 +17,23 @@ def _sl1_hittype_damage_order() -> dict[HitType, int]:
         HitType.RIPOSTE_1H,
         HitType.RIPOSTE_2H,
     ]
-    entries.difference_update(ordered_by_damage)
-    if entries:
+    melee_types.difference_update(ordered_by_damage)
+    if melee_types:
         raise AssertionError(
-            "Enum entries are not listed: "
-            + ",".join([entry.name for entry in entries])
+            "Some melee types are not listed: "
+            + ",".join([entry.name for entry in melee_types])
         )
     return {
         hit_type: index for index, hit_type in enumerate(ordered_by_damage)
     }
 
 
-_SL1_DAMAGE_ORDER_LOOKUP = _sl1_hittype_damage_order()
+_SL1_HITTYPE_BY_MELEE_DAMAGE = _sl1_hittype_by_melee_damage()
 
 
-def ordered_by_sl1_damage(hit_types: Sequence[HitType]) -> list[HitType]:
+def sl1_ordered_by_melee_damage(hit_types: Sequence[HitType]) -> list[HitType]:
     return sorted(
-        hit_types, key=lambda hit_type: _SL1_DAMAGE_ORDER_LOOKUP[hit_type]
+        hit_types, key=lambda hit_type: _SL1_HITTYPE_BY_MELEE_DAMAGE[hit_type]
     )
 
 

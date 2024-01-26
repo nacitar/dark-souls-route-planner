@@ -32,7 +32,7 @@ from ..action import (
     WarpTo,
 )
 from ..route import DamageTable, Enemy, HitType, Route, Segment
-from ..sl1 import SL1_HIT_LOOKUP, ordered_by_sl1_damage
+from ..sl1 import SL1_HIT_LOOKUP, sl1_ordered_by_melee_damage
 
 rtsr_ladder = "climbing ladder to RTSR"
 new_londo_elevator = "elevator to New Londo Ruins"
@@ -51,25 +51,25 @@ four_kings = "The Four Kings"
 priscilla = "Crossbreed Priscilla"
 slumbering = "Slumbering Dragoncrest Ring"
 
-HUMANOID_HIT_TYPES = ordered_by_sl1_damage(HitType.humanoid_types())
-STANDARD_HIT_TYPES = ordered_by_sl1_damage(HitType.standard_types())
-HUMANOID_HIT_TYPES_2H = ordered_by_sl1_damage(
-    HitType.humanoid_two_handed_types()
+MELEE_HIT_TYPES = sl1_ordered_by_melee_damage(HitType.melee_types())
+BASE_MELEE_HIT_TYPES = sl1_ordered_by_melee_damage(HitType.base_melee_types())
+MELEE_HIT_TYPES_2H = sl1_ordered_by_melee_damage(
+    HitType.melee_two_handed_types()
 )
-STANDARD_HIT_TYPES_2H = ordered_by_sl1_damage(
-    HitType.standard_two_handed_types()
+BASE_MELEE_HIT_TYPES_2H = sl1_ordered_by_melee_damage(
+    HitType.base_melee_two_handed_types()
 )
 
-HUMANOID_ENEMIES_WITHOUT_UPGRADES = [Enemy.BLACK_KNIGHT_DARKROOT_BASIN]
+MELEE_ENEMIES_WITHOUT_UPGRADES = [Enemy.BLACK_KNIGHT_DARKROOT_BASIN]
 ENEMIES_WITH_UPGRADES = [
     Enemy.BELL_GARGOYLES,
     Enemy.QUELAAG,
     Enemy.IRON_GOLEM,
     Enemy.GIANT_BLACKSMITH,
 ]
-HUMANOID_ENEMIES_WITH_UPGRADES = [Enemy.OSWALD, Enemy.PETRUS, Enemy.LAUTREC]
+MELEE_ENEMIES_WITH_UPGRADES = [Enemy.OSWALD, Enemy.PETRUS, Enemy.LAUTREC]
 ENEMIES_MAYBE_WITH_FINAL_WEAPON = [Enemy.MIMIC_OCCULT_CLUB]
-HUMANOID_ENEMIES_MAYBE_WITH_FINAL_WEAPON = [Enemy.DARKMOON_KNIGHTESS]
+MELEE_ENEMIES_MAYBE_WITH_FINAL_WEAPON = [Enemy.DARKMOON_KNIGHTESS]
 
 
 @unique
@@ -1098,33 +1098,33 @@ def exported_routes() -> list[Route]:
             damage_tables=[
                 DamageTable(
                     weapon="Reinforced Club +0",
-                    enemies=HUMANOID_ENEMIES_WITHOUT_UPGRADES,
-                    hit_types=HUMANOID_HIT_TYPES,
+                    enemies=MELEE_ENEMIES_WITHOUT_UPGRADES,
+                    hit_types=MELEE_HIT_TYPES,
                 ),
                 DamageTable(
                     weapon="Reinforced Club +5",
                     enemies=(
                         ENEMIES_WITH_UPGRADES + ENEMIES_MAYBE_WITH_FINAL_WEAPON
                     ),
-                    hit_types=STANDARD_HIT_TYPES,
+                    hit_types=BASE_MELEE_HIT_TYPES,
                 ),
                 DamageTable(
                     weapon="Reinforced Club +5",
                     enemies=(
-                        HUMANOID_ENEMIES_WITH_UPGRADES
-                        + HUMANOID_ENEMIES_MAYBE_WITH_FINAL_WEAPON
+                        MELEE_ENEMIES_WITH_UPGRADES
+                        + MELEE_ENEMIES_MAYBE_WITH_FINAL_WEAPON
                     ),
-                    hit_types=HUMANOID_HIT_TYPES,
+                    hit_types=MELEE_HIT_TYPES,
                 ),
                 DamageTable(
                     weapon="Blacksmith Giant Hammer +5",
                     enemies=ENEMIES_MAYBE_WITH_FINAL_WEAPON,
-                    hit_types=STANDARD_HIT_TYPES_2H,
+                    hit_types=BASE_MELEE_HIT_TYPES_2H,
                 ),
                 DamageTable(
                     weapon="Blacksmith Giant Hammer +5",
-                    enemies=HUMANOID_ENEMIES_MAYBE_WITH_FINAL_WEAPON,
-                    hit_types=HUMANOID_HIT_TYPES_2H,
+                    enemies=MELEE_ENEMIES_MAYBE_WITH_FINAL_WEAPON,
+                    hit_types=MELEE_HIT_TYPES_2H,
                 ),
             ],
         ),
@@ -1148,48 +1148,48 @@ def exported_routes() -> list[Route]:
             damage_tables=[
                 DamageTable(
                     weapon="Hand Axe +0",
-                    enemies=HUMANOID_ENEMIES_WITHOUT_UPGRADES,
-                    hit_types=HUMANOID_HIT_TYPES,
+                    enemies=MELEE_ENEMIES_WITHOUT_UPGRADES,
+                    hit_types=MELEE_HIT_TYPES,
                 ),
                 DamageTable(
                     weapon="Battle Axe +4",
                     enemies=(
                         ENEMIES_WITH_UPGRADES + ENEMIES_MAYBE_WITH_FINAL_WEAPON
                     ),
-                    hit_types=STANDARD_HIT_TYPES,
+                    hit_types=BASE_MELEE_HIT_TYPES,
                 ),
                 DamageTable(
                     weapon="Battle Axe +4",
                     enemies=(
-                        HUMANOID_ENEMIES_WITH_UPGRADES
-                        + HUMANOID_ENEMIES_MAYBE_WITH_FINAL_WEAPON
+                        MELEE_ENEMIES_WITH_UPGRADES
+                        + MELEE_ENEMIES_MAYBE_WITH_FINAL_WEAPON
                     ),
-                    hit_types=HUMANOID_HIT_TYPES,
+                    hit_types=MELEE_HIT_TYPES,
                 ),
                 DamageTable(
                     weapon="Battle Axe +3",
                     enemies=(
                         ENEMIES_WITH_UPGRADES + ENEMIES_MAYBE_WITH_FINAL_WEAPON
                     ),
-                    hit_types=STANDARD_HIT_TYPES,
+                    hit_types=BASE_MELEE_HIT_TYPES,
                 ),
                 DamageTable(
                     weapon="Battle Axe +3",
                     enemies=(
-                        HUMANOID_ENEMIES_WITH_UPGRADES
-                        + HUMANOID_ENEMIES_MAYBE_WITH_FINAL_WEAPON
+                        MELEE_ENEMIES_WITH_UPGRADES
+                        + MELEE_ENEMIES_MAYBE_WITH_FINAL_WEAPON
                     ),
-                    hit_types=HUMANOID_HIT_TYPES,
+                    hit_types=MELEE_HIT_TYPES,
                 ),
                 DamageTable(
                     weapon="Blacksmith Giant Hammer +5",
                     enemies=ENEMIES_MAYBE_WITH_FINAL_WEAPON,
-                    hit_types=STANDARD_HIT_TYPES_2H,
+                    hit_types=BASE_MELEE_HIT_TYPES_2H,
                 ),
                 DamageTable(
                     weapon="Blacksmith Giant Hammer +5",
-                    enemies=HUMANOID_ENEMIES_MAYBE_WITH_FINAL_WEAPON,
-                    hit_types=HUMANOID_HIT_TYPES_2H,
+                    enemies=MELEE_ENEMIES_MAYBE_WITH_FINAL_WEAPON,
+                    hit_types=MELEE_HIT_TYPES_2H,
                 ),
             ],
         ),
@@ -1215,33 +1215,33 @@ def exported_routes() -> list[Route]:
             damage_tables=[
                 DamageTable(
                     weapon="Hand Axe +0",
-                    enemies=HUMANOID_ENEMIES_WITHOUT_UPGRADES,
-                    hit_types=HUMANOID_HIT_TYPES,
+                    enemies=MELEE_ENEMIES_WITHOUT_UPGRADES,
+                    hit_types=MELEE_HIT_TYPES,
                 ),
                 DamageTable(
                     weapon="Battle Axe +4",
                     enemies=(
                         ENEMIES_WITH_UPGRADES + ENEMIES_MAYBE_WITH_FINAL_WEAPON
                     ),
-                    hit_types=STANDARD_HIT_TYPES,
+                    hit_types=BASE_MELEE_HIT_TYPES,
                 ),
                 DamageTable(
                     weapon="Battle Axe +4",
                     enemies=(
-                        HUMANOID_ENEMIES_WITH_UPGRADES
-                        + HUMANOID_ENEMIES_MAYBE_WITH_FINAL_WEAPON
+                        MELEE_ENEMIES_WITH_UPGRADES
+                        + MELEE_ENEMIES_MAYBE_WITH_FINAL_WEAPON
                     ),
-                    hit_types=HUMANOID_HIT_TYPES,
+                    hit_types=MELEE_HIT_TYPES,
                 ),
                 DamageTable(
                     weapon="Blacksmith Giant Hammer +5",
                     enemies=ENEMIES_MAYBE_WITH_FINAL_WEAPON,
-                    hit_types=STANDARD_HIT_TYPES_2H,
+                    hit_types=BASE_MELEE_HIT_TYPES_2H,
                 ),
                 DamageTable(
                     weapon="Blacksmith Giant Hammer +5",
-                    enemies=HUMANOID_ENEMIES_MAYBE_WITH_FINAL_WEAPON,
-                    hit_types=HUMANOID_HIT_TYPES_2H,
+                    enemies=MELEE_ENEMIES_MAYBE_WITH_FINAL_WEAPON,
+                    hit_types=MELEE_HIT_TYPES_2H,
                 ),
             ],
         ),
