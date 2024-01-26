@@ -16,7 +16,7 @@ def main() -> int:
         ]
         if css_files:
             commands.append(["css-beautify", "-nr"] + css_files)
-        commands.extend([["pytest", "."]])
+        commands.append(["pytest", "."])
 
         for command in commands:
             print(f"Running {command[0]}...")
