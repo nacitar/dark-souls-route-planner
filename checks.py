@@ -15,7 +15,7 @@ def main() -> int:
             ["flake8", "."],
         ]
         if css_files:
-            commands.append(["css-beautify", "-r"] + css_files)
+            commands.append(["css-beautify", "-nr"] + css_files)
         commands.extend([["pytest", "."]])
 
         for command in commands:
@@ -24,4 +24,5 @@ def main() -> int:
             print()
     except subprocess.CalledProcessError as e:
         return e.returncode
+    print("All checks completed successfully!")
     return 0
