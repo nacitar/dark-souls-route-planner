@@ -5,7 +5,11 @@ from pathlib import Path
 def main() -> int:
     script_dir = Path(__file__).parent
     css_dir = script_dir / "route_planner" / "styles"
-    css_files = [str(path) for path in css_dir.glob("*.css")]
+    css_files = [
+        str(path.relative_to(script_dir))
+        for path in css_dir.iterdir()
+        if path.suffix.lower() == ".css"
+    ]
 
     try:
         commands = [
