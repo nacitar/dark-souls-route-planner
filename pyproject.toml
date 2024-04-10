@@ -27,7 +27,7 @@ black = {extras = ["jupyter"], version = "^23.12.1"}
 isort = "^5.13.2"
 
 [tool.poetry.scripts]
-checks = 'checks:main'
+checks = "checks:main"
 route-planner = "route_planner.__main__:main"
 
 [build-system]

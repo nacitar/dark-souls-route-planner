@@ -19,7 +19,7 @@ def main() -> int:
             ["flake8", "."],
         ]
         if css_files:
-            commands.append(["css-beautify", "-nr"] + css_files)
+            commands.append(["css-beautify", "-nr", *css_files])
         commands.append(["pytest", "."])
 
         for command in commands:
